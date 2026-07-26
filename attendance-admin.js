@@ -99,6 +99,11 @@ const reloadButton =
 const exportAllCsvButton =
   document.getElementById("exportAllCsv");
 
+const resetAllAttendanceButton =
+  document.getElementById(
+    "resetAllAttendance"
+  );  
+
 const closeDetailButton =
   document.getElementById("closeDetail");
   
@@ -1040,6 +1045,115 @@ function exportAllCsv() {
   );
 }
 
+/* =========================================
+   対象月の全員分出勤簿リセット
+========================================= */
+
+async function resetAllAttendance() {
+  if (!month.value) {
+    alert(
+      "対象月を選択してください"
+    );
+
+    return;
+  }
+
+  const range =
+    getAttendanceRange(
+      month.value
+    );
+
+  const firstConfirmed =
+    window.confirm(
+      `${month.value}の出勤簿データを` +
+      `全員分削除します。\n\n` +
+      `この操作は元に戻せません。\n` +
+      `本当にリセットしますか？`
+    );
+
+  if (!firstConfirmed) {
+    return;
+  }
+
+  const resetText =
+    window.prompt(
+      "最終確認です。\n\n" +
+      "削除する場合は、半角英字で\n" +
+      "RESET\n" +
+      "と入力してください。"
+    );
+
+  if (resetText !== "RESET") {
+    alert(
+      "入力が違うため、リセットを中止しました"
+    );
+
+    return;
+  }
+
+  resetAllAttendanceButton.disabled =
+    true;
+
+  resetAllAttendanceButton.textContent =
+    "リセット中...";
+
+  try {
+    const url =
+      `${SUPABASE_URL}/rest/v1/attendance` +
+      `?work_date=gte.${range.firstDay}` +
+      `&work_date=lt.${range.nextFirstDay}`;
+
+    const response =
+      await portalFetch(
+        url,
+        {
+          method:
+            "DELETE",
+
+          headers: {
+            Prefer:
+              "return=representation"
+          }
+        }
+      );
+
+    if (!response.ok) {
+      const errorText =
+        await response.text();
+
+      console.error(errorText);
+
+      throw new Error(
+        "出勤簿データをリセットできませんでした"
+      );
+    }
+
+    const deletedRows =
+      await response.json();
+
+    alert(
+      `${month.value}の出勤簿を` +
+      `${deletedRows.length}件削除しました`
+    );
+
+    await loadAdminScreen();
+
+  } catch (error) {
+    console.error(error);
+
+    alert(
+      error.message
+    );
+
+  } finally {
+    resetAllAttendanceButton.disabled =
+      false;
+
+    resetAllAttendanceButton.textContent =
+      "対象月の出勤簿を全員分リセット";
+  }
+}
+
 
 /* =========================================
    管理画面全体読込
@@ -1120,6 +1234,11 @@ closeDetailButton.addEventListener(
 exportAllCsvButton.addEventListener(
   "click",
   exportAllCsv
+);
+
+resetAllAttendanceButton.addEventListener(
+  "click",
+  resetAllAttendance
 );
 
 
