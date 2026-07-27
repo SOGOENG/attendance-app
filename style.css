@@ -1936,3 +1936,26 @@ textarea {
     margin-right: 0;
   }
 }
+
+/* =========================================
+   iPhoneの日付・時刻・月入力のはみ出し修正
+========================================= */
+
+input[type="date"],
+input[type="time"],
+input[type="month"] {
+  display: block;
+
+  width: -webkit-fill-available !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+
+  inline-size: -webkit-fill-available !important;
+  max-inline-size: 100% !important;
+  min-inline-size: 0 !important;
+
+  -webkit-appearance: none;
+  appearance: none;
+
+  box-sizing: border-box !important;
+}
