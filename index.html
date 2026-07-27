@@ -21,25 +21,32 @@
 
   <header class="page-header">
 
-  <div>
-    <h1>
-  綜合エンジニアリング㈱
-  <span class="portal-subtitle">
-    Staff Portal
-  </span>
-</h1>
+    <div>
 
-<p>出勤簿 Ver0.1</p>
-  </div>
+      <h1>
+        綜合エンジニアリング㈱
 
-  <a
-    href="home.html"
-    class="home-back-button"
-  >
-    ホームへ戻る
-  </a>
+        <span class="portal-subtitle">
+          Staff Portal
+        </span>
+      </h1>
 
-</header>
+      <p>
+        出勤簿 Ver0.1
+      </p>
+
+    </div>
+
+    <a
+      href="home.html"
+      class="home-back-button"
+    >
+      ホームへ戻る
+    </a>
+
+  </header>
+
+
   <main>
 
     <!-- ==============================
@@ -47,64 +54,76 @@
     ============================== -->
     <section class="card">
 
-      <h2>基本情報</h2>
+      <h2>
+        基本情報
+      </h2>
 
       <label>
+
         部
 
         <select id="department">
+
           <option value="">
             部を選択してください
           </option>
+
         </select>
+
       </label>
 
       <label>
+
         氏名
 
         <select
           id="employee"
           disabled
         >
+
           <option value="">
             先に部を選択してください
           </option>
+
         </select>
+
       </label>
 
       <label>
+
         対象月
 
         <input
           id="month"
           type="month"
         >
+
       </label>
 
       <div class="buttons">
 
-  <button
-    id="makeRows"
-    type="button"
-  >
-    月を表示
-  </button>
+        <button
+          id="makeRows"
+          type="button"
+        >
+          月を表示
+        </button>
 
-  <button
-    id="saveAttendance"
-    type="button"
-  >
-    一時保存
-  </button>
+        <button
+          id="saveAttendance"
+          type="button"
+        >
+          一時保存
+        </button>
 
-  <button
-    id="submitAttendance"
-    type="button"
-  >
-    提出
-  </button>
+        <button
+          id="submitAttendance"
+          type="button"
+        >
+          提出
+        </button>
 
-</div>
+      </div>
 
     </section>
 
@@ -116,7 +135,9 @@
 
       <div class="title">
 
-        <h2>勤務入力</h2>
+        <h2>
+          勤務入力
+        </h2>
 
         <span id="summary">
           0件入力
@@ -149,59 +170,68 @@
 
 
       <!-- 勤務区分 -->
-<label>
-  区分
+      <label>
 
-  <select class="site-type">
+        区分
 
-    <option value="">
-      選択してください
-    </option>
+        <select class="site-type">
 
-    <option value="会社勤務">
-      会社勤務
-    </option>
+          <option value="">
+            選択してください
+          </option>
 
-    <option value="一般">
-      一般
-    </option>
+          <option value="会社勤務">
+            会社勤務
+          </option>
 
-    <option value="雑工事">
-      雑工事
-    </option>
+          <option value="一般">
+            一般
+          </option>
 
-    <option value="休み">
-      休み
-    </option>
+          <option value="雑工事">
+            雑工事
+          </option>
 
-  </select>
-</label>
+          <option value="休み">
+            休み
+          </option>
+
+          <option value="有給奨励日">
+            有給奨励日
+          </option>
+
+        </select>
+
+      </label>
 
 
-<!-- 会社勤務 -->
-<label class="company-work-wrap hidden">
-  勤務内容
+      <!-- 会社勤務 -->
+      <label class="company-work-wrap hidden">
 
-  <select class="company-work">
+        勤務内容
 
-    <option value="">
-      選択してください
-    </option>
+        <select class="company-work">
 
-    <option value="内勤">
-      内勤
-    </option>
+          <option value="">
+            選択してください
+          </option>
 
-    <option value="加工">
-      加工
-    </option>
+          <option value="内勤">
+            内勤
+          </option>
 
-  </select>
-</label>
+          <option value="加工">
+            加工
+          </option>
+
+        </select>
+
+      </label>
 
 
       <!-- 一般現場 -->
       <label class="general-site-wrap hidden">
+
         現場
 
         <select class="general-site">
@@ -211,11 +241,13 @@
           </option>
 
         </select>
+
       </label>
 
 
       <!-- 雑工事会社 -->
       <label class="misc-company-wrap hidden">
+
         雑工事区分
 
         <select class="misc-company">
@@ -245,11 +277,13 @@
           </option>
 
         </select>
+
       </label>
 
 
       <!-- 工事部／技術部 -->
       <label class="misc-department-wrap hidden">
+
         担当部
 
         <select class="misc-department">
@@ -267,11 +301,13 @@
           </option>
 
         </select>
+
       </label>
 
 
       <!-- 雑工事名 -->
       <label class="misc-name-wrap hidden">
+
         雑工事名
 
         <input
@@ -279,21 +315,41 @@
           type="text"
           placeholder="例：市大"
         >
+
       </label>
-      
+
+
+      <!-- 休暇区分 -->
       <label class="leave-type-wrap hidden">
-  現場名
 
-  <select class="leave-type">
-    <option value="">選択してください</option>
-    <option value="休日">休日</option>
-    <option value="有給">有給</option>
-    <option value="代休">代休</option>
-  </select>
-</label>
+        休暇区分
 
-            <!-- 開始時刻 -->
+        <select class="leave-type">
+
+          <option value="">
+            選択してください
+          </option>
+
+          <option value="休日">
+            休日
+          </option>
+
+          <option value="有給">
+            有給
+          </option>
+
+          <option value="代休">
+            代休
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <!-- 開始時刻 -->
       <label>
+
         開始
 
         <input
@@ -301,11 +357,13 @@
           type="time"
           step="1800"
         >
+
       </label>
 
 
       <!-- 終了時刻 -->
       <label>
+
         終了
 
         <input
@@ -313,25 +371,29 @@
           type="time"
           step="1800"
         >
+
       </label>
 
 
       <!-- 備考 -->
       <label>
+
         備考
 
         <input
           class="note"
           type="text"
         >
+
       </label>
 
     </div>
 
   </template>
 
+
   <script src="portal-auth.js"></script>
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=8"></script>
 
 </body>
 

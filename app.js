@@ -810,6 +810,25 @@ function changeSiteType(row) {
   }
 
   /*
+  有給奨励日
+*/
+
+if (siteType === "有給奨励日") {
+  row.classList.add("leave-day");
+
+  companyWorkSelect.value = "";
+  leaveTypeSelect.value = "";
+
+  startSelect.value = "";
+  endSelect.value = "";
+
+  startSelect.disabled = true;
+  endSelect.disabled = true;
+
+  return;
+}
+
+  /*
     休み
   */
 
@@ -1118,12 +1137,13 @@ function renderRows() {
       */
 
       if (
-        holiday &&
-        (
-          holiday.day_type === "休日" ||
-          holiday.day_type === "祝日"
-        )
-      ) {
+  holiday &&
+  (
+    holiday.day_type === "休日" ||
+    holiday.day_type === "祝日" ||
+    holiday.day_type === "有給奨励日"
+  )
+) {
         row.classList.add(
           "company-holiday"
         );
@@ -1159,31 +1179,48 @@ function renderRows() {
       );
 
        /*
-  会社カレンダーが休日・祝日の場合は、
-  自動で「休み・休日」を設定する
+  /*
+  会社カレンダーを出勤簿へ自動反映する
+
+  休日・祝日
+  → 休み／休日
+
+  有給奨励日
+  → 休み／有給
 */
 
-if (
-  holiday &&
-  (
+if (holiday) {
+  const siteTypeSelect =
+    row.querySelector(".site-type");
+
+  const leaveTypeSelect =
+    row.querySelector(".leave-type");
+
+  if (
     holiday.day_type === "休日" ||
     holiday.day_type === "祝日"
-  )
+  ) {
+    siteTypeSelect.value =
+      "休み";
+
+    leaveTypeSelect.value =
+      "休日";
+
+    changeSiteType(row);
+  }
+
+  if (
+  holiday.day_type ===
+  "有給奨励日"
 ) {
-  row
-    .querySelector(".site-type")
-    .value = "休み";
+  siteTypeSelect.value =
+    "有給奨励日";
 
-  row
-    .querySelector(".leave-type")
-    .value = "休日";
-
-  /*
-    休暇区分を表示し、
-    開始・終了を空欄かつ操作不可にする
-  */
+  leaveTypeSelect.value =
+    "";
 
   changeSiteType(row);
+}
 }
 
       /*
@@ -1778,6 +1815,19 @@ function restoreAttendanceRow(
       item.misc_name || "";
   }
 
+/* 有給奨励日 */
+if (
+  item.site_type ===
+  "有給奨励日"
+) {
+  row
+    .querySelector(".site-type")
+    .value =
+    "有給奨励日";
+
+  changeSiteType(row);
+}
+
   /* 休み */
   if (
     item.site_type === "休み"
@@ -1787,8 +1837,25 @@ function restoreAttendanceRow(
       .value =
       item.leave_type || "";
   }
+  
 
-    /* 時間 */
+  /* 時間 */
+
+if (
+  item.site_type ===
+  "有給奨励日"
+) {
+  row
+    .querySelector(".start")
+    .value =
+    "";
+
+  row
+    .querySelector(".end")
+    .value =
+    "";
+
+} else {
   row
     .querySelector(".start")
     .value =
@@ -1802,6 +1869,7 @@ function restoreAttendanceRow(
     normalizeTimeValue(
       item.end_time
     );
+}
 
   /* 備考 */
   row
