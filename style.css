@@ -1959,3 +1959,36 @@ input[type="month"] {
 
   box-sizing: border-box !important;
 }
+
+/* iPhoneの日付・時刻入力のはみ出し対策 */
+input[type="date"],
+input[type="time"],
+input[type="month"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* フォーム内の入力欄を確実にカード内へ収める */
+.form-group,
+.form-field,
+.admin-form-label,
+label {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* iPhone Safari用 */
+@media (max-width: 600px) {
+  input[type="date"],
+  input[type="time"],
+  input[type="month"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}
