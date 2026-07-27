@@ -1809,3 +1809,19 @@ body {
   color: #1f2937;
 }
 
+/* =========================================
+   iPhoneの日付・時刻入力だけ幅を補正
+========================================= */
+
+@supports (-webkit-touch-callout: none) {
+
+  input[type="date"],
+  input[type="time"],
+  input[type="month"] {
+    display: block;
+    width: calc(100% - 44px);
+    max-width: calc(100% - 44px);
+    min-width: 0;
+    box-sizing: border-box;
+  }
+}
