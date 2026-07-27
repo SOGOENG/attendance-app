@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    現場設定｜綜合エンジニアリング㈱
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css?v=7"
+  >
+</head>
+
+
+<body>
+
+  <main class="admin-home-page">
+
+    <!-- ==============================
+         ヘッダー
+    ============================== -->
+    <header class="admin-home-header">
+
+      <div class="admin-home-header-text">
+
+        <h1>
+          綜合エンジニアリング㈱
+
+          <span class="admin-home-portal-title">
+            Staff Portal
+          </span>
+        </h1>
+
+        <p>
+          現場設定
+        </p>
+
+      </div>
+
+      <a
+        href="settings-admin.html"
+        class="admin-home-back-button"
+      >
+        設定へ戻る
+      </a>
+
+    </header>
+
+
+    <!-- ==============================
+         検索・新規登録
+    ============================== -->
+    <section class="admin-section-card">
+
+      <h2>
+        現場一覧
+      </h2>
+
+      <div class="admin-action-buttons">
+
+        <button
+          id="newSiteButton"
+          type="button"
+          class="admin-primary-button"
+        >
+          新規現場登録
+        </button>
+
+      </div>
+
+      <label class="admin-form-label">
+
+        現場名検索
+
+        <input
+          id="siteSearchInput"
+          type="search"
+          class="admin-form-control"
+          placeholder="表示名・正式名称・工事番号など"
+        >
+
+      </label>
+
+      <label class="admin-form-label">
+
+        表示状態
+
+        <select
+          id="siteVisibleFilter"
+          class="admin-form-control"
+        >
+
+          <option value="all">
+            すべて
+          </option>
+
+          <option value="true">
+            表示中
+          </option>
+
+          <option value="false">
+            非表示
+          </option>
+
+        </select>
+
+      </label>
+
+      <label class="admin-form-label">
+
+        現場種別
+
+        <select
+          id="siteTypeFilter"
+          class="admin-form-control"
+        >
+
+          <option value="all">
+            すべて
+          </option>
+
+          <option value="一般">
+            一般
+          </option>
+
+          <option value="雑工事">
+            雑工事
+          </option>
+
+        </select>
+
+      </label>
+
+      <p
+        id="siteMessage"
+        class="schedule-message"
+      ></p>
+
+    </section>
+
+
+    <!-- ==============================
+         現場一覧
+    ============================== -->
+    <section class="admin-section-card">
+
+      <div id="siteList">
+
+        <p class="schedule-empty-message">
+          現場情報を読み込み中...
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==============================
+         新規登録・編集
+    ============================== -->
+    <section
+      id="siteEditSection"
+      class="admin-section-card"
+      hidden
+    >
+
+      <h2 id="siteFormTitle">
+        現場情報の修正
+      </h2>
+
+      <input
+        id="editingSiteId"
+        type="hidden"
+        value=""
+      >
+
+      <label class="admin-form-label">
+
+        表示順
+
+        <input
+          id="siteDisplayOrder"
+          type="number"
+          class="admin-form-control"
+          min="1"
+          step="1"
+        >
+
+      </label>
+
+      <label class="admin-form-label">
+
+        表示名
+
+        <input
+          id="siteDisplayName"
+          type="text"
+          class="admin-form-control"
+          placeholder="例：トヨタスポーツ"
+        >
+
+      </label>
+
+      <label class="admin-form-label">
+
+        入力コード
+
+        <input
+          id="siteInputCode"
+          type="text"
+          class="admin-form-control"
+          placeholder="例：S001"
+        >
+
+      </label>
+
+      <label class="admin-form-label">
+
+        工事番号
+
+        <input
+          id="siteConstructionNo"
+          type="text"
+          class="admin-form-control"
+          placeholder="例：11-24-004"
+        >
+
+      </label>
+
+      <label class="admin-form-label">
+
+        元請コード
+
+        <input
+          id="siteClientCode"
+          type="text"
+          class="admin-form-control"
+          placeholder="例：S"
+        >
+
+      </label>
+
+      <label class="admin-form-label">
+
+        元請名
+
+        <input
+          id="siteClientName"
+          type="text"
+          class="admin-form-control"
+          placeholder="例：三機工業"
+        >
+
+      </label>
+
+      <label class="admin-form-label">
+
+        正式名称
+
+        <input
+          id="siteOfficialName"
+          type="text"
+          class="admin-form-control"
+          placeholder="正式な工事名称"
+        >
+
+      </label>
+
+      <label class="admin-form-label">
+
+        表示状態
+
+        <select
+          id="siteVisible"
+          class="admin-form-control"
+        >
+
+          <option value="true">
+            表示中
+          </option>
+
+          <option value="false">
+            非表示
+          </option>
+
+        </select>
+
+      </label>
+
+      <label class="admin-form-label">
+
+        現場種別
+
+        <select
+          id="siteType"
+          class="admin-form-control"
+        >
+
+          <option value="一般">
+            一般
+          </option>
+
+          <option value="雑工事">
+            雑工事
+          </option>
+
+        </select>
+
+      </label>
+
+      <div class="admin-action-buttons">
+
+        <button
+          id="saveSiteButton"
+          type="button"
+          class="admin-primary-button"
+        >
+          保存する
+        </button>
+
+        <button
+          id="cancelSiteEditButton"
+          type="button"
+          class="admin-secondary-button"
+        >
+          編集をやめる
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script src="portal-auth.js"></script>
+  <script src="site-admin.js?v=1"></script>
+
+</body>
+
+</html>

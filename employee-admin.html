@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    社員設定｜綜合エンジニアリング㈱
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css?v=7"
+  >
+</head>
+
+
+<body>
+
+  <main class="admin-home-page">
+
+    <!-- ==============================
+         ヘッダー
+    ============================== -->
+    <header class="admin-home-header">
+
+      <div class="admin-home-header-text">
+
+        <h1>
+          綜合エンジニアリング㈱
+
+          <span class="admin-home-portal-title">
+            Staff Portal
+          </span>
+        </h1>
+
+        <p>
+          社員設定
+        </p>
+
+      </div>
+
+      <a
+        href="settings-admin.html"
+        class="admin-home-back-button"
+      >
+        設定へ戻る
+      </a>
+
+    </header>
+
+
+    <!-- ==============================
+         絞り込み
+    ============================== -->
+    <section class="admin-section-card">
+
+      <h2>
+        社員一覧
+      </h2>
+
+      <div class="admin-action-buttons">
+
+  <button
+    id="newEmployeeButton"
+    type="button"
+    class="admin-primary-button"
+  >
+    新規社員登録
+  </button>
+
+</div>
+
+      <label class="admin-form-label">
+
+        部署で絞り込み
+
+        <select
+          id="employeeDepartmentFilter"
+          class="admin-form-control"
+        >
+
+          <option value="all">
+            全部署
+          </option>
+
+          <option value="工事部">
+            工事部
+          </option>
+
+          <option value="技術部">
+            技術部
+          </option>
+
+          <option value="営業">
+            営業
+          </option>
+
+          <option value="総務">
+            総務
+          </option>
+
+        </select>
+
+      </label>
+
+      <label class="admin-form-label">
+
+        氏名検索
+
+        <input
+          id="employeeNameSearch"
+          type="search"
+          class="admin-form-control"
+          placeholder="氏名を入力"
+        >
+
+      </label>
+
+      <p
+        id="employeeMessage"
+        class="schedule-message"
+      ></p>
+
+    </section>
+
+
+    <!-- ==============================
+         社員カード一覧
+    ============================== -->
+    <section class="admin-section-card">
+
+      <div id="employeeList">
+
+        <p class="schedule-empty-message">
+          社員情報を読み込み中...
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- ==============================
+         編集画面
+    ============================== -->
+    <section
+      id="employeeEditSection"
+      class="admin-section-card"
+      hidden
+    >
+
+      <h2 id="employeeFormTitle">
+        社員情報の修正
+     </h2>
+
+      <input
+        id="editingEmployeeId"
+        type="hidden"
+        value=""
+      >
+
+      <label class="admin-form-label">
+
+        氏名
+
+        <input
+          id="employeeName"
+          type="text"
+          class="admin-form-control"
+        >
+
+      </label>
+
+      <label class="admin-form-label">
+
+        部署
+
+        <select
+          id="employeeDepartment"
+          class="admin-form-control"
+        >
+
+          <option value="工事部">
+            工事部
+          </option>
+
+          <option value="技術部">
+            技術部
+          </option>
+
+          <option value="営業">
+            営業
+          </option>
+
+          <option value="総務">
+            総務
+          </option>
+
+        </select>
+
+      </label>
+
+      <label class="admin-form-label">
+
+        使用状態
+
+        <select
+          id="employeeActive"
+          class="admin-form-control"
+        >
+
+          <option value="true">
+            使用中
+          </option>
+
+          <option value="false">
+            使用停止
+          </option>
+
+        </select>
+
+      </label>
+
+      <label class="admin-form-label">
+
+        管理者権限
+
+        <select
+          id="employeeAdminScope"
+          class="admin-form-control"
+        >
+
+          <option value="none">
+            管理者権限なし
+          </option>
+
+          <option value="all">
+            全体管理者
+          </option>
+
+          <option value="工事部">
+            工事部のみ
+          </option>
+
+          <option value="技術部">
+            技術部のみ
+          </option>
+
+          <option value="営業">
+            営業のみ
+          </option>
+
+          <option value="総務">
+            総務のみ
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <label class="admin-form-label">
+
+        出勤簿対象
+
+        <select
+          id="employeeAttendanceRequired"
+          class="admin-form-control"
+        >
+
+          <option value="true">
+            対象
+          </option>
+
+          <option value="false">
+            対象外
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <label class="admin-form-label">
+
+        向上提案対象
+
+        <select
+          id="employeeImprovementRequired"
+          class="admin-form-control"
+        >
+
+          <option value="true">
+            対象
+          </option>
+
+          <option value="false">
+            対象外
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <label class="admin-form-label">
+
+        ヒヤリハット対象
+
+        <select
+          id="employeeNearMissRequired"
+          class="admin-form-control"
+        >
+
+          <option value="true">
+            対象
+          </option>
+
+          <option value="false">
+            対象外
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <div class="admin-action-buttons">
+
+        <button
+          id="saveEmployeeButton"
+          type="button"
+          class="admin-primary-button"
+        >
+          保存する
+        </button>
+
+        <button
+          id="cancelEmployeeEditButton"
+          type="button"
+          class="admin-secondary-button"
+        >
+          編集をやめる
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script src="portal-auth.js"></script>
+  <script src="employee-admin.js?v=7"></script>
+
+</body>
+
+</html>

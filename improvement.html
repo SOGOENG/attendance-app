@@ -42,6 +42,27 @@
     .submission-status-message.hidden {
       display: none;
     }
+    /* 未提出 */
+.submission-status-message.not-submitted {
+  color: #475569;
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+/* 一時保存 */
+.submission-status-message.draft {
+  color: #92400e;
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+
+/* 提出済み */
+.submission-status-message.submitted {
+  color: #166534;
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
   </style>
 </head>
 
@@ -143,6 +164,13 @@
         この向上提案は提出済みです
       </p>
 
+    <!-- ==============================
+         通知・エラー表示
+    ============================== -->
+    <div
+      id="messageBox"
+      class="form-message hidden"
+    ></div>
 
       <!-- 今月のテーマ表示 -->
       <div class="improvement-theme-box">
@@ -162,13 +190,7 @@
     </section>
 
 
-    <!-- ==============================
-         通知・エラー表示
-    ============================== -->
-    <div
-      id="messageBox"
-      class="form-message hidden"
-    ></div>
+   
 
 
     <!-- ==============================
@@ -430,6 +452,88 @@
 
     </form>
 
+    <!-- ==============================
+     過去の向上提案
+============================== -->
+<section class="improvement-form-card">
+
+  <h2
+    style="
+      margin: 0 0 16px;
+      color: #0f172a;
+      font-size: 18px;
+    "
+  >
+    過去の向上提案
+  </h2>
+
+  <div
+    id="improvementHistoryList"
+    style="
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    "
+  >
+    <p
+      style="
+        margin: 0;
+        color: #64748b;
+        text-align: center;
+      "
+    >
+      読み込み中...
+    </p>
+  </div>
+
+</section>
+
+
+<!-- ==============================
+     過去の提出内容
+============================== -->
+<section
+  id="improvementHistoryDetail"
+  class="improvement-form-card hidden"
+>
+
+  <div
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    "
+  >
+
+    <h2
+      id="improvementHistoryDetailTitle"
+      style="
+        margin: 0;
+        color: #0f172a;
+        font-size: 18px;
+      "
+    >
+      過去の提出内容
+    </h2>
+
+    <button
+      id="improvementHistoryClose"
+      type="button"
+      class="secondary-action-button"
+    >
+      閉じる
+    </button>
+
+  </div>
+
+  <div
+    id="improvementHistoryDetailContent"
+  ></div>
+
+</section>
+
   </main>
 
 
@@ -455,7 +559,7 @@
 
 
   <script src="portal-auth.js"></script>
-  <script src="improvement.js?v=3"></script>
+  <script src="improvement.js?v=5"></script>
 
 </body>
 </html>

@@ -10,7 +10,7 @@
   >
 
   <title>
-    工事部ポータル - 管理画面
+    設定｜綜合エンジニアリング㈱
   </title>
 
   <link
@@ -40,35 +40,36 @@
         </h1>
 
         <p>
-          管理者メニュー
+          設定
         </p>
 
       </div>
 
       <a
-        href="home.html"
+        href="admin.html"
         class="admin-home-back-button"
       >
-        ホームへ戻る
+        管理メニューへ戻る
       </a>
 
     </header>
 
 
     <!-- ==============================
-         管理メニュー
+         設定メニュー
     ============================== -->
     <section class="admin-menu-section">
 
       <h2>
-        管理メニュー
+        設定メニュー
       </h2>
 
       <div class="admin-menu-list">
 
-        <!-- 出勤簿管理 -->
+
+        <!-- 社員設定 -->
         <a
-          href="attendance-admin.html"
+          href="employee-admin.html"
           class="admin-menu-card"
         >
 
@@ -79,7 +80,7 @@
               aria-hidden="true"
             >
               <path
-                d="M9 5h6m-7 4h8m-8 4h8m-8 4h5M9 3h6l1 2h3v16H5V5h3l1-2Z"
+                d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9v-2a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v2H5Zm14-9v6m-3-3h6"
               />
             </svg>
 
@@ -88,11 +89,11 @@
           <div class="admin-menu-card-text">
 
             <h3>
-              出勤簿管理
+              社員設定
             </h3>
 
             <p>
-              提出状況の確認・CSV出力
+              新規登録・情報修正・使用停止
             </p>
 
           </div>
@@ -104,9 +105,9 @@
         </a>
 
 
-        <!-- 向上提案管理 -->
+        <!-- 現場設定 -->
         <a
-          href="improvement-admin.html"
+          href="site-admin.html"
           class="admin-menu-card"
         >
 
@@ -117,7 +118,7 @@
               aria-hidden="true"
             >
               <path
-                d="M9 18h6m-5 3h4M8.5 14.5C7 13.4 6 11.7 6 9.5a6 6 0 1 1 12 0c0 2.2-1 3.9-2.5 5-1 .8-1.5 1.6-1.5 2.5h-4c0-.9-.5-1.7-1.5-2.5Z"
+                d="M4 21V7l8-4 8 4v14H4Zm4-4h8m-8-4h8m-8-4h8"
               />
             </svg>
 
@@ -126,11 +127,11 @@
           <div class="admin-menu-card-text">
 
             <h3>
-              向上提案管理
+              現場設定
             </h3>
 
             <p>
-              提出確認・内容修正・CSV出力
+              現場の追加・修正・使用停止
             </p>
 
           </div>
@@ -142,9 +143,9 @@
         </a>
 
 
-        <!-- ヒヤリハット管理 -->
+        <!-- 休日設定 -->
         <a
-          href="near-miss-admin.html"
+          href="holiday-admin.html"
           class="admin-menu-card"
         >
 
@@ -155,7 +156,7 @@
               aria-hidden="true"
             >
               <path
-                d="M12 3 2.8 20h18.4L12 3Zm0 6v5m0 3v.1"
+                d="M6 3v3m12-3v3M4 8h16v12H4V8Zm4 4h3m2 0h3m-8 4h3"
               />
             </svg>
 
@@ -164,11 +165,11 @@
           <div class="admin-menu-card-text">
 
             <h3>
-              ヒヤリハット管理
+              休日設定
             </h3>
 
             <p>
-              提出内容の確認・CSV出力
+              会社休日の登録・修正
             </p>
 
           </div>
@@ -178,86 +179,11 @@
           </span>
 
         </a>
-
-
-        <!-- 予定管理 -->
-        <a
-          href="schedule-admin.html"
-          class="admin-menu-card"
-        >
-
-          <div class="admin-menu-card-icon">
-
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M6 3v3m12-3v3M4 8h16v12H4V8Zm4 4h3m2 0h3m-8 4h3m2 0h3"
-              />
-            </svg>
-
-          </div>
-
-          <div class="admin-menu-card-text">
-
-            <h3>
-              予定管理
-            </h3>
-
-            <p>
-              社内予定の登録・編集・削除
-            </p>
-
-          </div>
-
-          <span class="admin-menu-card-arrow">
-            〉
-          </span>
-
-        </a>
-      <!-- 設定 -->
-<a
-  href="settings-admin.html"
-  class="admin-menu-card"
->
-
-  <div class="admin-menu-card-icon">
-
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <path
-        d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Zm8.4 3.5c0-.5-.1-1-.2-1.5l2-1.6-2-3.4-2.5 1a8.7 8.7 0 0 0-2.6-1.5L14.7 2h-4l-.4 3a8.7 8.7 0 0 0-2.6 1.5l-2.5-1-2 3.4 2 1.6A8 8 0 0 0 5 12c0 .5.1 1 .2 1.5l-2 1.6 2 3.4 2.5-1a8.7 8.7 0 0 0 2.6 1.5l.4 3h4l.4-3a8.7 8.7 0 0 0 2.6-1.5l2.5 1 2-3.4-2-1.6c.1-.5.2-1 .2-1.5Z"
-      />
-    </svg>
-
-  </div>
-
-  <div class="admin-menu-card-text">
-
-    <h3>
-      設定
-    </h3>
-
-    <p>
-      社員・現場・休日・権限などの管理
-    </p>
-
-  </div>
-
-  <span class="admin-menu-card-arrow">
-    〉
-  </span>
-
-</a>  
 
       </div>
 
     </section>
 
-    
   </main>
 
 

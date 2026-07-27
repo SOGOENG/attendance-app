@@ -111,6 +111,31 @@ const loadingMessage =
     "loadingMessage"
   );
 
+const improvementHistoryList =
+  document.getElementById(
+    "improvementHistoryList"
+  );
+
+const improvementHistoryDetail =
+  document.getElementById(
+    "improvementHistoryDetail"
+  );
+
+const improvementHistoryDetailTitle =
+  document.getElementById(
+    "improvementHistoryDetailTitle"
+  );
+
+const improvementHistoryDetailContent =
+  document.getElementById(
+    "improvementHistoryDetailContent"
+  );
+
+const improvementHistoryClose =
+  document.getElementById(
+    "improvementHistoryClose"
+  );
+
 
 /* =========================================
    現在使用中のデータ
@@ -121,6 +146,8 @@ let loginUser = null;
 let currentSetting = null;
 
 let currentRecord = null;
+
+let improvementHistoryRecords = [];
 
 
 /* =========================================
@@ -264,27 +291,43 @@ function hideMessage() {
    提出状態表示
 ========================================= */
 
-function showSubmittedStatus() {
+function showSubmissionStatus(
+  status
+) {
   if (!submissionStatusMessage) {
+    return;
+  }
+
+  submissionStatusMessage.className =
+    "submission-status-message";
+
+  if (status === "submitted") {
+    submissionStatusMessage.textContent =
+      "🟢 提出済みです。下に提出した内容を表示しています。";
+
+    submissionStatusMessage.classList.add(
+      "submitted"
+    );
+
+    return;
+  }
+
+  if (status === "draft") {
+    submissionStatusMessage.textContent =
+      "🟡 一時保存済みです。まだ提出されていません。";
+
+    submissionStatusMessage.classList.add(
+      "draft"
+    );
+
     return;
   }
 
   submissionStatusMessage.textContent =
-    "この向上提案は提出済みです";
-
-  submissionStatusMessage.classList.remove(
-    "hidden"
-  );
-}
-
-
-function hideSubmittedStatus() {
-  if (!submissionStatusMessage) {
-    return;
-  }
+    "⚪ まだ提出されていません。";
 
   submissionStatusMessage.classList.add(
-    "hidden"
+    "not-submitted"
   );
 }
 
@@ -538,7 +581,9 @@ function displayScreenData() {
 ========================================= */
 
 async function loadExistingImprovement() {
-  hideSubmittedStatus();
+  showSubmissionStatus(
+  "not_submitted"
+);
 
   unlockForm();
 
@@ -614,7 +659,9 @@ async function loadExistingImprovement() {
     currentRecord.status ===
     "submitted"
   ) {
-    showSubmittedStatus();
+    showSubmissionStatus(
+  "submitted"
+);
 
     lockForm();
 
@@ -626,6 +673,345 @@ async function loadExistingImprovement() {
   }
 }
 
+/* =========================================
+   過去の向上提案取得
+========================================= */
+
+async function loadImprovementHistory() {
+  improvementHistoryRecords = [];
+
+  const department =
+    encodeURIComponent(
+      loginUser.department || ""
+    );
+
+  const employeeName =
+    encodeURIComponent(
+      loginUser.name || ""
+    );
+
+  const url =
+    `${SUPABASE_URL}/rest/v1/improvements` +
+    `?select=*` +
+    `&department=eq.${department}` +
+    `&employee_name=eq.${employeeName}` +
+    `&status=eq.submitted` +
+    `&order=target_month.desc`;
+
+  const response =
+    await portalFetch(url);
+
+  if (!response.ok) {
+    const errorText =
+      await response.text();
+
+    console.error(errorText);
+
+    throw new Error(
+      "過去の向上提案を読み込めませんでした"
+    );
+  }
+
+  improvementHistoryRecords =
+    await response.json();
+}
+
+/* =========================================
+   提出日時表示
+========================================= */
+
+function formatSubmissionDateTime(
+  dateText
+) {
+  if (!dateText) {
+    return "提出日時不明";
+  }
+
+  const date =
+    new Date(dateText);
+
+  return (
+    `${date.getFullYear()}年` +
+    `${date.getMonth() + 1}月` +
+    `${date.getDate()}日 ` +
+    `${String(date.getHours()).padStart(2, "0")}:` +
+    `${String(date.getMinutes()).padStart(2, "0")}`
+  );
+}
+
+
+/* =========================================
+   過去の向上提案一覧表示
+========================================= */
+
+function displayImprovementHistory() {
+  improvementHistoryList.innerHTML = "";
+
+  if (
+    improvementHistoryRecords.length === 0
+  ) {
+    const emptyMessage =
+      document.createElement("p");
+
+    emptyMessage.textContent =
+      "過去に提出した向上提案はありません。";
+
+    emptyMessage.style.margin =
+      "0";
+
+    emptyMessage.style.color =
+      "#64748b";
+
+    emptyMessage.style.textAlign =
+      "center";
+
+    improvementHistoryList.appendChild(
+      emptyMessage
+    );
+
+    return;
+  }
+
+  improvementHistoryRecords.forEach(
+    record => {
+      const button =
+        document.createElement("button");
+
+      button.type =
+        "button";
+
+      button.style.width =
+        "100%";
+
+      button.style.padding =
+        "13px 14px";
+
+      button.style.display =
+        "flex";
+
+      button.style.justifyContent =
+        "space-between";
+
+      button.style.alignItems =
+        "center";
+
+      button.style.gap =
+        "12px";
+
+      button.style.color =
+        "#0f172a";
+
+      button.style.background =
+        "#f8fafc";
+
+      button.style.border =
+        "1px solid #e2e8f0";
+
+      button.style.borderRadius =
+        "10px";
+
+      button.style.cursor =
+        "pointer";
+
+      const monthText =
+        document.createElement("strong");
+
+      monthText.textContent =
+        formatTargetMonth(
+          record.target_month
+        );
+
+      const viewText =
+        document.createElement("span");
+
+      viewText.textContent =
+        "内容を見る 〉";
+
+      viewText.style.color =
+        "#2563eb";
+
+      viewText.style.fontWeight =
+        "700";
+
+      button.appendChild(
+        monthText
+      );
+
+      button.appendChild(
+        viewText
+      );
+
+      button.addEventListener(
+        "click",
+        () => {
+          showImprovementHistoryDetail(
+            record
+          );
+        }
+      );
+
+      improvementHistoryList.appendChild(
+        button
+      );
+    }
+  );
+}
+
+
+/* =========================================
+   過去の提出内容へ項目追加
+========================================= */
+
+function addHistoryDetailItem(
+  label,
+  value
+) {
+  const item =
+    document.createElement("div");
+
+  item.style.marginBottom =
+    "12px";
+
+  item.style.padding =
+    "13px 14px";
+
+  item.style.background =
+    "#f8fafc";
+
+  item.style.border =
+    "1px solid #e2e8f0";
+
+  item.style.borderRadius =
+    "10px";
+
+  const labelElement =
+    document.createElement("strong");
+
+  labelElement.textContent =
+    label;
+
+  labelElement.style.display =
+    "block";
+
+  labelElement.style.marginBottom =
+    "6px";
+
+  labelElement.style.color =
+    "#475569";
+
+  labelElement.style.fontSize =
+    "13px";
+
+  const valueElement =
+    document.createElement("p");
+
+  valueElement.textContent =
+    value || "未入力";
+
+  valueElement.style.margin =
+    "0";
+
+  valueElement.style.color =
+    "#0f172a";
+
+  valueElement.style.lineHeight =
+    "1.7";
+
+  valueElement.style.whiteSpace =
+    "pre-wrap";
+
+  valueElement.style.overflowWrap =
+    "anywhere";
+
+  item.appendChild(
+    labelElement
+  );
+
+  item.appendChild(
+    valueElement
+  );
+
+  improvementHistoryDetailContent.appendChild(
+    item
+  );
+}
+
+
+/* =========================================
+   過去の提出内容表示
+========================================= */
+
+function showImprovementHistoryDetail(
+  record
+) {
+  improvementHistoryDetailContent.innerHTML =
+    "";
+
+  improvementHistoryDetailTitle.textContent =
+    `${formatTargetMonth(record.target_month)}の提出内容`;
+
+  addHistoryDetailItem(
+    "提出日時",
+    formatSubmissionDateTime(
+      record.submitted_at
+    )
+  );
+
+  addHistoryDetailItem(
+    "今月のテーマ",
+    record.monthly_theme
+  );
+
+  addHistoryDetailItem(
+    "今月のテーマへの回答",
+    record.monthly_theme_answer
+  );
+
+  addHistoryDetailItem(
+    `テーマ①　${record.theme1_category || ""}`,
+    record.theme1_body
+  );
+
+  addHistoryDetailItem(
+    `テーマ②　${record.theme2_category || ""}`,
+    record.theme2_body
+  );
+
+  addHistoryDetailItem(
+    `テーマ③　${record.theme3_category || ""}`,
+    record.theme3_body
+  );
+
+  improvementHistoryDetail.classList.remove(
+    "hidden"
+  );
+
+  improvementHistoryDetail.scrollIntoView({
+    behavior:
+      "smooth",
+
+    block:
+      "start"
+  });
+}
+
+/* =========================================
+   過去の提出内容を閉じる
+========================================= */
+
+function closeImprovementHistoryDetail() {
+  improvementHistoryDetail.classList.add(
+    "hidden"
+  );
+
+  improvementHistoryList.scrollIntoView({
+    behavior:
+      "smooth",
+
+    block:
+      "start"
+  });
+}
 
 /* =========================================
    保存用データ作成
@@ -834,7 +1220,9 @@ async function handleDraftSave() {
       "draft"
     );
 
-    hideSubmittedStatus();
+    showSubmissionStatus(
+  "not_submitted"
+);
 
     unlockForm();
 
@@ -905,7 +1293,9 @@ async function handleSubmit(
       "submitted"
     );
 
-    showSubmittedStatus();
+    showSubmissionStatus(
+  "submitted"
+);
 
     lockForm();
 
@@ -962,6 +1352,10 @@ async function initializeImprovementPage() {
 
     await loadExistingImprovement();
 
+    await loadImprovementHistory();
+
+    displayImprovementHistory();
+
   } catch (error) {
     console.error(error);
 
@@ -996,6 +1390,11 @@ draftButton.addEventListener(
 improvementForm.addEventListener(
   "submit",
   handleSubmit
+);
+
+improvementHistoryClose.addEventListener(
+  "click",
+  closeImprovementHistoryDetail
 );
 
 
