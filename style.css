@@ -1810,18 +1810,26 @@ body {
 }
 
 /* =========================================
-   iPhoneの日付・時刻入力の幅を統一
+   iPhoneの日付・時刻入力を親幅に合わせる
 ========================================= */
 
 @supports (-webkit-touch-callout: none) {
+
+  .day-row > label,
+  .near-miss-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
 
   input[type="date"],
   input[type="time"],
   input[type="month"] {
     display: block;
-    width: 100%;
-    max-width: 100%;
+    width: auto;
+    max-width: none;
     min-width: 0;
+    align-self: stretch;
     box-sizing: border-box;
   }
 }
