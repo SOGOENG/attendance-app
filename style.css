@@ -1810,7 +1810,7 @@ body {
 }
 
 /* =========================================
-   iPhoneの日付・時刻入力だけ幅を補正
+   iPhoneの日付・時刻入力の幅を統一
 ========================================= */
 
 @supports (-webkit-touch-callout: none) {
@@ -1819,8 +1819,8 @@ body {
   input[type="time"],
   input[type="month"] {
     display: block;
-    width: calc(100% - 44px);
-    max-width: calc(100% - 44px);
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
   }
