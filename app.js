@@ -298,20 +298,41 @@ function selectedEmployeeName() {
 ========================================= */
 
 function currentMonth() {
-  const date = new Date();
+  const today =
+    new Date();
 
-  const year =
-    date.getFullYear();
+  let year =
+    today.getFullYear();
 
-  const monthValue =
-    String(
-      date.getMonth() + 1
-    ).padStart(
+  let monthValue =
+    today.getMonth() + 1;
+
+  /*
+    20日締めのため、
+    21日以降は翌月分を表示する
+  */
+  if (
+    today.getDate() >
+    CLOSING_DAY
+  ) {
+    monthValue += 1;
+
+    if (monthValue === 13) {
+      monthValue = 1;
+      year += 1;
+    }
+  }
+
+  const formattedMonth =
+    String(monthValue).padStart(
       2,
       "0"
     );
 
-  return `${year}-${monthValue}`;
+  return (
+    `${year}-` +
+    `${formattedMonth}`
+  );
 }
 
 
