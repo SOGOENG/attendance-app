@@ -1833,3 +1833,28 @@ body {
     box-sizing: border-box;
   }
 }
+
+/* =========================================
+   Push通知ボタン
+========================================= */
+
+.push-notification-button {
+  margin-top: 10px;
+  padding: 9px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.push-notification-button:hover {
+  background: #f8fafc;
+}
+
+.push-notification-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

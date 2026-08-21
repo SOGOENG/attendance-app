@@ -684,3 +684,127 @@ if (deliveryCalendarLink) {
       openGoogleCalendar
     );
 }
+
+/* =========================================
+   Push通知 ON / OFF
+========================================= */
+
+const pushNotificationButton =
+  document.getElementById(
+    "pushNotificationButton"
+  );
+
+
+async function updatePushNotificationButton() {
+  if (!pushNotificationButton) {
+    return;
+  }
+
+  if (
+    typeof window.isPushSupported !==
+      "function" ||
+    !window.isPushSupported()
+  ) {
+    pushNotificationButton.textContent =
+      "🔕 通知は利用できません";
+
+    pushNotificationButton.disabled =
+      true;
+
+    return;
+  }
+
+  try {
+    const enabled =
+      await window.isPushEnabled();
+
+    if (enabled) {
+      pushNotificationButton.textContent =
+        "🔔 通知ON";
+    } else {
+      pushNotificationButton.textContent =
+        "🔕 通知OFF";
+    }
+
+    pushNotificationButton.disabled =
+      false;
+
+  } catch (error) {
+    console.error(
+      "通知状態確認エラー:",
+      error
+    );
+
+    pushNotificationButton.textContent =
+      "🔔 通知を受け取る";
+
+    pushNotificationButton.disabled =
+      false;
+  }
+}
+
+
+async function togglePushNotifications() {
+  if (!pushNotificationButton) {
+    return;
+  }
+
+  pushNotificationButton.disabled =
+    true;
+
+  try {
+    const enabled =
+      await window.isPushEnabled();
+
+    if (enabled) {
+      await window.disablePushNotifications();
+
+      alert(
+        "通知をOFFにしました"
+      );
+
+    } else {
+      await window.enablePushNotifications();
+
+      alert(
+        "通知をONにしました"
+      );
+    }
+
+  } catch (error) {
+    console.error(
+      "通知設定エラー:",
+      error
+    );
+
+    alert(
+      error.message ||
+      "通知設定に失敗しました"
+    );
+  }
+
+  await updatePushNotificationButton();
+}
+
+
+if (pushNotificationButton) {
+  pushNotificationButton.addEventListener(
+    "click",
+    togglePushNotifications
+  );
+
+  updatePushNotificationButton();
+
+  if (
+  typeof window.syncPushSubscription ===
+  "function"
+) {
+  window.syncPushSubscription()
+    .catch(error => {
+      console.error(
+        "Push購読同期エラー:",
+        error
+      );
+    });
+}
+}

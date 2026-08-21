@@ -3,7 +3,7 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v6";
+  "staff-portal-v7";
 
 const CACHE_FILES = [
   "./",
@@ -179,6 +179,103 @@ self.addEventListener(
 
               return response;
             });
+        })
+    );
+  }
+);
+
+/* =========================================
+   Push通知受信
+========================================= */
+
+self.addEventListener(
+  "push",
+  event => {
+    let data = {};
+
+    try {
+      data = event.data
+        ? event.data.json()
+        : {};
+    } catch (error) {
+      data = {
+        title: "工事部ポータル",
+        body: event.data
+          ? event.data.text()
+          : "新しい通知があります"
+      };
+    }
+
+    const title =
+      data.title ||
+      "工事部ポータル";
+
+    const options = {
+      body:
+        data.body ||
+        "新しい通知があります",
+
+      icon:
+        "./icons/se-icon-192.png",
+
+      badge:
+        "./icons/se-icon-192.png",
+
+      data: {
+        url:
+          data.url ||
+          "./home.html"
+      }
+    };
+
+    event.waitUntil(
+      self.registration
+        .showNotification(
+          title,
+          options
+        )
+    );
+  }
+);
+
+
+/* =========================================
+   通知タップ
+========================================= */
+
+self.addEventListener(
+  "notificationclick",
+  event => {
+    event.notification.close();
+
+    const url =
+      event.notification
+        .data?.url ||
+      "./home.html";
+
+    event.waitUntil(
+      clients.matchAll({
+        type: "window",
+        includeUncontrolled: true
+      })
+        .then(clientList => {
+          for (
+            const client of clientList
+          ) {
+            if (
+              "focus" in client
+            ) {
+              return client.focus();
+            }
+          }
+
+          if (
+            clients.openWindow
+          ) {
+            return clients.openWindow(
+              url
+            );
+          }
         })
     );
   }
