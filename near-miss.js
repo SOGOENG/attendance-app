@@ -471,17 +471,34 @@ function formatDateForInput(date) {
   21日～月末：
   翌月20日提出分
 */
-function getCurrentTargetMonth() {
-  const today =
-    new Date();
+/*
+  ヒヤリ発生日から提出対象月を決める
+
+  1日～20日：
+  当月20日締め
+
+  21日～月末：
+  翌月20日締め
+*/
+function getTargetMonthFromOccurredDate(
+  dateText
+) {
+  if (!dateText) {
+    return null;
+  }
+
+  const date =
+    new Date(
+      `${dateText}T00:00:00`
+    );
 
   let year =
-    today.getFullYear();
+    date.getFullYear();
 
   let month =
-    today.getMonth();
+    date.getMonth();
 
-  if (today.getDate() >= 21) {
+  if (date.getDate() >= 21) {
     month += 1;
 
     if (month >= 12) {
@@ -1079,7 +1096,6 @@ async function loadCurrentDraft() {
   const url =
     `${SUPABASE_URL}/rest/v1/near_misses` +
     `?select=*` +
-    `&target_month=eq.${targetMonth}` +
     `&department=eq.${department}` +
     `&employee_name=eq.${employeeName}` +
     `&status=eq.draft` +
@@ -1471,7 +1487,9 @@ function createSaveData(
       loginUser.name || "",
 
     target_month:
-      targetMonth,
+  getTargetMonthFromOccurredDate(
+    occurredDate.value
+  ),
 
     status:
       status,
@@ -1803,13 +1821,18 @@ async function getNextSubmissionNumber() {
       loginUser.name || ""
     );
 
-  const url =
-    `${SUPABASE_URL}/rest/v1/near_misses` +
-    `?select=id` +
-    `&target_month=eq.${targetMonth}` +
-    `&department=eq.${department}` +
-    `&employee_name=eq.${employeeName}` +
-    `&status=eq.submitted`;
+  const submissionTargetMonth =
+  getTargetMonthFromOccurredDate(
+    occurredDate.value
+  );
+
+const url =
+  `${SUPABASE_URL}/rest/v1/near_misses` +
+  `?select=id` +
+  `&target_month=eq.${submissionTargetMonth}` +
+  `&department=eq.${department}` +
+  `&employee_name=eq.${employeeName}` +
+  `&status=eq.submitted`;
 
   const response =
     await portalFetch(
@@ -2173,7 +2196,11 @@ async function initializeNearMissPage() {
     }
 
     targetMonth =
-      getCurrentTargetMonth();
+  getTargetMonthFromOccurredDate(
+    formatDateForInput(
+      new Date()
+    )
+  );
 
     createFixedOptions();
 
@@ -2208,6 +2235,21 @@ backHomeButton.addEventListener(
   () => {
     window.location.href =
       "home.html";
+  }
+);
+
+occurredDate.addEventListener(
+  "change",
+  () => {
+    targetMonth =
+      getTargetMonthFromOccurredDate(
+        occurredDate.value
+      );
+
+    targetMonthDisplay.textContent =
+      formatTargetMonthLabel(
+        targetMonth
+      );
   }
 );
 
