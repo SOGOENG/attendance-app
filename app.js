@@ -1708,6 +1708,136 @@ async function toggleSubmit() {
   if (
     currentStatus === "draft"
   ) {
+
+        /*
+      未入力日のチェック
+    */
+
+    const missingDays =
+      collectData().filter(
+        item => !item.siteType
+      );
+
+    if (missingDays.length > 0) {
+      const missingDateText =
+        missingDays
+          .map(item => {
+            const date =
+              new Date(
+                `${item.date}T00:00:00`
+              );
+
+            return (
+              `${date.getMonth() + 1}/` +
+              `${date.getDate()}`
+            );
+          })
+          .join("、");
+
+      alert(
+        "未入力の日があります。\n\n" +
+        `${missingDateText}\n\n` +
+        "すべての日を入力してから提出してください。"
+      );
+
+      return;
+    }
+
+        /*
+      入力内容の不足チェック
+    */
+
+    const incompleteRow =
+      collectData().find(item => {
+
+        /*
+          会社勤務
+        */
+        if (
+          item.siteType === "会社勤務" &&
+          !item.companyWork
+        ) {
+          return true;
+        }
+
+        /*
+          一般
+        */
+        if (
+          item.siteType === "一般" &&
+          !item.siteId
+        ) {
+          return true;
+        }
+
+        /*
+          雑工事
+        */
+        if (
+          item.siteType === "雑工事"
+        ) {
+          if (!item.miscCompany) {
+            return true;
+          }
+
+          if (
+            (
+              item.miscCompany === "三機" ||
+              item.miscCompany === "自社"
+            ) &&
+            !item.miscDepartment
+          ) {
+            return true;
+          }
+        }
+
+        /*
+          休み
+        */
+        if (
+          item.siteType === "休み" &&
+          !item.leaveType
+        ) {
+          return true;
+        }
+
+        /*
+          出勤日の開始・終了時刻
+        */
+        if (
+          item.siteType === "会社勤務" ||
+          item.siteType === "一般" ||
+          item.siteType === "雑工事"
+        ) {
+          if (
+            !item.start ||
+            !item.end
+          ) {
+            return true;
+          }
+        }
+
+        return false;
+      });
+
+    if (incompleteRow) {
+      const date =
+        new Date(
+          `${incompleteRow.date}T00:00:00`
+        );
+
+      const displayDate =
+        `${date.getMonth() + 1}/` +
+        `${date.getDate()}`;
+
+      alert(
+        `${displayDate}の入力内容に不足があります。\n\n` +
+        "勤務内容・現場・休暇区分・開始終了時刻などを確認してください。"
+      );
+
+      return;
+    }
+
     const confirmed =
       window.confirm(
         `${selectedEmployeeName()}さんの` +
