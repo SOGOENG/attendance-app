@@ -116,6 +116,21 @@ const improvementHistoryList =
     "improvementHistoryList"
   );
 
+const historyFiscalYearSelect =
+  document.getElementById(
+    "historyFiscalYearSelect"
+  );
+
+const historyMonthSelect =
+  document.getElementById(
+    "historyMonthSelect"
+  );
+
+const historyShowButton =
+  document.getElementById(
+    "historyShowButton"
+  );  
+
 const improvementHistoryDetail =
   document.getElementById(
     "improvementHistoryDetail"
@@ -744,6 +759,187 @@ function formatSubmissionDateTime(
    過去の向上提案一覧表示
 ========================================= */
 
+function getFiscalYearFromTargetMonth(
+  targetMonth
+) {
+  if (!targetMonth) {
+    return null;
+  }
+
+  const date =
+    new Date(
+      `${targetMonth}T00:00:00`
+    );
+
+  const year =
+    date.getFullYear();
+
+  const month =
+    date.getMonth() + 1;
+
+  return month >= 4
+    ? year
+    : year - 1;
+}
+
+
+function setupHistoryFiscalYears() {
+  historyFiscalYearSelect.innerHTML = "";
+
+  if (
+    improvementHistoryRecords.length === 0
+  ) {
+    const option =
+      document.createElement(
+        "option"
+      );
+
+    option.value = "";
+
+    option.textContent =
+      "履歴なし";
+
+    historyFiscalYearSelect.appendChild(
+      option
+    );
+
+    return;
+  }
+
+  const fiscalYears =
+    [
+      ...new Set(
+        improvementHistoryRecords
+          .map(
+            record =>
+              getFiscalYearFromTargetMonth(
+                record.target_month
+              )
+          )
+          .filter(
+            year =>
+              year !== null
+          )
+      )
+    ]
+      .sort(
+        (a, b) => b - a
+      );
+
+  fiscalYears.forEach(
+    fiscalYear => {
+      const option =
+        document.createElement(
+          "option"
+        );
+
+      option.value =
+        String(fiscalYear);
+
+      option.textContent =
+        `${fiscalYear}年度`;
+
+      historyFiscalYearSelect.appendChild(
+        option
+      );
+    }
+  );
+}
+
+function setupHistoryMonths() {
+  historyMonthSelect.innerHTML = "";
+
+  const selectedFiscalYear =
+    Number(
+      historyFiscalYearSelect.value
+    );
+
+  if (!selectedFiscalYear) {
+    const option =
+      document.createElement(
+        "option"
+      );
+
+    option.value = "";
+
+    option.textContent =
+      "月を選択";
+
+    historyMonthSelect.appendChild(
+      option
+    );
+
+    return;
+  }
+
+  const months =
+    improvementHistoryRecords
+      .filter(
+        record =>
+          getFiscalYearFromTargetMonth(
+            record.target_month
+          ) === selectedFiscalYear
+      )
+      .map(
+        record =>
+          record.target_month
+      )
+      .filter(
+        (
+          targetMonth,
+          index,
+          array
+        ) =>
+          array.indexOf(
+            targetMonth
+          ) === index
+      )
+      .sort(
+        (a, b) =>
+          new Date(b) -
+          new Date(a)
+      );
+
+  if (months.length === 0) {
+    const option =
+      document.createElement(
+        "option"
+      );
+
+    option.value = "";
+
+    option.textContent =
+      "履歴なし";
+
+    historyMonthSelect.appendChild(
+      option
+    );
+
+    return;
+  }
+
+  months.forEach(
+    targetMonth => {
+      const option =
+        document.createElement(
+          "option"
+        );
+
+      option.value =
+        targetMonth;
+
+      option.textContent =
+        formatTargetMonth(
+          targetMonth
+        );
+
+      historyMonthSelect.appendChild(
+        option
+      );
+    }
+  );
+}
+
 function displayImprovementHistory() {
   improvementHistoryList.innerHTML = "";
 
@@ -1354,7 +1550,9 @@ async function initializeImprovementPage() {
 
     await loadImprovementHistory();
 
-    displayImprovementHistory();
+setupHistoryFiscalYears();
+
+setupHistoryMonths();
 
   } catch (error) {
     console.error(error);
@@ -1390,6 +1588,56 @@ draftButton.addEventListener(
 improvementForm.addEventListener(
   "submit",
   handleSubmit
+);
+
+historyFiscalYearSelect.addEventListener(
+  "change",
+  () => {
+    setupHistoryMonths();
+
+    improvementHistoryDetail.classList.add(
+      "hidden"
+    );
+  }
+);
+
+historyShowButton.addEventListener(
+  "click",
+  () => {
+    const selectedTargetMonth =
+      historyMonthSelect.value;
+
+    if (!selectedTargetMonth) {
+      showMessage(
+        "月を選択してください。",
+        "info"
+      );
+
+      return;
+    }
+
+    const selectedRecord =
+      improvementHistoryRecords.find(
+        record =>
+          record.target_month ===
+          selectedTargetMonth
+      );
+
+    if (!selectedRecord) {
+      showMessage(
+        "選択した月の向上提案が見つかりません。",
+        "error"
+      );
+
+      return;
+    }
+
+    hideMessage();
+
+    showImprovementHistoryDetail(
+      selectedRecord
+    );
+  }
 );
 
 improvementHistoryClose.addEventListener(

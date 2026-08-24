@@ -468,6 +468,65 @@
   </h2>
 
   <div
+    style="
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    "
+  >
+
+    <div>
+      <label
+        for="historyFiscalYearSelect"
+        class="form-field-label"
+      >
+        年度
+      </label>
+
+      <select
+        id="historyFiscalYearSelect"
+        class="improvement-select"
+      >
+        <option value="">
+          読み込み中...
+        </option>
+      </select>
+    </div>
+
+    <div>
+      <label
+        for="historyMonthSelect"
+        class="form-field-label"
+      >
+        月
+      </label>
+
+      <select
+        id="historyMonthSelect"
+        class="improvement-select"
+      >
+        <option value="">
+          月を選択
+        </option>
+      </select>
+    </div>
+
+  </div>
+
+  <button
+    id="historyShowButton"
+    type="button"
+    class="primary-action-button"
+    style="
+      width: 100%;
+      margin-bottom: 12px;
+    "
+  >
+    内容を見る
+  </button>
+
+  <div
     id="improvementHistoryList"
     style="
       display: flex;
@@ -475,15 +534,6 @@
       gap: 10px;
     "
   >
-    <p
-      style="
-        margin: 0;
-        color: #64748b;
-        text-align: center;
-      "
-    >
-      読み込み中...
-    </p>
   </div>
 
 </section>
