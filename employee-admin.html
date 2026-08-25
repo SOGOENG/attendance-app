@@ -66,15 +66,15 @@
 
       <div class="admin-action-buttons">
 
-  <button
-    id="newEmployeeButton"
-    type="button"
-    class="admin-primary-button"
-  >
-    新規社員登録
-  </button>
+        <button
+          id="newEmployeeButton"
+          type="button"
+          class="admin-primary-button"
+        >
+          新規社員登録
+        </button>
 
-</div>
+      </div>
 
       <label class="admin-form-label">
 
@@ -84,6 +84,10 @@
           id="employeeDepartmentFilter"
           class="admin-form-control"
         >
+
+          <option value="">
+            ---- 部署を選択 ----
+          </option>
 
           <option value="all">
             全部署
@@ -97,12 +101,12 @@
             技術部
           </option>
 
-          <option value="営業">
-            営業
+          <option value="営業部">
+            営業部
           </option>
 
-          <option value="総務">
-            総務
+          <option value="総務部">
+            総務部
           </option>
 
         </select>
@@ -157,7 +161,7 @@
 
       <h2 id="employeeFormTitle">
         社員情報の修正
-     </h2>
+      </h2>
 
       <input
         id="editingEmployeeId"
@@ -177,6 +181,7 @@
 
       </label>
 
+
       <label class="admin-form-label">
 
         部署
@@ -194,17 +199,41 @@
             技術部
           </option>
 
-          <option value="営業">
-            営業
+          <option value="営業部">
+            営業部
           </option>
 
-          <option value="総務">
-            総務
+          <option value="総務部">
+            総務部
           </option>
 
         </select>
 
       </label>
+
+
+      <!-- ==============================
+           新規社員登録時のみ表示
+      ============================== -->
+      <label
+        id="employeeInitialPasswordWrap"
+        class="admin-form-label"
+        hidden
+      >
+
+        初期パスワード
+
+        <input
+          id="employeeInitialPassword"
+          type="password"
+          class="admin-form-control"
+          minlength="6"
+          autocomplete="new-password"
+          placeholder="6文字以上"
+        >
+
+      </label>
+
 
       <label class="admin-form-label">
 
@@ -226,6 +255,7 @@
         </select>
 
       </label>
+
 
       <label class="admin-form-label">
 
@@ -252,12 +282,12 @@
             技術部のみ
           </option>
 
-          <option value="営業">
-            営業のみ
+          <option value="営業部">
+            営業部のみ
           </option>
 
-          <option value="総務">
-            総務のみ
+          <option value="総務部">
+            総務部のみ
           </option>
 
         </select>
@@ -349,6 +379,15 @@
           編集をやめる
         </button>
 
+        <button
+          id="deleteEmployeeButton"
+          type="button"
+          class="admin-secondary-button"
+          hidden
+        >
+          完全削除
+        </button>
+
       </div>
 
     </section>
@@ -357,7 +396,7 @@
 
 
   <script src="portal-auth.js"></script>
-  <script src="employee-admin.js?v=7"></script>
+  <script src="employee-admin.js?v=9"></script>
 
 </body>
 

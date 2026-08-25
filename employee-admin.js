@@ -23,7 +23,7 @@ const employeeNameSearch =
 const newEmployeeButton =
   document.getElementById(
     "newEmployeeButton"
-  );  
+  );
 
 const employeeMessage =
   document.getElementById(
@@ -43,7 +43,7 @@ const employeeEditSection =
 const employeeFormTitle =
   document.getElementById(
     "employeeFormTitle"
-  );  
+  );
 
 const editingEmployeeId =
   document.getElementById(
@@ -58,6 +58,16 @@ const employeeName =
 const employeeDepartment =
   document.getElementById(
     "employeeDepartment"
+  );
+
+const employeeInitialPasswordWrap =
+  document.getElementById(
+    "employeeInitialPasswordWrap"
+  );
+
+const employeeInitialPassword =
+  document.getElementById(
+    "employeeInitialPassword"
   );
 
 const employeeActive =
@@ -95,6 +105,11 @@ const cancelEmployeeEditButton =
     "cancelEmployeeEditButton"
   );
 
+const deleteEmployeeButton =
+  document.getElementById(
+    "deleteEmployeeButton"
+  );
+
 
 /* =========================================
    現在使用中のデータ
@@ -118,10 +133,15 @@ function getLoginUser() {
   }
 
   try {
-    return JSON.parse(savedUser);
+    return JSON.parse(
+      savedUser
+    );
 
   } catch (error) {
-    console.error(error);
+    console.error(
+      error
+    );
+
     return null;
   }
 }
@@ -161,7 +181,9 @@ function checkAdminAccess() {
 ========================================= */
 
 function escapeHtml(value) {
-  return String(value ?? "")
+  return String(
+    value ?? ""
+  )
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -197,7 +219,10 @@ function formatActive(value) {
 
 
 function formatAdminScope(value) {
-  if (!value || value === "none") {
+  if (
+    !value ||
+    value === "none"
+  ) {
     return "権限なし";
   }
 
@@ -223,9 +248,9 @@ async function loadEmployees() {
 
   try {
     const url =
-  `${SUPABASE_URL}/rest/v1/employees` +
-  `?select=*` +
-  `&order=department.asc,name.asc`;
+      `${SUPABASE_URL}/rest/v1/employees` +
+      `?select=*` +
+      `&order=department.asc,name.asc`;
 
     const response =
       await portalFetch(url);
@@ -281,7 +306,9 @@ function getFilteredEmployees() {
 
       const nameMatches =
         !searchText ||
-        String(employee.name || "")
+        String(
+          employee.name || ""
+        )
           .toLowerCase()
           .includes(searchText);
 
@@ -299,6 +326,20 @@ function getFilteredEmployees() {
 ========================================= */
 
 function displayEmployees() {
+
+  if (
+    !employeeDepartmentFilter.value
+  ) {
+    employeeList.innerHTML =
+      `
+        <p class="schedule-empty-message">
+          部署を選択してください
+        </p>
+      `;
+
+    return;
+  }
+
   const filteredEmployees =
     getFilteredEmployees();
 
@@ -321,7 +362,9 @@ function displayEmployees() {
   filteredEmployees.forEach(
     employee => {
       const card =
-        createEmployeeCard(employee);
+        createEmployeeCard(
+          employee
+        );
 
       employeeList.appendChild(
         card
@@ -335,9 +378,13 @@ function displayEmployees() {
    社員カード作成
 ========================================= */
 
-function createEmployeeCard(employee) {
+function createEmployeeCard(
+  employee
+) {
   const card =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   card.className =
     "admin-schedule-item";
@@ -358,8 +405,17 @@ function createEmployeeCard(employee) {
         <p>
           状態：
           ${escapeHtml(
-            formatActive(employee.active)
+            formatActive(
+              employee.active
+            )
           )}
+        </p>
+
+        <p>
+          ログイン：
+          ${employee.auth_user_id
+            ? "登録済"
+            : "未登録"}
         </p>
 
         <p>
@@ -429,6 +485,7 @@ function createEmployeeCard(employee) {
   return card;
 }
 
+
 /* =========================================
    新規社員登録開始
 ========================================= */
@@ -446,6 +503,12 @@ function startNewEmployeeRegistration() {
   employeeDepartment.value =
     "工事部";
 
+  employeeInitialPassword.value =
+    "";
+
+  employeeInitialPasswordWrap.hidden =
+    false;
+
   employeeActive.value =
     "true";
 
@@ -461,39 +524,59 @@ function startNewEmployeeRegistration() {
   employeeNearMissRequired.value =
     "true";
 
+  /*
+    新規登録では完全削除を出さない
+  */
+
+  deleteEmployeeButton.hidden =
+    true;
+
   employeeEditSection.hidden =
     false;
 
   clearMessage();
 
   employeeEditSection.scrollIntoView({
-    behavior:
-      "smooth",
-
-    block:
-      "start"
+    behavior: "smooth",
+    block: "start"
   });
 }
+
 
 /* =========================================
    社員編集開始
 ========================================= */
 
-function startEmployeeEdit(employee) {
+function startEmployeeEdit(
+  employee
+) {
   editingEmployeeId.value =
     employee.id;
+
+  employeeFormTitle.textContent =
+    "社員情報の修正";
 
   employeeName.value =
     employee.name || "";
 
   employeeDepartment.value =
-    employee.department || "工事部";
+    employee.department ||
+    "工事部";
+
+  employeeInitialPassword.value =
+    "";
+
+  employeeInitialPasswordWrap.hidden =
+    true;
 
   employeeActive.value =
-    String(employee.active);
+    String(
+      employee.active
+    );
 
   employeeAdminScope.value =
-    employee.admin_scope || "none";
+    employee.admin_scope ||
+    "none";
 
   employeeAttendanceRequired.value =
     String(
@@ -510,17 +593,21 @@ function startEmployeeEdit(employee) {
       employee.near_miss_required
     );
 
+  /*
+    既存社員編集時のみ完全削除を表示
+  */
+
+  deleteEmployeeButton.hidden =
+    false;
+
   employeeEditSection.hidden =
     false;
 
   clearMessage();
 
   employeeEditSection.scrollIntoView({
-    behavior:
-      "smooth",
-
-    block:
-      "start"
+    behavior: "smooth",
+    block: "start"
   });
 }
 
@@ -538,7 +625,8 @@ function createEmployeeUpdateData() {
       employeeDepartment.value,
 
     active:
-      employeeActive.value === "true",
+      employeeActive.value ===
+      "true",
 
     admin_scope:
       employeeAdminScope.value,
@@ -562,17 +650,287 @@ function createEmployeeUpdateData() {
    入力確認
 ========================================= */
 
-function validateEmployee() {
-  if (!employeeName.value.trim()) {
+function validateEmployee(
+  isNewEmployee
+) {
+  if (
+    !employeeName.value.trim()
+  ) {
     throw new Error(
       "氏名を入力してください"
     );
   }
 
-  if (!employeeDepartment.value) {
+  if (
+    !employeeDepartment.value
+  ) {
     throw new Error(
       "部署を選択してください"
     );
+  }
+
+  if (isNewEmployee) {
+    const password =
+      employeeInitialPassword.value;
+
+    if (!password) {
+      throw new Error(
+        "初期パスワードを入力してください"
+      );
+    }
+
+    if (
+      password.length < 6
+    ) {
+      throw new Error(
+        "初期パスワードは6文字以上で入力してください"
+      );
+    }
+  }
+}
+
+
+/* =========================================
+   新規社員＋Auth登録
+========================================= */
+
+async function createNewEmployeeAccount(
+  updateData
+) {
+  const url =
+    `${SUPABASE_URL}` +
+    `/functions/v1/bright-service`;
+
+  const response =
+    await portalFetch(
+      url,
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+
+        body:
+          JSON.stringify({
+            action: "create",
+
+            ...updateData,
+
+            initialPassword:
+              employeeInitialPassword.value
+          })
+      }
+    );
+
+  const responseData =
+    await response.json()
+      .catch(
+        () => ({})
+      );
+
+  if (!response.ok) {
+    console.error(
+      responseData
+    );
+
+    throw new Error(
+      responseData.error ||
+      responseData.message ||
+      "新規社員を登録できませんでした"
+    );
+  }
+
+  return responseData;
+}
+
+
+/* =========================================
+   既存社員情報更新
+========================================= */
+
+async function updateExistingEmployee(
+  employeeId,
+  updateData
+) {
+  const url =
+    `${SUPABASE_URL}/rest/v1/employees` +
+    `?id=eq.${employeeId}`;
+
+  const response =
+    await portalFetch(
+      url,
+      {
+        method: "PATCH",
+
+        headers: {
+          "Content-Type":
+            "application/json",
+
+          Prefer:
+            "return=minimal"
+        },
+
+        body:
+          JSON.stringify(
+            updateData
+          )
+      }
+    );
+
+  if (!response.ok) {
+    const errorText =
+      await response.text();
+
+    console.error(errorText);
+
+    throw new Error(
+      "社員情報を保存できませんでした"
+    );
+  }
+}
+
+
+/* =========================================
+   社員完全削除
+========================================= */
+
+async function deleteEmployeeAccount() {
+  const employeeId =
+    editingEmployeeId.value;
+
+  if (!employeeId) {
+    return;
+  }
+
+  const loginUser =
+    getLoginUser();
+
+  /*
+    自分自身は削除不可
+  */
+
+  if (
+    loginUser &&
+    String(loginUser.id) ===
+      String(employeeId)
+  ) {
+    alert(
+      "現在ログイン中の自分自身は削除できません。"
+    );
+
+    return;
+  }
+
+
+  /*
+    1回目の確認
+  */
+
+  const firstConfirmed =
+    window.confirm(
+      `${employeeName.value}さんを完全削除しますか？\n\n` +
+      "通常の退職者は「使用停止」を使用してください。"
+    );
+
+  if (!firstConfirmed) {
+    return;
+  }
+
+
+  /*
+    2回目の確認
+  */
+
+  const secondConfirmed =
+    window.confirm(
+      "本当に完全削除しますか？\n\n" +
+      "社員情報とログインアカウントの両方を削除します。\n" +
+      "この操作は元に戻せません。"
+    );
+
+  if (!secondConfirmed) {
+    return;
+  }
+
+
+  deleteEmployeeButton.disabled =
+    true;
+
+  deleteEmployeeButton.textContent =
+    "削除中...";
+
+
+  try {
+    const url =
+      `${SUPABASE_URL}` +
+      `/functions/v1/bright-service`;
+
+    const response =
+      await portalFetch(
+        url,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              action: "delete",
+
+              employeeId:
+                Number(employeeId)
+            })
+        }
+      );
+
+    const responseData =
+      await response.json()
+        .catch(
+          () => ({})
+        );
+
+    if (!response.ok) {
+      console.error(
+        responseData
+      );
+
+      throw new Error(
+        responseData.error ||
+        responseData.message ||
+        "社員を完全削除できませんでした"
+      );
+    }
+
+    closeEmployeeEdit();
+
+    await loadEmployees();
+
+    alert(
+      "社員情報とログインアカウントを完全削除しました。"
+    );
+
+    showMessage(
+      "社員を完全削除しました"
+    );
+
+  } catch (error) {
+    console.error(error);
+
+    alert(
+      error.message
+    );
+
+  } finally {
+    deleteEmployeeButton.disabled =
+      false;
+
+    deleteEmployeeButton.textContent =
+      "完全削除";
   }
 }
 
@@ -584,8 +942,16 @@ function validateEmployee() {
 async function saveEmployee() {
   clearMessage();
 
+  const employeeId =
+    editingEmployeeId.value;
+
+  const isNewEmployee =
+    !employeeId;
+
   try {
-    validateEmployee();
+    validateEmployee(
+      isNewEmployee
+    );
 
   } catch (error) {
     showMessage(
@@ -595,19 +961,13 @@ async function saveEmployee() {
     return;
   }
 
-  const employeeId =
-    editingEmployeeId.value;
-
-  const isNewEmployee =
-    !employeeId;
-
   const updateData =
     createEmployeeUpdateData();
 
   const confirmed =
     window.confirm(
       isNewEmployee
-        ? "新規社員を登録しますか？"
+        ? "新規社員を登録しますか？\n\n登録後すぐにログインできるようになります。"
         : "社員情報を保存しますか？"
     );
 
@@ -624,81 +984,68 @@ async function saveEmployee() {
       : "保存中...";
 
   try {
-    let url =
-      `${SUPABASE_URL}/rest/v1/employees`;
 
-    let method =
-      "POST";
-
-    if (!isNewEmployee) {
-      url +=
-        `?id=eq.${employeeId}`;
-
-      method =
-        "PATCH";
-    }
-
-    const response =
-      await portalFetch(
-        url,
-        {
-          method,
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Prefer:
-              "return=minimal"
-          },
-
-          body:
-            JSON.stringify(
-              updateData
-            )
-        }
-      );
-
-    if (!response.ok) {
-      const errorText =
-        await response.text();
-
-      console.error(errorText);
-
-      throw new Error(
-        isNewEmployee
-          ? "新規社員を登録できませんでした"
-          : "社員情報を保存できませんでした"
-      );
-    }
+    /*
+      新規社員
+    */
 
     if (isNewEmployee) {
+      await createNewEmployeeAccount(
+        updateData
+      );
+
       await loadEmployees();
 
-    } else {
-      const recordIndex =
-        employeeRecords.findIndex(
-          employee =>
-            String(employee.id) ===
-            String(employeeId)
-        );
+      closeEmployeeEdit();
 
-      if (recordIndex !== -1) {
-        employeeRecords[recordIndex] = {
-          ...employeeRecords[recordIndex],
-          ...updateData
-        };
-      }
+      alert(
+        "新規社員を登録しました。\n\nログイン可能です。"
+      );
 
-      displayEmployees();
+      showMessage(
+        "新規社員を登録しました。ログイン可能です。"
+      );
+
+      return;
     }
+
+
+    /*
+      既存社員
+    */
+
+    await updateExistingEmployee(
+      employeeId,
+      updateData
+    );
+
+    const recordIndex =
+      employeeRecords.findIndex(
+        employee =>
+          String(employee.id) ===
+          String(employeeId)
+      );
+
+    if (
+      recordIndex !== -1
+    ) {
+      employeeRecords[
+        recordIndex
+      ] = {
+        ...employeeRecords[
+          recordIndex
+        ],
+
+        ...updateData
+      };
+    }
+
+    displayEmployees();
 
     closeEmployeeEdit();
 
     showMessage(
-      isNewEmployee
-        ? "新規社員を登録しました"
-        : "社員情報を保存しました"
+      "社員情報を保存しました"
     );
 
   } catch (error) {
@@ -717,6 +1064,7 @@ async function saveEmployee() {
   }
 }
 
+
 /* =========================================
    編集画面を閉じる
 ========================================= */
@@ -728,8 +1076,17 @@ function closeEmployeeEdit() {
   employeeName.value =
     "";
 
+  employeeInitialPassword.value =
+    "";
+
+  employeeInitialPasswordWrap.hidden =
+    true;
+
+  deleteEmployeeButton.hidden =
+    true;
+
   employeeFormTitle.textContent =
-  "社員情報の修正";  
+    "社員情報の修正";
 
   employeeEditSection.hidden =
     true;
@@ -739,10 +1096,12 @@ function closeEmployeeEdit() {
 /* =========================================
    イベント設定
 ========================================= */
+
 newEmployeeButton.addEventListener(
   "click",
   startNewEmployeeRegistration
 );
+
 
 employeeDepartmentFilter.addEventListener(
   "change",
@@ -762,6 +1121,12 @@ saveEmployeeButton.addEventListener(
 );
 
 
+deleteEmployeeButton.addEventListener(
+  "click",
+  deleteEmployeeAccount
+);
+
+
 cancelEmployeeEditButton.addEventListener(
   "click",
   () => {
@@ -777,7 +1142,9 @@ cancelEmployeeEditButton.addEventListener(
 ========================================= */
 
 async function initializeEmployeeAdmin() {
-  if (!checkAdminAccess()) {
+  if (
+    !checkAdminAccess()
+  ) {
     return;
   }
 
