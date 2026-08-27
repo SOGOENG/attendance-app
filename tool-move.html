@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    工具移動｜綜合エンジニアリング㈱
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css?v=20"
+  >
+</head>
+
+
+<body>
+
+  <main class="admin-home-page">
+
+    <header class="admin-home-header">
+
+      <div class="admin-home-header-text">
+
+        <h1>
+          綜合エンジニアリング㈱
+
+          <span class="admin-home-portal-title">
+            Staff Portal
+          </span>
+        </h1>
+
+        <p>
+          工具移動
+        </p>
+
+      </div>
+
+      <a
+        href="shared-tools.html"
+        class="admin-home-back-button"
+      >
+        共有工具へ戻る
+      </a>
+
+    </header>
+
+
+    <section class="admin-section-card">
+
+      <h2 id="moveToolName">
+        工具情報を読み込み中...
+      </h2>
+
+      <p id="moveToolCode">
+        管理番号：-
+      </p>
+
+      <p id="moveCurrentSite">
+        現在地：-
+      </p>
+
+      <p id="moveCurrentEmployee">
+        担当者：-
+      </p>
+
+    </section>
+
+
+    <section class="admin-section-card">
+
+      <h2>
+        移動先
+      </h2>
+
+      <label class="admin-form-label">
+
+        現場
+
+        <select
+          id="moveSite"
+          class="admin-form-control"
+        >
+          <option value="">
+            ---- 移動先を選択 ----
+          </option>
+        </select>
+
+      </label>
+
+
+      <label class="admin-form-label">
+
+        担当者
+
+        <select
+          id="moveEmployee"
+          class="admin-form-control"
+        >
+          <option value="">
+            ---- 担当者を選択 ----
+          </option>
+        </select>
+
+      </label>
+
+
+      <label class="admin-form-label">
+
+        備考
+
+        <textarea
+          id="moveNote"
+          class="admin-form-control"
+          rows="4"
+        ></textarea>
+
+      </label>
+
+
+      <div class="admin-action-buttons">
+
+        <button
+          id="moveButton"
+          type="button"
+          class="admin-primary-button"
+        >
+          移動する
+        </button>
+
+      </div>
+
+      <p
+        id="moveMessage"
+        class="schedule-message"
+      ></p>
+
+    </section>
+
+  </main>
+
+  <script src="portal-auth.js"></script>
+  <script src="./tool-move.js?v=1"></script>
+
+</body>
+
+</html>

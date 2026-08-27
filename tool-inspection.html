@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    半年点検｜綜合エンジニアリング㈱
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css?v=21"
+  >
+</head>
+
+
+<body>
+
+  <main class="admin-home-page">
+
+    <header class="admin-home-header">
+
+      <div class="admin-home-header-text">
+
+        <h1>
+          綜合エンジニアリング㈱
+
+          <span class="admin-home-portal-title">
+            Staff Portal
+          </span>
+        </h1>
+
+        <p>
+          半年点検
+        </p>
+
+      </div>
+
+      <a
+        href="tool-management.html"
+        class="admin-home-back-button"
+      >
+        工具管理へ戻る
+      </a>
+
+    </header>
+
+
+    <!-- =====================================
+         新しい点検を開始
+    ====================================== -->
+
+    <section class="admin-section-card">
+
+      <h2>
+        新しい半年点検を開始
+      </h2>
+
+      <label class="admin-form-label">
+        点検サイクル名
+
+        <input
+          id="inspectionCycleName"
+          type="text"
+          class="admin-form-control"
+          placeholder="例：2026年12月点検"
+        >
+      </label>
+
+
+      <label class="admin-form-label">
+        開始シール番号
+
+        <input
+          id="inspectionStartStickerNumber"
+          type="number"
+          class="admin-form-control"
+          min="1"
+          placeholder="例：1001"
+        >
+      </label>
+
+
+      <button
+        id="startInspectionButton"
+        type="button"
+        class="admin-primary-button"
+      >
+        点検を開始
+      </button>
+
+
+      <p
+        id="inspectionMessage"
+        class="schedule-message"
+      ></p>
+
+    </section>
+
+
+    <!-- =====================================
+         点検サイクル一覧
+    ====================================== -->
+
+    <section class="admin-section-card">
+
+      <h2>
+        点検サイクル一覧
+      </h2>
+
+      <div
+        id="inspectionCycleList"
+        class="tool-list"
+      >
+        <p class="schedule-empty-message">
+          点検情報を読み込み中...
+        </p>
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script src="portal-auth.js"></script>
+  <script src="./tool-inspection.js?v=2"></script>
+
+</body>
+
+</html>

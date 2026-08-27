@@ -1935,3 +1935,133 @@ body {
   box-sizing: border-box;
   text-decoration: none;
 }
+
+/* 工具検索・絞り込みプルダウンを大きくする */
+#toolGroupSelect,
+#toolNameSelect,
+#toolSiteSelect,
+#stockGroupSelect,
+#stockToolNameSelect {
+  min-height: 56px;
+  font-size: 18px;
+  padding: 0 16px;
+}
+
+/* =========================================
+   工具半年点検 チェック項目
+========================================= */
+
+.inspection-checklist {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+
+/* 1項目ごとの枠 */
+.inspection-check-row {
+  display: grid;
+
+  grid-template-columns:
+    1fr 42px;
+
+  align-items: center;
+
+  gap: 16px;
+
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 18px 16px;
+
+  border: 1px solid #dbe3f0;
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  cursor: pointer;
+}
+
+
+/* 文章を左側 */
+.inspection-check-row span {
+  grid-column: 1;
+
+  min-width: 0;
+
+  font-size: 18px;
+  line-height: 1.65;
+
+  color: #1f2937;
+}
+
+
+/* チェックボックスを右側 */
+.inspection-check-row input[type="checkbox"] {
+  grid-column: 2;
+  grid-row: 1;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 34px;
+  height: 34px;
+
+  margin: 0;
+
+  justify-self: end;
+
+  border: 2px solid #94a3b8;
+  border-radius: 7px;
+
+  background: #ffffff;
+
+  cursor: pointer;
+
+  position: relative;
+}
+
+
+/* チェック済み */
+.inspection-check-row input[type="checkbox"]:checked {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+
+/* チェックマーク */
+.inspection-check-row input[type="checkbox"]:checked::after {
+  content: "✓";
+
+  position: absolute;
+
+  left: 7px;
+  top: -2px;
+
+  font-size: 25px;
+  font-weight: 800;
+
+  color: #ffffff;
+}
+
+
+/* ①②など */
+.inspection-check-row strong {
+  display: inline-block;
+
+  margin-right: 6px;
+
+  font-size: 20px;
+  font-weight: 800;
+
+  color: #111827;
+}
+
+
+/* チェック済みの行 */
+.inspection-check-row:has(
+  input[type="checkbox"]:checked
+) {
+  background: #eef4ff;
+  border-color: #93b4ff;
+}

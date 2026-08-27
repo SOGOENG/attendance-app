@@ -15,7 +15,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=19"
+    href="style.css?v=21"
   >
 </head>
 
@@ -24,9 +24,6 @@
 
   <main class="admin-home-page">
 
-    <!-- ==============================
-         ヘッダー
-    ============================== -->
     <header class="admin-home-header">
 
       <div class="admin-home-header-text">
@@ -55,237 +52,212 @@
     </header>
 
 
-    <!-- ==============================
-         集計
-    ============================== -->
+    <!-- =====================================
+         検索
+    ====================================== -->
+
     <section class="admin-section-card">
 
       <h2>
-        共有工具状況
+        工具を検索
       </h2>
 
-      <div class="tool-summary-grid">
+      <p class="tool-search-guide">
+        工具名・規格・メーカー・管理番号などから検索できます
+      </p>
 
-        <div class="tool-summary-card">
+      <input
+        id="sharedToolSearch"
+        type="search"
+        class="admin-form-control"
+        placeholder="例：旋盤、3インチ、100V、マキタ"
+        autocomplete="off"
+      >
 
-          <strong>
-            貸出可
-          </strong>
+      <button
+        id="sharedToolSearchButton"
+        type="button"
+        class="admin-primary-button"
+      >
+        検索
+      </button>
 
-          <span>
-            0
-          </span>
+    </section>
 
-        </div>
 
-        <div class="tool-summary-card">
+    <!-- =====================================
+         工具から探す
+    ====================================== -->
 
-          <strong>
-            使用中
-          </strong>
+    <section class="admin-section-card">
 
-          <span>
-            0
-          </span>
+      <h2>
+        工具から探す
+      </h2>
 
-        </div>
+      <label class="admin-form-label">
+        大分類
 
-        <div class="tool-summary-card">
+        <select
+          id="toolGroupSelect"
+          class="admin-form-control"
+        >
+          <option value="">
+            ---- 大分類を選択 ----
+          </option>
+        </select>
+      </label>
 
-          <strong>
-            修理中
-          </strong>
 
-          <span>
-            0
-          </span>
+      <label class="admin-form-label">
+        工具名
 
-        </div>
+        <select
+          id="toolNameSelect"
+          class="admin-form-control"
+          disabled
+        >
+          <option value="">
+            ---- 工具名を選択 ----
+          </option>
+        </select>
+      </label>
+
+
+      <button
+        id="toolSearchByCategoryButton"
+        type="button"
+        class="admin-primary-button"
+      >
+        表示する
+      </button>
+
+    </section>
+
+
+    <!-- =====================================
+         現場から探す
+    ====================================== -->
+
+    <section class="admin-section-card">
+
+      <h2>
+        現場から探す
+      </h2>
+
+      <label class="admin-form-label">
+        現場
+
+        <select
+          id="toolSiteSelect"
+          class="admin-form-control"
+        >
+          <option value="">
+            ---- 現場を選択 ----
+          </option>
+        </select>
+      </label>
+
+
+      <button
+        id="toolSearchBySiteButton"
+        type="button"
+        class="admin-primary-button"
+      >
+        表示する
+      </button>
+
+    </section>
+
+
+    <!-- =====================================
+         在庫を見る
+    ====================================== -->
+
+    <section class="admin-section-card">
+
+      <h2>
+        在庫を見る
+      </h2>
+
+      <p class="tool-search-guide">
+        倉庫にあり、現在貸出できる工具だけ表示します
+      </p>
+
+      <label class="admin-form-label">
+        大分類
+
+        <select
+          id="stockGroupSelect"
+          class="admin-form-control"
+        >
+          <option value="">
+            ---- 大分類を選択 ----
+          </option>
+        </select>
+      </label>
+
+
+      <label class="admin-form-label">
+        工具名
+
+        <select
+          id="stockToolNameSelect"
+          class="admin-form-control"
+          disabled
+        >
+          <option value="">
+            ---- 工具名を選択 ----
+          </option>
+        </select>
+      </label>
+
+
+      <button
+        id="toolSearchStockButton"
+        type="button"
+        class="admin-primary-button"
+      >
+        在庫を表示
+      </button>
+
+    </section>
+
+
+    <!-- =====================================
+         結果
+    ====================================== -->
+
+    <section
+      id="sharedToolResultSection"
+      class="admin-section-card hidden"
+    >
+
+      <div class="tool-result-header">
+
+        <h2 id="sharedToolResultTitle">
+          検索結果
+        </h2>
+
+        <button
+          id="sharedToolResultClose"
+          type="button"
+          class="admin-secondary-button"
+        >
+          閉じる
+        </button>
 
       </div>
 
-    </section>
-
-
-    <!-- ==============================
-         検索・絞り込み
-    ============================== -->
-    <section class="admin-section-card">
-
-      <h2>
-        工具検索
-      </h2>
-
-      <label class="admin-form-label">
-
-        工具名・管理番号
-
-        <input
-          id="sharedToolSearch"
-          type="search"
-          class="admin-form-control"
-          placeholder="例：旋盤、SB-3IN-001"
-        >
-
-      </label>
-
-      <label class="admin-form-label">
-
-        状態
-
-        <select
-          id="sharedToolStatusFilter"
-          class="admin-form-control"
-        >
-
-          <option value="all">
-            すべて
-          </option>
-
-          <option value="available">
-            貸出可
-          </option>
-
-          <option value="in_use">
-            使用中
-          </option>
-
-          <option value="repair">
-            修理中
-          </option>
-
-          <option value="stopped">
-            使用停止
-          </option>
-
-        </select>
-
-      </label>
-
-    </section>
-
-
-    <!-- ==============================
-         工具一覧
-    ============================== -->
-    <section class="admin-section-card">
-
-      <h2>
-        共有工具一覧
-      </h2>
+      <p
+        id="sharedToolMessage"
+        class="schedule-message"
+      ></p>
 
       <div
         id="sharedToolList"
         class="tool-list"
-      >
-
-        <!-- ==============================
-             仮データ1
-        ============================== -->
-        <article class="tool-item-card">
-
-          <div class="tool-item-main">
-
-            <h3>
-              旋盤 3インチ
-            </h3>
-
-            <p>
-              管理番号：SB-3IN-001
-            </p>
-
-            <p>
-              現在地：MTG
-            </p>
-
-            <p>
-              担当者：二木
-            </p>
-
-            <p>
-              状態：使用中
-            </p>
-
-          </div>
-
-          <div class="tool-item-actions">
-
-            <a
-              href="tool-detail.html?id=1"
-              class="admin-secondary-button"
-            >
-              詳細
-            </a>
-
-            <button
-              type="button"
-              class="admin-secondary-button"
-            >
-              移動
-            </button>
-
-            <button
-              type="button"
-              class="admin-primary-button"
-            >
-              返却
-            </button>
-
-          </div>
-
-        </article>
-
-
-        <!-- ==============================
-             仮データ2
-        ============================== -->
-        <article class="tool-item-card">
-
-          <div class="tool-item-main">
-
-            <h3>
-              バンドソー 175
-            </h3>
-
-            <p>
-              管理番号：BS-175-001
-            </p>
-
-            <p>
-              現在地：倉庫
-            </p>
-
-            <p>
-              担当者：-
-            </p>
-
-            <p>
-              状態：貸出可
-            </p>
-
-          </div>
-
-          <div class="tool-item-actions">
-
-            <a
-              href="tool-detail.html?id=2"
-              class="admin-secondary-button"
-            >
-              詳細
-            </a>
-
-            <button
-              type="button"
-              class="admin-primary-button"
-            >
-              持出
-            </button>
-
-          </div>
-
-        </article>
-
-      </div>
+      ></div>
 
     </section>
 
@@ -293,6 +265,8 @@
 
 
   <script src="portal-auth.js"></script>
+
+  <script src="./shared-tools.js?v=10"></script>
 
 </body>
 

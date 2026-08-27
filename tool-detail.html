@@ -15,7 +15,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=19"
+    href="style.css?v=21"
   >
 </head>
 
@@ -60,35 +60,87 @@
     ============================== -->
     <section class="admin-section-card">
 
-      <h2>
-        旋盤 3インチ
+      <h2 id="detailToolTitle">
+        工具情報を読み込み中...
       </h2>
 
       <div class="tool-detail-info">
 
         <p>
+          <strong>大分類：</strong>
+          <span id="detailToolGroup">
+            -
+          </span>
+        </p>
+
+        <p>
           <strong>管理番号：</strong>
-          SB-3IN-001
+          <span id="detailManagementCode">
+            -
+          </span>
         </p>
 
         <p>
           <strong>仕様：</strong>
-          3インチ
+          <span id="detailSpecification">
+            -
+          </span>
+        </p>
+
+        <p>
+          <strong>メーカー：</strong>
+          <span id="detailManufacturer">
+            -
+          </span>
+        </p>
+
+        <p>
+          <strong>型式：</strong>
+          <span id="detailModelNumber">
+            -
+          </span>
+        </p>
+
+        <p>
+          <strong>製造番号：</strong>
+          <span id="detailSerialNumber">
+            -
+          </span>
+        </p>
+
+        <p>
+          <strong>性能：</strong>
+          <span id="detailPerformance">
+            -
+          </span>
         </p>
 
         <p>
           <strong>現在地：</strong>
-          MTG
+          <span id="detailCurrentSite">
+            -
+          </span>
         </p>
 
         <p>
           <strong>担当者：</strong>
-          二木
+          <span id="detailAssignedEmployee">
+            -
+          </span>
         </p>
 
         <p>
           <strong>状態：</strong>
-          使用中
+          <span id="detailStatus">
+            -
+          </span>
+        </p>
+
+        <p>
+          <strong>備考：</strong>
+          <span id="detailNote">
+            -
+          </span>
         </p>
 
       </div>
@@ -105,23 +157,10 @@
         操作
       </h2>
 
-      <div class="tool-item-actions">
-
-        <button
-          type="button"
-          class="admin-secondary-button"
-        >
-          移動
-        </button>
-
-        <button
-          type="button"
-          class="admin-primary-button"
-        >
-          返却
-        </button>
-
-      </div>
+      <div
+        id="detailActionButtons"
+        class="tool-item-actions"
+      ></div>
 
     </section>
 
@@ -136,27 +175,32 @@
       </h2>
 
       <p>
-        最終点検日：未登録
+        <strong>点検対象：</strong>
+        <span id="detailInspectionRequired">
+          -
+        </span>
       </p>
 
       <p>
-        次回点検：未登録
+        <strong>点検区分：</strong>
+        <span id="detailInspectionCategory">
+          -
+        </span>
       </p>
 
       <p>
-        点検シール番号：未登録
+        <strong>最終点検日：</strong>
+        <span id="detailLastInspectionDate">
+          未登録
+        </span>
       </p>
 
-      <div class="tool-item-actions">
-
-        <button
-          type="button"
-          class="admin-secondary-button"
-        >
-          点検履歴を見る
-        </button>
-
-      </div>
+      <p>
+        <strong>点検シール番号：</strong>
+        <span id="detailStickerNumber">
+          未登録
+        </span>
+      </p>
 
     </section>
 
@@ -179,6 +223,7 @@
         <button
           type="button"
           class="admin-secondary-button"
+          disabled
         >
           QRコードを表示
         </button>
@@ -194,25 +239,31 @@
     <section class="admin-section-card">
 
       <h2>
-        移動履歴
+        履歴
       </h2>
 
-      <div class="tool-history-list">
-
-        <p>
-          2026/08/27
-          倉庫 → MTG
-          ／ 二木
+      <div
+        id="toolHistoryList"
+        class="tool-history-list"
+      >
+        <p class="schedule-empty-message">
+          履歴を読み込み中...
         </p>
-
       </div>
 
     </section>
+
+
+    <p
+      id="toolDetailMessage"
+      class="schedule-message"
+    ></p>
 
   </main>
 
 
   <script src="portal-auth.js"></script>
+  <script src="./tool-detail.js?v=2"></script>
 
 </body>
 

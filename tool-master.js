@@ -10,6 +10,11 @@ const SUPABASE_URL =
    HTML要素
 ========================================= */
 
+const toolGroup =
+  document.getElementById(
+    "toolGroup"
+  );
+
 const toolName =
   document.getElementById(
     "toolName"
@@ -182,6 +187,10 @@ function formatToolStatus(
 
 function createToolData() {
   return {
+    tool_group:
+      toolGroup.value ||
+      null,
+
     management_code:
       toolManagementCode.value
         .trim(),
@@ -236,6 +245,12 @@ function createToolData() {
 ========================================= */
 
 function validateTool() {
+  if (!toolGroup.value) {
+    throw new Error(
+      "大分類を選択してください"
+    );
+  }
+
   if (!toolName.value.trim()) {
     throw new Error(
       "工具名を入力してください"
@@ -394,6 +409,9 @@ function startToolEdit(
   toolFormTitle.textContent =
     "工具情報の修正";
 
+  toolGroup.value =
+    tool.tool_group || "";
+
   toolName.value =
     tool.tool_name || "";
 
@@ -436,11 +454,6 @@ function startToolEdit(
   cancelToolEditButton.hidden =
     false;
 
-  /*
-    廃棄済みは
-    使用停止・廃棄操作を出さない
-  */
-
   if (
     tool.status === "disposed"
   ) {
@@ -475,6 +488,9 @@ function resetToolForm() {
 
   toolFormTitle.textContent =
     "工具登録";
+
+  toolGroup.value =
+    "";
 
   toolName.value =
     "";
@@ -836,6 +852,7 @@ function displayTools() {
 
         const text =
           [
+            tool.tool_group,
             tool.tool_name,
             tool.management_code,
             tool.specification,
@@ -907,6 +924,14 @@ function displayTools() {
                   : ""
               }
             </h3>
+
+            <p>
+              大分類：
+              ${escapeHtml(
+                tool.tool_group ||
+                "未設定"
+              )}
+            </p>
 
             <p>
               管理番号：

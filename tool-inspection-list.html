@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    半年点検一覧｜綜合エンジニアリング㈱
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css?v=22"
+  >
+</head>
+
+
+<body>
+
+  <main class="admin-home-page">
+
+    <header class="admin-home-header">
+
+      <div class="admin-home-header-text">
+
+        <h1>
+          綜合エンジニアリング㈱
+
+          <span class="admin-home-portal-title">
+            Staff Portal
+          </span>
+        </h1>
+
+        <p>
+          半年点検一覧
+        </p>
+
+      </div>
+
+      <a
+        href="tool-inspection.html"
+        class="admin-home-back-button"
+      >
+        半年点検へ戻る
+      </a>
+
+    </header>
+
+
+    <!-- =====================================
+         点検サイクル情報
+    ====================================== -->
+
+    <section class="admin-section-card">
+
+      <h2 id="inspectionListCycleName">
+        点検情報を読み込み中...
+      </h2>
+
+      <p>
+        状態：
+        <strong id="inspectionListCycleStatus">
+          -
+        </strong>
+      </p>
+
+      <p>
+        開始シール番号：
+        <strong id="inspectionListStartSticker">
+          -
+        </strong>
+      </p>
+
+      <p>
+        次回シール番号：
+        <strong id="inspectionListNextSticker">
+          -
+        </strong>
+      </p>
+
+    </section>
+
+
+    <!-- =====================================
+         点検進捗
+    ====================================== -->
+
+    <section class="admin-section-card">
+
+      <h2>
+        点検進捗
+      </h2>
+
+      <p>
+        対象工具：
+        <strong id="inspectionTargetCount">
+          0
+        </strong>
+        件
+      </p>
+
+      <p>
+        点検済み：
+        <strong id="inspectionCompletedCount">
+          0
+        </strong>
+        件
+      </p>
+
+      <p>
+        未点検：
+        <strong id="inspectionPendingCount">
+          0
+        </strong>
+        件
+      </p>
+
+    </section>
+
+    <section class="admin-section-card">
+
+  <h2>
+    CSV出力
+  </h2>
+
+  <p class="tool-search-guide">
+    この点検サイクルの点検済み工具を、
+    提出用Excelへ取り込めるCSVで出力します。
+  </p>
+
+  <button
+    id="inspectionCsvExportButton"
+    type="button"
+    class="admin-primary-button"
+  >
+    点検済みCSVを出力
+  </button>
+
+</section>
+
+    <!-- =====================================
+         絞り込み
+    ====================================== -->
+
+    <section class="admin-section-card">
+
+      <h2>
+        点検工具を探す
+      </h2>
+
+
+      <label class="admin-form-label">
+        大分類
+
+        <select
+          id="inspectionGroupFilter"
+          class="admin-form-control"
+        >
+          <option value="">
+            ---- 大分類を選択 ----
+          </option>
+        </select>
+      </label>
+
+
+      <label class="admin-form-label">
+        工具名
+
+        <select
+          id="inspectionToolNameFilter"
+          class="admin-form-control"
+          disabled
+        >
+          <option value="">
+            ---- 工具名を選択 ----
+          </option>
+        </select>
+      </label>
+
+
+      <label class="admin-form-label">
+        点検状態
+
+        <select
+          id="inspectionStatusFilter"
+          class="admin-form-control"
+        >
+          <option value="">
+            すべて
+          </option>
+
+          <option value="pending">
+            未点検
+          </option>
+
+          <option value="completed">
+            点検済み
+          </option>
+        </select>
+      </label>
+
+
+      <button
+        id="inspectionSearchButton"
+        type="button"
+        class="admin-primary-button"
+      >
+        表示する
+      </button>
+
+    </section>
+
+
+    <!-- =====================================
+         点検工具結果
+    ====================================== -->
+
+    <section
+      id="inspectionToolResultSection"
+      class="admin-section-card hidden"
+    >
+
+      <div class="tool-result-header">
+
+        <h2 id="inspectionToolResultTitle">
+          点検工具
+        </h2>
+
+        <button
+          id="inspectionToolResultClose"
+          type="button"
+          class="admin-secondary-button"
+        >
+          閉じる
+        </button>
+
+      </div>
+
+
+      <p
+        id="inspectionToolResultCount"
+        class="schedule-message"
+      ></p>
+
+
+      <div
+        id="inspectionToolList"
+        class="tool-list"
+      ></div>
+
+    </section>
+
+
+    <p
+      id="inspectionListMessage"
+      class="schedule-message"
+    ></p>
+
+  </main>
+
+
+  <script src="portal-auth.js"></script>
+  <script src="./tool-inspection-list.js?v=10"></script>
+
+</body>
+
+</html>
