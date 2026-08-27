@@ -37,9 +37,11 @@ function checkAdminAccess() {
   }
 
   if (
-    !user.adminScope ||
-    user.adminScope === "none"
-  ) {
+  !user.adminScope ||
+  user.adminScope === "none" ||
+  user.adminScope === "tool_admin"
+) {
+  
     alert(
       "向上提案管理を開く権限がありません"
     );

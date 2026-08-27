@@ -18,20 +18,20 @@
     href="style.css?v=17"
   >
 
- <link
-  rel="manifest"
-  href="manifest.json?v=2"
->
+  <link
+    rel="manifest"
+    href="manifest.json?v=2"
+  >
 
-<link
-  rel="apple-touch-icon"
-  href="icons/se-apple-touch-icon.png"
->
+  <link
+    rel="apple-touch-icon"
+    href="icons/se-apple-touch-icon.png"
+  >
 
-<meta
-  name="theme-color"
-  content="#0f172a"
->
+  <meta
+    name="theme-color"
+    content="#0f172a"
+  >
 
 </head>
 
@@ -60,14 +60,6 @@
           読み込み中...
         </p>
 
-        <button
-  id="pushNotificationButton"
-  type="button"
-  class="push-notification-button"
->
-  🔔 通知を受け取る
-</button>
-
       </div>
 
       <button
@@ -88,7 +80,10 @@
 
       <div class="home-menu-grid">
 
-        <!-- 出勤簿 -->
+
+        <!-- ==============================
+             出勤簿
+        ============================== -->
         <a
           href="index.html"
           class="home-square-card"
@@ -122,7 +117,9 @@
         </a>
 
 
-        <!-- 向上提案 -->
+        <!-- ==============================
+             向上提案
+        ============================== -->
         <a
           href="improvement.html"
           class="home-square-card"
@@ -156,7 +153,9 @@
         </a>
 
 
-        <!-- ヒヤリハット -->
+        <!-- ==============================
+             ヒヤリハット
+        ============================== -->
         <a
           href="near-miss.html"
           class="home-square-card"
@@ -190,12 +189,14 @@
         </a>
 
 
-        <!-- 現場搬入予定表 -->
+        <!-- ==============================
+             現場搬入予定表
+        ============================== -->
         <a
-  href="#"
-  id="deliveryCalendarLink"
-  class="home-square-card"
->
+          href="#"
+          id="deliveryCalendarLink"
+          class="home-square-card"
+        >
 
           <div class="home-square-icon">
 
@@ -285,7 +286,39 @@
 
 
       <!-- ==============================
-           管理者専用
+           工具管理
+      ============================== -->
+      <a
+        href="tool-management.html"
+        id="toolManagementMenu"
+        class="home-menu-card admin-menu-card hidden"
+      >
+
+        <div class="home-menu-icon">
+          🧰
+        </div>
+
+        <div class="home-menu-text">
+
+          <h2>
+            工具管理
+          </h2>
+
+          <p>
+            共有工具・個人工具・点検管理
+          </p>
+
+        </div>
+
+        <span class="home-menu-arrow">
+          〉
+        </span>
+
+      </a>
+
+
+      <!-- ==============================
+           通常管理者専用
       ============================== -->
       <a
         href="admin.html"
@@ -319,9 +352,9 @@
 
   </main>
 
+
   <script src="portal-auth.js"></script>
-  <script src="push-notifications.js?v=3"></script>
-  <script src="home.js?v=3"></script>
+  <script src="home.js?v=4"></script>
 
 </body>
 

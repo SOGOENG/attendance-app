@@ -78,9 +78,11 @@ function checkAdminAccess() {
   }
 
   if (
-    !loginUser.adminScope ||
-    loginUser.adminScope === "none"
-  ) {
+  !loginUser.adminScope ||
+  loginUser.adminScope === "none" ||
+  loginUser.adminScope === "tool_admin"
+) {
+  
     alert(
       "予定管理を開く権限がありません"
     );

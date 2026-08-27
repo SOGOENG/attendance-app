@@ -35,9 +35,11 @@ function checkAdminAccess() {
   }
 
   if (
-    !user.adminScope ||
-    user.adminScope === "none"
-  ) {
+  !user.adminScope ||
+  user.adminScope === "none" ||
+  user.adminScope === "tool_admin"
+) {
+  
     alert(
       "ヒヤリハット管理を開く権限がありません"
     );

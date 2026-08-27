@@ -25,6 +25,11 @@ const adminMenu =
     "adminMenu"
   );
 
+const toolManagementMenu =
+  document.getElementById(
+    "toolManagementMenu"
+  );
+
 const todayScheduleList =
   document.getElementById(
     "todayScheduleList"
@@ -84,19 +89,34 @@ function showHomeScreen() {
   welcomeMessage.textContent =
     `${loginUser.name}さん、お疲れさまです`;
 
+
   /*
-    管理権限がある場合だけ、
-    管理画面メニューを表示する。
+    工具管理権限がある場合、
+    工具管理メニューを表示する
+  */
+
+  if (toolManagementMenu) {
+  toolManagementMenu.classList.remove(
+    "hidden"
+  );
+}
+  /*
+    通常の管理権限がある場合だけ、
+    管理画面メニューを表示する
   */
 
   if (
     loginUser.adminScope &&
-    loginUser.adminScope !== "none"
+    loginUser.adminScope !== "none" &&
+    loginUser.adminScope !== "tool_admin"
   ) {
-    adminMenu.classList.remove(
-      "hidden"
-    );
+    if (adminMenu) {
+      adminMenu.classList.remove(
+        "hidden"
+      );
+    }
   }
+
 
   /*
     本日の予定を読み込む
@@ -111,6 +131,7 @@ function showHomeScreen() {
         `${escapeHtml(error.message)}` +
         '</p>';
     });
+
 
   /*
     公開中の向上提案テーマを読み込む
@@ -685,6 +706,7 @@ if (deliveryCalendarLink) {
     );
 }
 
+
 /* =========================================
    Push通知 ON / OFF
 ========================================= */
@@ -796,15 +818,15 @@ if (pushNotificationButton) {
   updatePushNotificationButton();
 
   if (
-  typeof window.syncPushSubscription ===
-  "function"
-) {
-  window.syncPushSubscription()
-    .catch(error => {
-      console.error(
-        "Push購読同期エラー:",
-        error
-      );
-    });
-}
+    typeof window.syncPushSubscription ===
+      "function"
+  ) {
+    window.syncPushSubscription()
+      .catch(error => {
+        console.error(
+          "Push購読同期エラー:",
+          error
+        );
+      });
+  }
 }

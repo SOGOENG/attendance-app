@@ -154,9 +154,11 @@ function checkAdminAccess() {
   }
 
   if (
-    !loginUser.adminScope ||
-    loginUser.adminScope === "none"
-  ) {
+  !loginUser.adminScope ||
+  loginUser.adminScope === "none" ||
+  loginUser.adminScope === "tool_admin"
+) {
+  
     alert(
       "現場設定を開く権限がありません"
     );

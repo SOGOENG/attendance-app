@@ -1858,3 +1858,80 @@ body {
   opacity: 0.6;
   cursor: default;
 }
+
+/* =========================================
+   工具管理カード
+========================================= */
+
+#toolManagementMenu {
+  background: #ffffff;
+  border: 1px solid #dbe3f0;
+  color: #111827;
+}
+
+#toolManagementMenu .home-menu-text h2 {
+  color: #2563eb;
+}
+
+#toolManagementMenu .home-menu-text p {
+  color: #111827;
+}
+
+#toolManagementMenu .home-menu-arrow {
+  color: #2563eb;
+}
+
+#toolManagementMenu .home-menu-icon {
+  background: #eef4ff;
+}
+
+/* =========================================
+   工具管理メニュー
+========================================= */
+
+#toolMasterMenu,
+#toolQrMenu,
+.admin-menu-section .admin-menu-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-menu-section .admin-menu-card-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-menu-section .admin-menu-card-text h3 {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+.admin-menu-section .admin-menu-card-text p {
+  word-break: keep-all;
+}
+
+.admin-menu-section .admin-menu-card-arrow {
+  flex-shrink: 0;
+}
+
+/* =========================================
+   共有工具 操作ボタン
+========================================= */
+
+.tool-item-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.tool-item-actions .admin-primary-button,
+.tool-item-actions .admin-secondary-button {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  text-decoration: none;
+}

@@ -159,9 +159,11 @@ function checkAdminAccess() {
   }
 
   if (
-    !loginUser.adminScope ||
-    loginUser.adminScope === "none"
-  ) {
+  !loginUser.adminScope ||
+  loginUser.adminScope === "none" ||
+  loginUser.adminScope === "tool_admin"
+) {
+  
     alert(
       "社員設定を開く権限がありません"
     );
@@ -229,6 +231,10 @@ function formatAdminScope(value) {
   if (value === "all") {
     return "全体管理者";
   }
+
+  if (value === "tool_admin") {
+  return "工具管理者";
+}
 
   return `${value}のみ`;
 }

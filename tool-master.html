@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    工具マスタ管理｜綜合エンジニアリング㈱
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css?v=20"
+  >
+</head>
+
+
+<body>
+
+  <main class="admin-home-page">
+
+    <!-- ==============================
+         ヘッダー
+    ============================== -->
+    <header class="admin-home-header">
+
+      <div class="admin-home-header-text">
+
+        <h1>
+          綜合エンジニアリング㈱
+
+          <span class="admin-home-portal-title">
+            Staff Portal
+          </span>
+        </h1>
+
+        <p>
+          工具マスタ管理
+        </p>
+
+      </div>
+
+      <a
+        href="tool-management.html"
+        class="admin-home-back-button"
+      >
+        工具管理へ戻る
+      </a>
+
+    </header>
+
+
+    <!-- ==============================
+         工具登録・編集
+    ============================== -->
+    <section class="admin-section-card">
+
+      <h2 id="toolFormTitle">
+        工具登録
+      </h2>
+
+      <input
+        id="editingToolId"
+        type="hidden"
+        value=""
+      >
+
+
+      <label class="admin-form-label">
+        工具名
+
+        <input
+          id="toolName"
+          type="text"
+          class="admin-form-control"
+          placeholder="例：旋盤"
+        >
+      </label>
+
+
+      <label class="admin-form-label">
+        仕様
+
+        <input
+          id="toolSpecification"
+          type="text"
+          class="admin-form-control"
+          placeholder="例：3インチ"
+        >
+      </label>
+
+
+      <label class="admin-form-label">
+        管理番号
+
+        <input
+          id="toolManagementCode"
+          type="text"
+          class="admin-form-control"
+          placeholder="例：SB-3IN-001"
+        >
+      </label>
+
+
+      <label class="admin-form-label">
+        所有区分
+
+        <select
+          id="toolOwnershipType"
+          class="admin-form-control"
+        >
+          <option value="shared">
+            共有工具
+          </option>
+
+          <option value="personal">
+            個人管理工具
+          </option>
+        </select>
+      </label>
+
+
+      <label class="admin-form-label">
+        メーカー
+
+        <input
+          id="toolManufacturer"
+          type="text"
+          class="admin-form-control"
+        >
+      </label>
+
+
+      <label class="admin-form-label">
+        型式
+
+        <input
+          id="toolModelNumber"
+          type="text"
+          class="admin-form-control"
+        >
+      </label>
+
+
+      <label class="admin-form-label">
+        製造番号
+
+        <input
+          id="toolSerialNumber"
+          type="text"
+          class="admin-form-control"
+        >
+      </label>
+
+
+      <label class="admin-form-label">
+        性能
+
+        <input
+          id="toolPerformance"
+          type="text"
+          class="admin-form-control"
+        >
+      </label>
+
+
+      <label class="admin-form-label">
+        半年点検
+
+        <select
+          id="toolInspectionRequired"
+          class="admin-form-control"
+        >
+          <option value="false">
+            対象外
+          </option>
+
+          <option value="true">
+            対象
+          </option>
+        </select>
+      </label>
+
+
+      <label class="admin-form-label">
+        点検区分
+
+        <select
+          id="toolInspectionCategory"
+          class="admin-form-control"
+        >
+          <option value="">
+            ---- 選択 ----
+          </option>
+
+          <option value="3p">
+            3P工具
+          </option>
+
+          <option value="double_insulated">
+            二重絶縁工具
+          </option>
+
+          <option value="battery">
+            充電式工具
+          </option>
+
+          <option value="cord_reel">
+            コードリール
+          </option>
+
+          <option value="ac_welder">
+            交流式溶接機
+          </option>
+
+          <option value="dc_welder">
+            直流式溶接機
+          </option>
+        </select>
+      </label>
+
+
+      <label class="admin-form-label">
+        備考
+
+        <textarea
+          id="toolNote"
+          class="admin-form-control"
+          rows="4"
+        ></textarea>
+      </label>
+
+
+      <div class="admin-action-buttons">
+
+        <button
+          id="saveToolButton"
+          type="button"
+          class="admin-primary-button"
+        >
+          登録する
+        </button>
+
+        <button
+          id="cancelToolEditButton"
+          type="button"
+          class="admin-secondary-button"
+          hidden
+        >
+          編集をやめる
+        </button>
+
+        <button
+          id="stopToolButton"
+          type="button"
+          class="admin-secondary-button"
+          hidden
+        >
+          使用停止
+        </button>
+
+        <button
+          id="disposeToolButton"
+          type="button"
+          class="admin-secondary-button"
+          hidden
+        >
+          廃棄
+        </button>
+
+      </div>
+
+      <p
+        id="toolMasterMessage"
+        class="schedule-message"
+      ></p>
+
+    </section>
+
+
+    <!-- ==============================
+         工具一覧
+    ============================== -->
+    <section class="admin-section-card">
+
+      <h2>
+        登録済み工具
+      </h2>
+
+      <label class="admin-form-label">
+        工具検索
+
+        <input
+          id="toolMasterSearch"
+          type="search"
+          class="admin-form-control"
+          placeholder="工具名・管理番号で検索"
+        >
+      </label>
+
+      <div
+        id="toolMasterList"
+        class="tool-list"
+      >
+        <p class="schedule-empty-message">
+          工具情報を読み込み中...
+        </p>
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script src="portal-auth.js"></script>
+
+  <script>
+    const savedUser =
+      localStorage.getItem(
+        "portalLoginUser"
+      );
+
+    if (!savedUser) {
+      window.location.href =
+        "login.html";
+
+    } else {
+      try {
+        const loginUser =
+          JSON.parse(savedUser);
+
+        const canManageTools =
+          loginUser.adminScope ===
+            "tool_admin" ||
+          (
+            loginUser.adminScope &&
+            loginUser.adminScope !==
+              "none"
+          );
+
+        if (!canManageTools) {
+          alert(
+            "工具マスタを開く権限がありません"
+          );
+
+          window.location.href =
+            "tool-management.html";
+        }
+
+      } catch (error) {
+        console.error(error);
+
+        window.location.href =
+          "login.html";
+      }
+    }
+  </script>
+
+  <script src="./tool-master.js?v=3"></script>
+
+</body>
+
+</html>

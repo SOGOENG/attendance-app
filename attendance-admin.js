@@ -42,9 +42,11 @@ function checkAdminAccess() {
   */
 
   if (
-    !loginUser.adminScope ||
-    loginUser.adminScope === "none"
-  ) {
+  !loginUser.adminScope ||
+  loginUser.adminScope === "none" ||
+  loginUser.adminScope === "tool_admin"
+) {
+  
     alert(
       "管理画面を開く権限がありません"
     );

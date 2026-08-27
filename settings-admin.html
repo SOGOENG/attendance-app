@@ -189,6 +189,43 @@
 
   <script src="portal-auth.js"></script>
 
+<script>
+  const savedUser =
+    localStorage.getItem(
+      "portalLoginUser"
+    );
+
+  if (!savedUser) {
+    window.location.href =
+      "login.html";
+
+  } else {
+    try {
+      const loginUser =
+        JSON.parse(savedUser);
+
+      if (
+        !loginUser.adminScope ||
+        loginUser.adminScope === "none" ||
+        loginUser.adminScope === "tool_admin"
+      ) {
+        alert(
+          "設定画面を開く権限がありません"
+        );
+
+        window.location.href =
+          "home.html";
+      }
+
+    } catch (error) {
+      console.error(error);
+
+      window.location.href =
+        "login.html";
+    }
+  }
+</script>  
+
 </body>
 
 </html>

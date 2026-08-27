@@ -101,9 +101,11 @@ function checkAdminAccess() {
   }
 
   if (
-    !loginUser.adminScope ||
-    loginUser.adminScope === "none"
-  ) {
+  !loginUser.adminScope ||
+  loginUser.adminScope === "none" ||
+  loginUser.adminScope === "tool_admin"
+) {
+  
     alert(
       "休日設定を開く権限がありません"
     );
