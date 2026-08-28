@@ -898,10 +898,11 @@ function displayTools() {
         "tool-item-card";
 
       const ownershipText =
-        tool.ownership_type ===
-          "personal"
-          ? "個人管理"
-          : "共有";
+  tool.ownership_type === "personal"
+    ? "個人（会社社員）"
+    : tool.ownership_type === "contractor"
+      ? "協力業者"
+      : "共有（会社）";
 
       const inspectionText =
         tool.inspection_required
