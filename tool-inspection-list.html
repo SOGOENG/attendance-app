@@ -122,26 +122,226 @@
 
     </section>
 
+
+    <!-- =====================================
+         CSV出力
+    ====================================== -->
+
     <section class="admin-section-card">
 
-  <h2>
-    CSV出力
-  </h2>
+      <h2>
+        CSV出力
+      </h2>
 
-  <p class="tool-search-guide">
-    この点検サイクルの点検済み工具を、
-    提出用Excelへ取り込めるCSVで出力します。
-  </p>
+      <p class="tool-search-guide">
+        点検済み工具を条件で絞り込み、
+        提出用Excelへ取り込めるCSVで出力します。
+      </p>
 
-  <button
-    id="inspectionCsvExportButton"
-    type="button"
-    class="admin-primary-button"
-  >
-    点検済みCSVを出力
-  </button>
+      <button
+        id="openInspectionCsvSettingsButton"
+        type="button"
+        class="admin-primary-button"
+      >
+        CSV出力設定
+      </button>
 
-</section>
+
+      <!-- CSV出力設定 -->
+
+      <div
+        id="inspectionCsvSettingsPanel"
+        style="display: none; margin-top: 24px;"
+      >
+
+        <h3>
+          CSV出力設定
+        </h3>
+
+
+        <!-- 出力状態 -->
+
+        <label class="admin-form-label">
+          出力対象
+
+          <select
+            id="inspectionCsvExportStatus"
+            class="admin-form-control"
+          >
+            <option value="unexported">
+              未出力のみ
+            </option>
+
+            <option value="all">
+              出力済みも含む
+            </option>
+
+            <option value="exported">
+              出力済みのみ
+            </option>
+          </select>
+        </label>
+
+
+        <!-- 所有区分 -->
+
+        <label class="admin-form-label">
+          所有区分
+
+          <select
+            id="inspectionCsvOwnershipFilter"
+            class="admin-form-control"
+          >
+            <option value="">
+              すべて
+            </option>
+
+            <option value="shared">
+              共有（会社）
+            </option>
+
+            <option value="personal">
+              個人（会社社員）
+            </option>
+
+            <option value="contractor">
+              協力業者
+            </option>
+          </select>
+        </label>
+
+
+        <!-- 現場 -->
+
+        <label class="admin-form-label">
+          現場
+
+          <select
+            id="inspectionCsvSiteFilter"
+            class="admin-form-control"
+          >
+            <option value="">
+              すべて
+            </option>
+          </select>
+        </label>
+
+
+        <!-- 社員 -->
+
+        <label class="admin-form-label">
+          個人所有者
+
+          <select
+            id="inspectionCsvEmployeeFilter"
+            class="admin-form-control"
+          >
+            <option value="">
+              すべて
+            </option>
+          </select>
+        </label>
+
+
+        <!-- 協力業者 -->
+
+        <label class="admin-form-label">
+          協力業者
+
+          <select
+            id="inspectionCsvContractorFilter"
+            class="admin-form-control"
+          >
+            <option value="">
+              すべて
+            </option>
+          </select>
+        </label>
+
+
+        <!-- 大分類 -->
+
+        <label class="admin-form-label">
+          大分類
+
+          <select
+            id="inspectionCsvGroupFilter"
+            class="admin-form-control"
+          >
+            <option value="">
+              すべて
+            </option>
+          </select>
+        </label>
+
+
+        <!-- 工具名 -->
+
+        <label class="admin-form-label">
+          工具名
+
+          <select
+            id="inspectionCsvToolNameFilter"
+            class="admin-form-control"
+            disabled
+          >
+            <option value="">
+              すべて
+            </option>
+          </select>
+        </label>
+
+
+        <!-- 対象件数 -->
+
+        <p
+          id="inspectionCsvTargetCount"
+          class="schedule-message"
+        >
+          出力対象：0件
+        </p>
+
+
+        <div class="admin-action-buttons">
+
+          <button
+            id="inspectionCsvExportButton"
+            type="button"
+            class="admin-primary-button"
+          >
+            CSVを出力する
+          </button>
+
+
+          <button
+            id="inspectionCsvResetExportedButton"
+            type="button"
+            class="admin-secondary-button"
+          >
+            出力済みを未出力に戻す
+          </button>
+
+
+          <button
+            id="closeInspectionCsvSettingsButton"
+            type="button"
+            class="admin-secondary-button"
+          >
+            閉じる
+          </button>
+
+        </div>
+
+
+        <p
+          id="inspectionCsvMessage"
+          class="schedule-message"
+        ></p>
+
+      </div>
+
+    </section>
+
 
     <!-- =====================================
          絞り込み
@@ -265,7 +465,8 @@
 
 
   <script src="portal-auth.js"></script>
-  <script src="./tool-inspection-list.js?v=10"></script>
+
+  <script src="./tool-inspection-list.js?v=14"></script>
 
 </body>
 

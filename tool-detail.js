@@ -10,6 +10,11 @@ const SUPABASE_URL =
    HTML要素
 ========================================= */
 
+const detailBackButton =
+  document.getElementById(
+    "detailBackButton"
+  );
+
 const detailToolTitle =
   document.getElementById(
     "detailToolTitle"
@@ -55,6 +60,11 @@ const detailCurrentSite =
     "detailCurrentSite"
   );
 
+const detailCurrentSiteRow =
+  document.getElementById(
+    "detailCurrentSiteRow"
+  );
+
 const detailAssignedEmployee =
   document.getElementById(
     "detailAssignedEmployee"
@@ -63,6 +73,11 @@ const detailAssignedEmployee =
 const detailStatus =
   document.getElementById(
     "detailStatus"
+  );
+
+const detailStatusRow =
+  document.getElementById(
+    "detailStatusRow"
   );
 
 const detailNote =
@@ -90,6 +105,11 @@ const detailStickerNumber =
     "detailStickerNumber"
   );
 
+const detailActionSection =
+  document.getElementById(
+    "detailActionSection"
+  );
+
 const detailActionButtons =
   document.getElementById(
     "detailActionButtons"
@@ -103,6 +123,71 @@ const toolHistoryList =
 const toolDetailMessage =
   document.getElementById(
     "toolDetailMessage"
+  );
+
+
+/* =========================================
+   バッテリー管理
+========================================= */
+
+const batteryManagementSection =
+  document.getElementById(
+    "batteryManagementSection"
+  );
+
+const detailLastBatteryReplacementDate =
+  document.getElementById(
+    "detailLastBatteryReplacementDate"
+  );
+
+const openBatteryHistoryFormButton =
+  document.getElementById(
+    "openBatteryHistoryFormButton"
+  );
+
+const batteryHistoryForm =
+  document.getElementById(
+    "batteryHistoryForm"
+  );
+
+const batteryReplacementDate =
+  document.getElementById(
+    "batteryReplacementDate"
+  );
+
+const batteryModel =
+  document.getElementById(
+    "batteryModel"
+  );
+
+const batteryReplacementReason =
+  document.getElementById(
+    "batteryReplacementReason"
+  );
+
+const batteryReplacementNote =
+  document.getElementById(
+    "batteryReplacementNote"
+  );
+
+const saveBatteryHistoryButton =
+  document.getElementById(
+    "saveBatteryHistoryButton"
+  );
+
+const cancelBatteryHistoryButton =
+  document.getElementById(
+    "cancelBatteryHistoryButton"
+  );
+
+const batteryHistoryMessage =
+  document.getElementById(
+    "batteryHistoryMessage"
+  );
+
+const batteryHistoryList =
+  document.getElementById(
+    "batteryHistoryList"
   );
 
 
@@ -128,8 +213,13 @@ const employeeDisplayNameMap =
    共通
 ========================================= */
 
-function escapeHtml(value) {
-  return String(value ?? "")
+function escapeHtml(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -139,12 +229,15 @@ function escapeHtml(value) {
 
 
 function getToolIdFromUrl() {
+
   const params =
     new URLSearchParams(
       window.location.search
     );
 
-  return params.get("id");
+  return params.get(
+    "id"
+  );
 }
 
 
@@ -155,39 +248,56 @@ function getToolIdFromUrl() {
 function splitEmployeeName(
   fullName
 ) {
+
   const normalized =
-    String(fullName || "")
+    String(
+      fullName || ""
+    )
       .trim()
-      .replace(/\u3000/g, " ")
-      .replace(/\s+/g, " ");
+      .replace(
+        /\u3000/g,
+        " "
+      )
+      .replace(
+        /\s+/g,
+        " "
+      );
+
 
   if (!normalized) {
+
     return {
       familyName: "",
       givenName: ""
     };
   }
 
-  const parts =
-    normalized.split(" ");
 
-  if (parts.length >= 2) {
+  const parts =
+    normalized.split(
+      " "
+    );
+
+
+  if (
+    parts.length >= 2
+  ) {
+
     return {
+
       familyName:
         parts[0],
 
       givenName:
-        parts.slice(1).join("")
+        parts
+          .slice(1)
+          .join("")
     };
   }
 
-  /*
-    スペースなしの場合は
-    姓名を安全に判定できないため
-    元の名前をそのまま姓扱い
-  */
 
   return {
+
     familyName:
       normalized,
 
@@ -199,25 +309,16 @@ function splitEmployeeName(
 
 /* =========================================
    表示用社員名作成
-
-   通常：
-   鈴木 和弘 → 鈴木
-
-   同姓あり：
-   鈴木 和弘 → 鈴木和
-   鈴木 一郎 → 鈴木一
 ========================================= */
 
 function buildEmployeeDisplayNames() {
+
   employeeDisplayNameMap.clear();
+
 
   const familyNameCount =
     new Map();
 
-
-  /*
-    苗字ごとの人数を数える
-  */
 
   employeeRecords.forEach(
     employee => {
@@ -227,14 +328,17 @@ function buildEmployeeDisplayNames() {
           employee.name
         );
 
+
       if (!name.familyName) {
         return;
       }
+
 
       const currentCount =
         familyNameCount.get(
           name.familyName
         ) || 0;
+
 
       familyNameCount.set(
         name.familyName,
@@ -244,10 +348,6 @@ function buildEmployeeDisplayNames() {
   );
 
 
-  /*
-    表示名を作成
-  */
-
   employeeRecords.forEach(
     employee => {
 
@@ -256,39 +356,46 @@ function buildEmployeeDisplayNames() {
           employee.name
         );
 
+
       if (!name.familyName) {
+
         employeeDisplayNameMap.set(
-          String(employee.id),
+          String(
+            employee.id
+          ),
           "-"
         );
 
         return;
       }
 
+
       const count =
         familyNameCount.get(
           name.familyName
         ) || 0;
 
+
       let displayName =
         name.familyName;
 
-
-      /*
-        同姓が複数いる場合だけ
-        名前の最初の1文字を付ける
-      */
 
       if (
         count >= 2 &&
         name.givenName
       ) {
+
         displayName +=
-          name.givenName.charAt(0);
+          name.givenName.charAt(
+            0
+          );
       }
 
+
       employeeDisplayNameMap.set(
-        String(employee.id),
+        String(
+          employee.id
+        ),
         displayName
       );
     }
@@ -303,16 +410,22 @@ function buildEmployeeDisplayNames() {
 function getEmployeeDisplayName(
   employeeId
 ) {
+
   if (!employeeId) {
     return "-";
   }
 
+
   return (
     employeeDisplayNameMap.get(
-      String(employeeId)
+      String(
+        employeeId
+      )
     ) ||
     employeeNameMap.get(
-      String(employeeId)
+      String(
+        employeeId
+      )
     ) ||
     "-"
   );
@@ -320,10 +433,13 @@ function getEmployeeDisplayName(
 
 
 /* =========================================
-   状態表示
+   状態
 ========================================= */
 
-function formatToolStatus(status) {
+function formatToolStatus(
+  status
+) {
+
   switch (status) {
 
     case "available":
@@ -354,6 +470,7 @@ function formatToolStatus(status) {
 function formatInspectionCategory(
   category
 ) {
+
   switch (category) {
 
     case "3p":
@@ -387,6 +504,7 @@ function formatInspectionCategory(
 function formatHistoryAction(
   actionType
 ) {
+
   switch (actionType) {
 
     case "checkout":
@@ -420,22 +538,28 @@ function formatHistoryAction(
 
 
 /* =========================================
-   日時表示
+   日時
 ========================================= */
 
 function formatDateTime(
   value
 ) {
+
   if (!value) {
     return "-";
   }
 
+
   const date =
-    new Date(value);
+    new Date(
+      value
+    );
+
 
   return date.toLocaleString(
     "ja-JP",
     {
+
       year:
         "numeric",
 
@@ -456,41 +580,128 @@ function formatDateTime(
 
 
 /* =========================================
+   日付
+========================================= */
+
+function formatDate(
+  value
+) {
+
+  if (!value) {
+    return "-";
+  }
+
+
+  const parts =
+    String(
+      value
+    ).split(
+      "-"
+    );
+
+
+  if (
+    parts.length !== 3
+  ) {
+
+    return value;
+  }
+
+
+  return (
+    `${parts[0]}/` +
+    `${parts[1]}/` +
+    `${parts[2]}`
+  );
+}
+
+
+/* =========================================
+   今日の日付
+========================================= */
+
+function getTodayDateString() {
+
+  const today =
+    new Date();
+
+
+  const year =
+    today.getFullYear();
+
+
+  const month =
+    String(
+      today.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+
+  const day =
+    String(
+      today.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+
+  return (
+    `${year}-${month}-${day}`
+  );
+}
+
+
+/* =========================================
    現場読込
 ========================================= */
 
 async function loadSites() {
+
   const url =
     `${SUPABASE_URL}/rest/v1/sites` +
     `?select=id,display_name`;
 
+
   const response =
-    await portalFetch(url);
+    await portalFetch(
+      url
+    );
+
 
   if (!response.ok) {
-    const errorText =
-      await response.text();
 
     console.error(
-      errorText
+      await response.text()
     );
+
 
     throw new Error(
       "現場情報を読み込めませんでした"
     );
   }
 
+
   const sites =
     await response.json();
 
+
   siteNameMap.clear();
 
-  sites.forEach(site => {
-    siteNameMap.set(
-      String(site.id),
-      site.display_name
-    );
-  });
+
+  sites.forEach(
+    site => {
+
+      siteNameMap.set(
+        String(
+          site.id
+        ),
+        site.display_name
+      );
+    }
+  );
 }
 
 
@@ -499,40 +710,50 @@ async function loadSites() {
 ========================================= */
 
 async function loadEmployees() {
+
   const url =
     `${SUPABASE_URL}/rest/v1/employees` +
     `?select=id,name`;
 
+
   const response =
-    await portalFetch(url);
+    await portalFetch(
+      url
+    );
+
 
   if (!response.ok) {
-    const errorText =
-      await response.text();
 
     console.error(
-      errorText
+      await response.text()
     );
+
 
     throw new Error(
       "社員情報を読み込めませんでした"
     );
   }
 
+
   employeeRecords =
     await response.json();
 
+
   employeeNameMap.clear();
+
 
   employeeRecords.forEach(
     employee => {
 
       employeeNameMap.set(
-        String(employee.id),
+        String(
+          employee.id
+        ),
         employee.name
       );
     }
   );
+
 
   buildEmployeeDisplayNames();
 }
@@ -543,49 +764,130 @@ async function loadEmployees() {
 ========================================= */
 
 async function loadTool() {
+
   const toolId =
     getToolIdFromUrl();
 
+
   if (!toolId) {
+
     throw new Error(
       "工具IDがありません"
     );
   }
+
 
   const url =
     `${SUPABASE_URL}/rest/v1/tools` +
     `?id=eq.${toolId}` +
     `&select=*`;
 
+
   const response =
-    await portalFetch(url);
+    await portalFetch(
+      url
+    );
+
 
   if (!response.ok) {
-    const errorText =
-      await response.text();
 
     console.error(
-      errorText
+      await response.text()
     );
+
 
     throw new Error(
       "工具情報を読み込めませんでした"
     );
   }
 
+
   const tools =
     await response.json();
+
 
   if (
     tools.length === 0
   ) {
+
     throw new Error(
       "工具が見つかりません"
     );
   }
 
+
   currentTool =
     tools[0];
+}
+
+
+/* =========================================
+   所有区分による詳細表示
+========================================= */
+
+function updateDetailByOwnership() {
+
+  const isPersonal =
+    currentTool.ownership_type ===
+    "personal";
+
+
+  /*
+    個人工具
+  */
+
+  if (isPersonal) {
+
+    detailCurrentSiteRow.style.display =
+      "none";
+
+
+    detailStatusRow.style.display =
+      "none";
+
+
+    detailActionSection.style.display =
+      "none";
+
+
+    /*
+      戻る先も個人工具へ
+    */
+
+    detailBackButton.href =
+      "personal-tools.html";
+
+
+    detailBackButton.textContent =
+      "個人工具へ戻る";
+
+
+    return;
+  }
+
+
+  /*
+    共有・その他
+  */
+
+  detailCurrentSiteRow.style.display =
+    "";
+
+
+  detailStatusRow.style.display =
+    "";
+
+
+  detailActionSection.style.display =
+    "";
+
+
+  detailBackButton.href =
+    "shared-tools.html";
+
+
+  detailBackButton.textContent =
+    "共有工具へ戻る";
 }
 
 
@@ -594,6 +896,7 @@ async function loadTool() {
 ========================================= */
 
 function displayTool() {
+
   detailToolTitle.textContent =
     `${currentTool.tool_name}` +
     `${
@@ -602,33 +905,41 @@ function displayTool() {
         : ""
     }`;
 
+
   detailToolGroup.textContent =
     currentTool.tool_group ||
     "未設定";
+
 
   detailManagementCode.textContent =
     currentTool.management_code ||
     "-";
 
+
   detailSpecification.textContent =
     currentTool.specification ||
     "-";
+
 
   detailManufacturer.textContent =
     currentTool.manufacturer ||
     "-";
 
+
   detailModelNumber.textContent =
     currentTool.model_number ||
     "-";
+
 
   detailSerialNumber.textContent =
     currentTool.serial_number ||
     "-";
 
+
   detailPerformance.textContent =
     currentTool.performance ||
     "-";
+
 
   detailCurrentSite.textContent =
     currentTool.current_site_id
@@ -641,24 +952,29 @@ function displayTool() {
         )
       : "倉庫";
 
+
   detailAssignedEmployee.textContent =
     getEmployeeDisplayName(
       currentTool.assigned_employee_id
     );
+
 
   detailStatus.textContent =
     formatToolStatus(
       currentTool.status
     );
 
+
   detailNote.textContent =
     currentTool.note ||
     "-";
+
 
   detailInspectionRequired.textContent =
     currentTool.inspection_required
       ? "対象"
       : "対象外";
+
 
   detailInspectionCategory.textContent =
     currentTool.inspection_required
@@ -666,6 +982,9 @@ function displayTool() {
           currentTool.inspection_category
         )
       : "-";
+
+
+  updateDetailByOwnership();
 }
 
 
@@ -674,13 +993,42 @@ function displayTool() {
 ========================================= */
 
 function displayActionButtons() {
+
   detailActionButtons.innerHTML =
     "";
+
+
+  /*
+    個人工具は操作なし
+  */
+
+  if (
+    currentTool.ownership_type ===
+    "personal"
+  ) {
+
+    return;
+  }
+
+
+  /*
+    持出管理対象外も操作なし
+  */
+
+  if (
+    currentTool.checkout_managed ===
+    false
+  ) {
+
+    return;
+  }
+
 
   if (
     currentTool.status ===
     "available"
   ) {
+
     detailActionButtons.innerHTML =
       `
         <a
@@ -699,6 +1047,7 @@ function displayActionButtons() {
     currentTool.status ===
     "in_use"
   ) {
+
     detailActionButtons.innerHTML =
       `
         <a
@@ -730,21 +1079,26 @@ function displayActionButtons() {
 
 
 /* =========================================
-   最新点検履歴
+   最新点検
 ========================================= */
 
 async function loadLatestInspection() {
+
   if (
     !currentTool.inspection_required
   ) {
+
     detailLastInspectionDate.textContent =
       "対象外";
+
 
     detailStickerNumber.textContent =
       "対象外";
 
+
     return;
   }
+
 
   const url =
     `${SUPABASE_URL}/rest/v1/tool_inspections` +
@@ -753,41 +1107,56 @@ async function loadLatestInspection() {
     `&order=inspection_date.desc` +
     `&limit=1`;
 
+
   const response =
-    await portalFetch(url);
+    await portalFetch(
+      url
+    );
+
 
   if (!response.ok) {
+
     console.error(
       await response.text()
     );
 
+
     detailLastInspectionDate.textContent =
       "未登録";
+
 
     detailStickerNumber.textContent =
       "未登録";
 
+
     return;
   }
+
 
   const records =
     await response.json();
 
+
   if (
     records.length === 0
   ) {
+
     detailLastInspectionDate.textContent =
       "未登録";
+
 
     detailStickerNumber.textContent =
       "未登録";
 
+
     return;
   }
+
 
   detailLastInspectionDate.textContent =
     records[0].inspection_date ||
     "未登録";
+
 
   detailStickerNumber.textContent =
     records[0].sticker_number ||
@@ -796,34 +1165,404 @@ async function loadLatestInspection() {
 
 
 /* =========================================
-   履歴読込
+   バッテリー管理表示
+========================================= */
+
+function setupBatteryManagement() {
+
+  const isBatteryTool =
+    currentTool.tool_group ===
+    "充電工具";
+
+
+  if (!isBatteryTool) {
+
+    batteryManagementSection.style.display =
+      "none";
+
+    return;
+  }
+
+
+  batteryManagementSection.style.display =
+    "block";
+
+
+  batteryReplacementDate.value =
+    getTodayDateString();
+}
+
+
+/* =========================================
+   バッテリー登録フォーム
+========================================= */
+
+function openBatteryForm() {
+
+  batteryHistoryMessage.textContent =
+    "";
+
+
+  batteryReplacementDate.value =
+    getTodayDateString();
+
+
+  batteryModel.value =
+    "";
+
+
+  batteryReplacementReason.value =
+    "";
+
+
+  batteryReplacementNote.value =
+    "";
+
+
+  batteryHistoryForm.style.display =
+    "block";
+
+
+  batteryHistoryForm.scrollIntoView({
+    behavior: "smooth",
+    block: "nearest"
+  });
+}
+
+
+function closeBatteryForm() {
+
+  batteryHistoryForm.style.display =
+    "none";
+
+
+  batteryHistoryMessage.textContent =
+    "";
+}
+
+
+/* =========================================
+   バッテリー交換登録
+========================================= */
+
+async function saveBatteryHistory() {
+
+  batteryHistoryMessage.textContent =
+    "";
+
+
+  if (
+    !batteryReplacementDate.value
+  ) {
+
+    batteryHistoryMessage.textContent =
+      "交換日を入力してください";
+
+    return;
+  }
+
+
+  const confirmed =
+    window.confirm(
+      "バッテリー交換履歴を登録しますか？"
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  const record = {
+
+    tool_id:
+      Number(
+        currentTool.id
+      ),
+
+    replacement_date:
+      batteryReplacementDate.value,
+
+    battery_model:
+      batteryModel.value
+        .trim() ||
+      null,
+
+    reason:
+      batteryReplacementReason.value
+        .trim() ||
+      null,
+
+    note:
+      batteryReplacementNote.value
+        .trim() ||
+      null
+  };
+
+
+  try {
+
+    const response =
+      await portalFetch(
+        `${SUPABASE_URL}/rest/v1/tool_battery_history`,
+        {
+
+          method:
+            "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            Prefer:
+              "return=minimal"
+          },
+
+          body:
+            JSON.stringify(
+              record
+            )
+        }
+      );
+
+
+    if (!response.ok) {
+
+      console.error(
+        await response.text()
+      );
+
+
+      throw new Error(
+        "バッテリー交換履歴を登録できませんでした"
+      );
+    }
+
+
+    closeBatteryForm();
+
+
+    await loadBatteryHistory();
+
+
+    alert(
+      "バッテリー交換履歴を登録しました"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    batteryHistoryMessage.textContent =
+      error.message;
+  }
+}
+
+
+/* =========================================
+   バッテリー履歴読込
+========================================= */
+
+async function loadBatteryHistory() {
+
+  if (
+    currentTool.tool_group !==
+    "充電工具"
+  ) {
+
+    return;
+  }
+
+
+  const url =
+    `${SUPABASE_URL}/rest/v1/tool_battery_history` +
+    `?tool_id=eq.${currentTool.id}` +
+    `&select=*` +
+    `&order=replacement_date.desc,created_at.desc`;
+
+
+  const response =
+    await portalFetch(
+      url
+    );
+
+
+  if (!response.ok) {
+
+    console.error(
+      await response.text()
+    );
+
+
+    batteryHistoryList.innerHTML =
+      `
+        <p class="schedule-empty-message">
+          バッテリー履歴を読み込めませんでした
+        </p>
+      `;
+
+
+    detailLastBatteryReplacementDate.textContent =
+      "未登録";
+
+
+    return;
+  }
+
+
+  const histories =
+    await response.json();
+
+
+  displayBatteryHistory(
+    histories
+  );
+}
+
+
+/* =========================================
+   バッテリー履歴表示
+========================================= */
+
+function displayBatteryHistory(
+  histories
+) {
+
+  batteryHistoryList.innerHTML =
+    "";
+
+
+  if (
+    histories.length === 0
+  ) {
+
+    detailLastBatteryReplacementDate.textContent =
+      "未登録";
+
+
+    batteryHistoryList.innerHTML =
+      `
+        <p class="schedule-empty-message">
+          交換履歴はありません
+        </p>
+      `;
+
+
+    return;
+  }
+
+
+  detailLastBatteryReplacementDate.textContent =
+    formatDate(
+      histories[0].replacement_date
+    );
+
+
+  histories.forEach(
+    history => {
+
+      const item =
+        document.createElement(
+          "div"
+        );
+
+
+      item.className =
+        "tool-history-item";
+
+
+      item.innerHTML =
+        `
+          <p>
+            <strong>
+              交換日：
+              ${escapeHtml(
+                formatDate(
+                  history.replacement_date
+                )
+              )}
+            </strong>
+          </p>
+
+          <p>
+            バッテリー型式：
+            ${escapeHtml(
+              history.battery_model ||
+              "-"
+            )}
+          </p>
+
+          <p>
+            交換理由：
+            ${escapeHtml(
+              history.reason ||
+              "-"
+            )}
+          </p>
+
+          ${
+            history.note
+              ? `
+                <p>
+                  備考：
+                  ${escapeHtml(
+                    history.note
+                  )}
+                </p>
+              `
+              : ""
+          }
+        `;
+
+
+      batteryHistoryList.appendChild(
+        item
+      );
+    }
+  );
+}
+
+
+/* =========================================
+   通常履歴読込
 ========================================= */
 
 async function loadHistory() {
+
   const url =
     `${SUPABASE_URL}/rest/v1/tool_history` +
     `?tool_id=eq.${currentTool.id}` +
     `&select=*` +
     `&order=created_at.desc`;
 
+
   const response =
-    await portalFetch(url);
+    await portalFetch(
+      url
+    );
+
 
   if (!response.ok) {
-    const errorText =
-      await response.text();
 
     console.error(
-      errorText
+      await response.text()
     );
+
 
     throw new Error(
       "履歴を読み込めませんでした"
     );
   }
 
+
   const histories =
     await response.json();
+
 
   displayHistory(
     histories
@@ -832,18 +1571,21 @@ async function loadHistory() {
 
 
 /* =========================================
-   履歴表示
+   通常履歴表示
 ========================================= */
 
 function displayHistory(
   histories
 ) {
+
   toolHistoryList.innerHTML =
     "";
+
 
   if (
     histories.length === 0
   ) {
+
     toolHistoryList.innerHTML =
       `
         <p class="schedule-empty-message">
@@ -863,13 +1605,10 @@ function displayHistory(
           "div"
         );
 
+
       item.className =
         "tool-history-item";
 
-
-      /*
-        現場
-      */
 
       const fromSite =
         history.from_site_id
@@ -881,6 +1620,7 @@ function displayHistory(
               ) || "-"
             )
           : "倉庫";
+
 
       const toSite =
         history.to_site_id
@@ -894,24 +1634,17 @@ function displayHistory(
           : "倉庫";
 
 
-      /*
-        担当者
-      */
-
       const fromEmployee =
         getEmployeeDisplayName(
           history.from_employee_id
         );
+
 
       const toEmployee =
         getEmployeeDisplayName(
           history.to_employee_id
         );
 
-
-      /*
-        操作者
-      */
 
       const operator =
         getEmployeeDisplayName(
@@ -980,6 +1713,7 @@ function displayHistory(
           }
         `;
 
+
       toolHistoryList.appendChild(
         item
       );
@@ -989,12 +1723,39 @@ function displayHistory(
 
 
 /* =========================================
+   バッテリーイベント
+========================================= */
+
+openBatteryHistoryFormButton
+  .addEventListener(
+    "click",
+    openBatteryForm
+  );
+
+
+cancelBatteryHistoryButton
+  .addEventListener(
+    "click",
+    closeBatteryForm
+  );
+
+
+saveBatteryHistoryButton
+  .addEventListener(
+    "click",
+    saveBatteryHistory
+  );
+
+
+/* =========================================
    初期化
 ========================================= */
 
 async function initialize() {
+
   toolDetailMessage.textContent =
     "";
+
 
   try {
 
@@ -1003,24 +1764,51 @@ async function initialize() {
       loadEmployees()
     ]);
 
+
     await loadTool();
+
 
     displayTool();
 
+
     displayActionButtons();
 
-    await Promise.all([
+
+    setupBatteryManagement();
+
+
+    const jobs = [
       loadLatestInspection(),
       loadHistory()
-    ]);
+    ];
+
+
+    if (
+      currentTool.tool_group ===
+      "充電工具"
+    ) {
+
+      jobs.push(
+        loadBatteryHistory()
+      );
+    }
+
+
+    await Promise.all(
+      jobs
+    );
+
 
   } catch (error) {
+
     console.error(
       error
     );
 
+
     toolDetailMessage.textContent =
       error.message;
+
 
     toolHistoryList.innerHTML =
       `

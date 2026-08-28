@@ -45,6 +45,11 @@ const inspectionPendingCount =
     "inspectionPendingCount"
   );
 
+
+/* =========================================
+   点検工具検索
+========================================= */
+
 const inspectionGroupFilter =
   document.getElementById(
     "inspectionGroupFilter"
@@ -95,9 +100,79 @@ const inspectionListMessage =
     "inspectionListMessage"
   );
 
+
+/* =========================================
+   CSV出力
+========================================= */
+
+const openInspectionCsvSettingsButton =
+  document.getElementById(
+    "openInspectionCsvSettingsButton"
+  );
+
+const inspectionCsvSettingsPanel =
+  document.getElementById(
+    "inspectionCsvSettingsPanel"
+  );
+
+const inspectionCsvExportStatus =
+  document.getElementById(
+    "inspectionCsvExportStatus"
+  );
+
+const inspectionCsvOwnershipFilter =
+  document.getElementById(
+    "inspectionCsvOwnershipFilter"
+  );
+
+const inspectionCsvSiteFilter =
+  document.getElementById(
+    "inspectionCsvSiteFilter"
+  );
+
+const inspectionCsvEmployeeFilter =
+  document.getElementById(
+    "inspectionCsvEmployeeFilter"
+  );
+
+const inspectionCsvContractorFilter =
+  document.getElementById(
+    "inspectionCsvContractorFilter"
+  );
+
+const inspectionCsvGroupFilter =
+  document.getElementById(
+    "inspectionCsvGroupFilter"
+  );
+
+const inspectionCsvToolNameFilter =
+  document.getElementById(
+    "inspectionCsvToolNameFilter"
+  );
+
+const inspectionCsvTargetCount =
+  document.getElementById(
+    "inspectionCsvTargetCount"
+  );
+
 const inspectionCsvExportButton =
   document.getElementById(
     "inspectionCsvExportButton"
+  );
+
+const inspectionCsvResetExportedButton =
+  document.getElementById(
+    "inspectionCsvResetExportedButton"
+  );
+
+const closeInspectionCsvSettingsButton =
+  document.getElementById(
+    "closeInspectionCsvSettingsButton"
+  );
+
+const inspectionCsvMessage =
+  document.getElementById(
+    "inspectionCsvMessage"
   );
 
 
@@ -105,18 +180,28 @@ const inspectionCsvExportButton =
    データ
 ========================================= */
 
-let currentCycle = null;
+let currentCycle =
+  null;
 
-let inspectionTools = [];
+let inspectionTools =
+  [];
 
-let inspectionRecords = [];
+let inspectionRecords =
+  [];
 
-let employees = [];
+let employees =
+  [];
+
+let sites =
+  [];
 
 const inspectedToolIdSet =
   new Set();
 
 const employeeNameMap =
+  new Map();
+
+const siteNameMap =
   new Map();
 
 
@@ -129,9 +214,14 @@ const TOOL_GROUP_ORDER = [
   "切断工具",
   "研磨・仕上げ工具",
   "穴あけ・斫り工具",
-  "電動・汎用工具",
+  "締付・圧着工具",
+  "溶接機器",
+  "電源・配電機器",
+  "ポンプ・空圧機器",
   "集塵・吸引",
   "測定・探査",
+  "電動・汎用工具",
+  "充電工具",
   "その他"
 ];
 
@@ -140,8 +230,13 @@ const TOOL_GROUP_ORDER = [
    共通
 ========================================= */
 
-function escapeHtml(value) {
-  return String(value ?? "")
+function escapeHtml(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -151,17 +246,26 @@ function escapeHtml(value) {
 
 
 function getCycleIdFromUrl() {
+
   const params =
     new URLSearchParams(
       window.location.search
     );
 
-  return params.get("cycle");
+
+  return params.get(
+    "cycle"
+  );
 }
 
 
-function formatCycleStatus(status) {
-  switch (status) {
+function formatCycleStatus(
+  status
+) {
+
+  switch (
+    status
+  ) {
 
     case "preparing":
       return "準備中";
@@ -181,7 +285,10 @@ function formatCycleStatus(status) {
 function formatInspectionCategory(
   category
 ) {
-  switch (category) {
+
+  switch (
+    category
+  ) {
 
     case "3p":
       return "3P工具";
@@ -207,7 +314,10 @@ function formatInspectionCategory(
 }
 
 
-function getToolGroup(tool) {
+function getToolGroup(
+  tool
+) {
+
   return (
     tool.tool_group?.trim() ||
     "その他"
@@ -215,30 +325,51 @@ function getToolGroup(tool) {
 }
 
 
-function sortToolGroups(groups) {
+function sortToolGroups(
+  groups
+) {
+
   return groups.sort(
     (a, b) => {
 
       const aIndex =
-        TOOL_GROUP_ORDER.indexOf(a);
+        TOOL_GROUP_ORDER.indexOf(
+          a
+        );
 
       const bIndex =
-        TOOL_GROUP_ORDER.indexOf(b);
+        TOOL_GROUP_ORDER.indexOf(
+          b
+        );
+
 
       if (
         aIndex !== -1 &&
         bIndex !== -1
       ) {
-        return aIndex - bIndex;
+
+        return (
+          aIndex -
+          bIndex
+        );
       }
 
-      if (aIndex !== -1) {
+
+      if (
+        aIndex !== -1
+      ) {
+
         return -1;
       }
 
-      if (bIndex !== -1) {
+
+      if (
+        bIndex !== -1
+      ) {
+
         return 1;
       }
+
 
       return a.localeCompare(
         b,
@@ -253,27 +384,57 @@ function sortToolGroups(groups) {
    社員名短縮
 ========================================= */
 
-function splitEmployeeName(name) {
+function splitEmployeeName(
+  name
+) {
+
   const normalized =
-    String(name || "")
-      .replace(/\u3000/g, " ")
+    String(
+      name ||
+      ""
+    )
+      .replace(
+        /\u3000/g,
+        " "
+      )
       .trim();
+
 
   const parts =
     normalized
-      .split(/\s+/)
-      .filter(Boolean);
+      .split(
+        /\s+/
+      )
+      .filter(
+        Boolean
+      );
 
-  if (parts.length >= 2) {
+
+  if (
+    parts.length >=
+    2
+  ) {
+
     return {
-      family: parts[0],
-      given: parts.slice(1).join("")
+
+      family:
+        parts[0],
+
+      given:
+        parts
+          .slice(1)
+          .join("")
     };
   }
 
+
   return {
-    family: normalized,
-    given: ""
+
+    family:
+      normalized,
+
+    given:
+      ""
   };
 }
 
@@ -281,12 +442,18 @@ function splitEmployeeName(name) {
 function getShortEmployeeName(
   employeeId
 ) {
+
   const employee =
     employees.find(
       item =>
-        Number(item.id) ===
-        Number(employeeId)
+        Number(
+          item.id
+        ) ===
+        Number(
+          employeeId
+        )
     );
+
 
   if (!employee) {
     return "";
@@ -299,7 +466,10 @@ function getShortEmployeeName(
     );
 
 
-  if (!current.family) {
+  if (
+    !current.family
+  ) {
+
     return "";
   }
 
@@ -313,6 +483,7 @@ function getShortEmployeeName(
             item.name
           );
 
+
         return (
           parsed.family ===
           current.family
@@ -325,9 +496,12 @@ function getShortEmployeeName(
     sameFamilyCount >= 2 &&
     current.given
   ) {
+
     return (
       current.family +
-      current.given.charAt(0)
+      current.given.charAt(
+        0
+      )
     );
   }
 
@@ -341,10 +515,13 @@ function getShortEmployeeName(
 ========================================= */
 
 async function loadCycle() {
+
   const cycleId =
     getCycleIdFromUrl();
 
+
   if (!cycleId) {
+
     throw new Error(
       "点検サイクルIDがありません"
     );
@@ -358,13 +535,17 @@ async function loadCycle() {
 
 
   const response =
-    await portalFetch(url);
+    await portalFetch(
+      url
+    );
 
 
   if (!response.ok) {
+
     console.error(
       await response.text()
     );
+
 
     throw new Error(
       "点検サイクルを読み込めませんでした"
@@ -376,7 +557,11 @@ async function loadCycle() {
     await response.json();
 
 
-  if (records.length === 0) {
+  if (
+    records.length ===
+    0
+  ) {
+
     throw new Error(
       "点検サイクルが見つかりません"
     );
@@ -413,6 +598,7 @@ async function loadCycle() {
 ========================================= */
 
 async function loadInspectionTools() {
+
   const url =
     `${SUPABASE_URL}/rest/v1/tools` +
     `?select=*` +
@@ -422,13 +608,17 @@ async function loadInspectionTools() {
 
 
   const response =
-    await portalFetch(url);
+    await portalFetch(
+      url
+    );
 
 
   if (!response.ok) {
+
     console.error(
       await response.text()
     );
+
 
     throw new Error(
       "点検対象工具を読み込めませんでした"
@@ -446,6 +636,7 @@ async function loadInspectionTools() {
 ========================================= */
 
 async function loadInspectionRecords() {
+
   const url =
     `${SUPABASE_URL}/rest/v1/tool_inspections` +
     `?inspection_cycle=eq.${encodeURIComponent(
@@ -455,13 +646,17 @@ async function loadInspectionRecords() {
 
 
   const response =
-    await portalFetch(url);
+    await portalFetch(
+      url
+    );
 
 
   if (!response.ok) {
+
     console.error(
       await response.text()
     );
+
 
     throw new Error(
       "点検履歴を読み込めませんでした"
@@ -480,7 +675,9 @@ async function loadInspectionRecords() {
     record => {
 
       inspectedToolIdSet.add(
-        Number(record.tool_id)
+        Number(
+          record.tool_id
+        )
       );
     }
   );
@@ -492,19 +689,24 @@ async function loadInspectionRecords() {
 ========================================= */
 
 async function loadEmployees() {
+
   const url =
     `${SUPABASE_URL}/rest/v1/employees` +
     `?select=id,name`;
 
 
   const response =
-    await portalFetch(url);
+    await portalFetch(
+      url
+    );
 
 
   if (!response.ok) {
+
     console.error(
       await response.text()
     );
+
 
     throw new Error(
       "社員情報を読み込めませんでした"
@@ -523,8 +725,64 @@ async function loadEmployees() {
     employee => {
 
       employeeNameMap.set(
-        Number(employee.id),
-        employee.name || ""
+        Number(
+          employee.id
+        ),
+        employee.name ||
+        ""
+      );
+    }
+  );
+}
+
+
+/* =========================================
+   現場
+========================================= */
+
+async function loadSites() {
+
+  const url =
+    `${SUPABASE_URL}/rest/v1/sites` +
+    `?select=id,display_name` +
+    `&order=display_name.asc`;
+
+
+  const response =
+    await portalFetch(
+      url
+    );
+
+
+  if (!response.ok) {
+
+    console.error(
+      await response.text()
+    );
+
+
+    throw new Error(
+      "現場情報を読み込めませんでした"
+    );
+  }
+
+
+  sites =
+    await response.json();
+
+
+  siteNameMap.clear();
+
+
+  sites.forEach(
+    site => {
+
+      siteNameMap.set(
+        Number(
+          site.id
+        ),
+        site.display_name ||
+        ""
       );
     }
   );
@@ -536,6 +794,7 @@ async function loadEmployees() {
 ========================================= */
 
 function updateProgress() {
+
   const total =
     inspectionTools.length;
 
@@ -544,13 +803,16 @@ function updateProgress() {
     inspectionTools.filter(
       tool =>
         inspectedToolIdSet.has(
-          Number(tool.id)
+          Number(
+            tool.id
+          )
         )
     ).length;
 
 
   const pending =
-    total - completed;
+    total -
+    completed;
 
 
   inspectionTargetCount.textContent =
@@ -567,10 +829,11 @@ function updateProgress() {
 
 
 /* =========================================
-   大分類
+   点検検索 大分類
 ========================================= */
 
 function buildGroupFilter() {
+
   inspectionGroupFilter.innerHTML =
     `
       <option value="">
@@ -585,41 +848,47 @@ function buildGroupFilter() {
         ...new Set(
           inspectionTools.map(
             tool =>
-              getToolGroup(tool)
+              getToolGroup(
+                tool
+              )
           )
         )
       ]
     );
 
 
-  groups.forEach(group => {
+  groups.forEach(
+    group => {
 
-    const option =
-      document.createElement(
-        "option"
-      );
-
-
-    option.value =
-      group;
+      const option =
+        document.createElement(
+          "option"
+        );
 
 
-    option.textContent =
-      group;
+      option.value =
+        group;
 
 
-    inspectionGroupFilter.appendChild(
-      option
-    );
-  });
+      option.textContent =
+        group;
+
+
+      inspectionGroupFilter
+        .appendChild(
+          option
+        );
+    }
+  );
 }
 
 
 /* =========================================
-   工具名
+   点検検索 工具名
 ========================================= */
 
 function updateToolNameFilter() {
+
   const selectedGroup =
     inspectionGroupFilter.value;
 
@@ -647,14 +916,18 @@ function updateToolNameFilter() {
         inspectionTools
           .filter(
             tool =>
-              getToolGroup(tool) ===
+              getToolGroup(
+                tool
+              ) ===
               selectedGroup
           )
           .map(
             tool =>
               tool.tool_name
           )
-          .filter(Boolean)
+          .filter(
+            Boolean
+          )
       )
     ].sort(
       (a, b) =>
@@ -682,9 +955,10 @@ function updateToolNameFilter() {
         toolName;
 
 
-      inspectionToolNameFilter.appendChild(
-        option
-      );
+      inspectionToolNameFilter
+        .appendChild(
+          option
+        );
     }
   );
 
@@ -695,10 +969,11 @@ function updateToolNameFilter() {
 
 
 /* =========================================
-   絞り込み
+   点検工具検索
 ========================================= */
 
 function searchInspectionTools() {
+
   const selectedGroup =
     inspectionGroupFilter.value;
 
@@ -712,6 +987,7 @@ function searchInspectionTools() {
 
 
   if (!selectedGroup) {
+
     alert(
       "大分類を選択してください"
     );
@@ -721,6 +997,7 @@ function searchInspectionTools() {
 
 
   if (!selectedToolName) {
+
     alert(
       "工具名を選択してください"
     );
@@ -735,14 +1012,19 @@ function searchInspectionTools() {
 
         const isCompleted =
           inspectedToolIdSet.has(
-            Number(tool.id)
+            Number(
+              tool.id
+            )
           );
 
 
         if (
-          getToolGroup(tool) !==
+          getToolGroup(
+            tool
+          ) !==
           selectedGroup
         ) {
+
           return false;
         }
 
@@ -751,24 +1033,27 @@ function searchInspectionTools() {
           tool.tool_name !==
           selectedToolName
         ) {
+
           return false;
         }
 
 
         if (
           selectedStatus ===
-          "pending" &&
+            "pending" &&
           isCompleted
         ) {
+
           return false;
         }
 
 
         if (
           selectedStatus ===
-          "completed" &&
+            "completed" &&
           !isCompleted
         ) {
+
           return false;
         }
 
@@ -786,6 +1071,7 @@ function searchInspectionTools() {
     selectedStatus ===
     "pending"
   ) {
+
     statusText =
       "未点検";
   }
@@ -795,6 +1081,7 @@ function searchInspectionTools() {
     selectedStatus ===
     "completed"
   ) {
+
     statusText =
       "点検済み";
   }
@@ -808,9 +1095,11 @@ function searchInspectionTools() {
     `${filtered.length}件`;
 
 
-  inspectionToolResultSection.classList.remove(
-    "hidden"
-  );
+  inspectionToolResultSection
+    .classList
+    .remove(
+      "hidden"
+    );
 
 
   displayInspectionTools(
@@ -818,10 +1107,14 @@ function searchInspectionTools() {
   );
 
 
-  inspectionToolResultSection.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
+  inspectionToolResultSection
+    .scrollIntoView({
+      behavior:
+        "smooth",
+
+      block:
+        "start"
+    });
 }
 
 
@@ -832,11 +1125,15 @@ function searchInspectionTools() {
 function displayInspectionTools(
   tools
 ) {
+
   inspectionToolList.innerHTML =
     "";
 
 
-  if (tools.length === 0) {
+  if (
+    tools.length ===
+    0
+  ) {
 
     inspectionToolList.innerHTML =
       `
@@ -849,153 +1146,162 @@ function displayInspectionTools(
   }
 
 
-  tools.forEach(tool => {
+  tools.forEach(
+    tool => {
 
-    const isCompleted =
-      inspectedToolIdSet.has(
-        Number(tool.id)
-      );
-
-
-    const inspectionRecord =
-      inspectionRecords.find(
-        record =>
-          Number(record.tool_id) ===
-          Number(tool.id)
-      );
+      const isCompleted =
+        inspectedToolIdSet.has(
+          Number(
+            tool.id
+          )
+        );
 
 
-    const card =
-      document.createElement(
-        "article"
-      );
+      const inspectionRecord =
+        inspectionRecords.find(
+          record =>
+            Number(
+              record.tool_id
+            ) ===
+            Number(
+              tool.id
+            )
+        );
 
 
-    card.className =
-      "tool-item-card";
+      const card =
+        document.createElement(
+          "article"
+        );
 
 
-    card.innerHTML =
-      `
-        <div class="tool-item-main">
+      card.className =
+        "tool-item-card";
 
-          <h3>
-            ${escapeHtml(
-              tool.tool_name
-            )}
+
+      card.innerHTML =
+        `
+          <div class="tool-item-main">
+
+            <h3>
+              ${escapeHtml(
+                tool.tool_name
+              )}
+
+              ${
+                tool.specification
+                  ? ` ${escapeHtml(
+                      tool.specification
+                    )}`
+                  : ""
+              }
+            </h3>
+
+
+            <p>
+              管理番号：
+              ${escapeHtml(
+                tool.management_code
+              )}
+            </p>
+
+
+            <p>
+              点検区分：
+              ${escapeHtml(
+                formatInspectionCategory(
+                  tool.inspection_category
+                )
+              )}
+            </p>
+
 
             ${
-              tool.specification
-                ? ` ${escapeHtml(
-                    tool.specification
-                  )}`
-                : ""
-            }
-          </h3>
+              isCompleted
+                ? `
+                  <p>
+                    状態：
+                    <strong>
+                      点検済み
+                    </strong>
+                  </p>
 
-
-          <p>
-            管理番号：
-            ${escapeHtml(
-              tool.management_code
-            )}
-          </p>
-
-
-          <p>
-            点検区分：
-            ${escapeHtml(
-              formatInspectionCategory(
-                tool.inspection_category
-              )
-            )}
-          </p>
-
-
-          ${
-            isCompleted
-              ? `
-                <p>
-                  状態：
-                  <strong>
-                    点検済み
-                  </strong>
-                </p>
-
-                <p>
-                  点検日：
-                  ${escapeHtml(
-                    inspectionRecord
-                      ?.inspection_date ||
-                    "-"
-                  )}
-                </p>
-
-                <p>
-                  シール番号：
-                  ${escapeHtml(
-                    inspectionRecord
-                      ?.sticker_number ??
-                    "-"
-                  )}
-                </p>
-
-                <p>
-                  判定：
-                  <strong>
-                    ${
+                  <p>
+                    点検日：
+                    ${escapeHtml(
                       inspectionRecord
-                        ?.result ===
-                        "ok"
-                        ? "OK"
-                        : "NG"
-                    }
-                  </strong>
-                </p>
-              `
-              : `
-                <p>
-                  状態：
-                  <strong>
-                    未点検
-                  </strong>
-                </p>
-              `
-          }
+                        ?.inspection_date ||
+                      "-"
+                    )}
+                  </p>
 
-        </div>
+                  <p>
+                    シール番号：
+                    ${escapeHtml(
+                      inspectionRecord
+                        ?.sticker_number ??
+                      "-"
+                    )}
+                  </p>
 
+                  <p>
+                    判定：
+                    <strong>
+                      ${
+                        inspectionRecord
+                          ?.result ===
+                          "ok"
+                          ? "OK"
+                          : "NG"
+                      }
+                    </strong>
+                  </p>
+                `
+                : `
+                  <p>
+                    状態：
+                    <strong>
+                      未点検
+                    </strong>
+                  </p>
+                `
+            }
 
-        <div class="tool-item-actions">
-
-          ${
-            isCompleted
-              ? `
-                <a
-                  href="tool-inspection-result.html?cycle=${currentCycle.id}&tool=${tool.id}"
-                  class="admin-secondary-button"
-                >
-                  結果を見る
-                </a>
-              `
-              : `
-                <a
-                  href="tool-inspection-entry.html?cycle=${currentCycle.id}&tool=${tool.id}"
-                  class="admin-primary-button"
-                >
-                  点検する
-                </a>
-              `
-          }
-
-        </div>
-      `;
+          </div>
 
 
-    inspectionToolList.appendChild(
-      card
-    );
-  });
+          <div class="tool-item-actions">
+
+            ${
+              isCompleted
+                ? `
+                  <a
+                    href="tool-inspection-result.html?cycle=${currentCycle.id}&tool=${tool.id}"
+                    class="admin-secondary-button"
+                  >
+                    結果を見る
+                  </a>
+                `
+                : `
+                  <a
+                    href="tool-inspection-entry.html?cycle=${currentCycle.id}&tool=${tool.id}"
+                    class="admin-primary-button"
+                  >
+                    点検する
+                  </a>
+                `
+            }
+
+          </div>
+        `;
+
+
+      inspectionToolList
+        .appendChild(
+          card
+        );
+    }
+  );
 }
 
 
@@ -1003,9 +1309,15 @@ function displayInspectionTools(
    CSV共通
 ========================================= */
 
-function csvEscape(value) {
+function csvEscape(
+  value
+) {
+
   const text =
-    String(value ?? "");
+    String(
+      value ??
+      ""
+    );
 
 
   return (
@@ -1023,13 +1335,16 @@ function getChecklistCsvValue(
   record,
   number
 ) {
+
   const results =
     record.checklist_results ||
     {};
 
 
   const item =
-    results[String(number)];
+    results[
+      String(number)
+    ];
 
 
   if (!item) {
@@ -1037,12 +1352,42 @@ function getChecklistCsvValue(
   }
 
 
-  if (!item.checked) {
+  /*
+    初期登録データ
+    {"1":"○","2":"○"}
+  */
+
+  if (
+    typeof item ===
+    "string"
+  ) {
+
+    return item;
+  }
+
+
+  /*
+    今後の通常点検データ
+    {
+      "1": {
+        checked: true,
+        mark: "○"
+      }
+    }
+  */
+
+  if (
+    item.checked !== true
+  ) {
+
     return "";
   }
 
 
-  return item.mark || "○";
+  return (
+    item.mark ||
+    "○"
+  );
 }
 
 
@@ -1054,97 +1399,625 @@ function buildInspectionNote(
   tool,
   record
 ) {
-  const parts = [];
 
+  const parts =
+    [];
+
+
+  /*
+    シール番号
+  */
 
   if (
     record.sticker_number !== null &&
     record.sticker_number !== undefined &&
     record.sticker_number !== ""
   ) {
+
     parts.push(
       `シールNo.${record.sticker_number}`
     );
   }
 
 
+  /*
+    協力業者だけ所有者を表示
+  */
+
   if (
-    tool.ownership_type === "personal" &&
-    tool.assigned_employee_id
+    tool.ownership_type ===
+      "contractor" &&
+    tool.owner_company_name
   ) {
-    const employeeName =
-      getShortEmployeeName(
-        tool.assigned_employee_id
-      );
 
-
-    if (employeeName) {
-      parts.push(
-        employeeName
-      );
-    }
-  }
-
-
-  if (record.note) {
     parts.push(
-      record.note
+      tool.owner_company_name
     );
   }
 
 
-  return parts.join("　");
+  return parts.join(
+    "　"
+  );
 }
 
 
 /* =========================================
-   CSV出力
+   CSV設定プルダウン
 ========================================= */
 
-function exportInspectionCsv() {
-  const completedTools =
-    inspectionTools.filter(
-      tool =>
-        inspectedToolIdSet.has(
-          Number(tool.id)
+function buildCsvFilters() {
+
+  /*
+    現場
+  */
+
+  inspectionCsvSiteFilter.innerHTML =
+    `
+      <option value="">
+        すべて
+      </option>
+    `;
+
+
+  sites.forEach(
+    site => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        site.id;
+
+
+      option.textContent =
+        site.display_name;
+
+
+      inspectionCsvSiteFilter
+        .appendChild(
+          option
+        );
+    }
+  );
+
+
+  /*
+    個人
+  */
+
+  inspectionCsvEmployeeFilter.innerHTML =
+    `
+      <option value="">
+        すべて
+      </option>
+    `;
+
+
+  const employeeIds =
+    [
+      ...new Set(
+        inspectionTools
+          .filter(
+            tool =>
+              tool.ownership_type ===
+              "personal"
+          )
+          .map(
+            tool =>
+              tool.assigned_employee_id
+          )
+          .filter(
+            Boolean
+          )
+      )
+    ];
+
+
+  employeeIds.forEach(
+    employeeId => {
+
+      const name =
+        employeeNameMap.get(
+          Number(
+            employeeId
+          )
+        );
+
+
+      if (!name) {
+        return;
+      }
+
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        employeeId;
+
+
+      option.textContent =
+        name;
+
+
+      inspectionCsvEmployeeFilter
+        .appendChild(
+          option
+        );
+    }
+  );
+
+
+  /*
+    協力業者
+  */
+
+  inspectionCsvContractorFilter.innerHTML =
+    `
+      <option value="">
+        すべて
+      </option>
+    `;
+
+
+  const contractors =
+    [
+      ...new Set(
+        inspectionTools
+          .filter(
+            tool =>
+              tool.ownership_type ===
+              "contractor"
+          )
+          .map(
+            tool =>
+              tool.owner_company_name
+          )
+          .filter(
+            Boolean
+          )
+      )
+    ].sort(
+      (a, b) =>
+        a.localeCompare(
+          b,
+          "ja"
         )
     );
 
 
-  const pendingCount =
-    inspectionTools.length -
-    completedTools.length;
+  contractors.forEach(
+    contractor => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        contractor;
+
+
+      option.textContent =
+        contractor;
+
+
+      inspectionCsvContractorFilter
+        .appendChild(
+          option
+        );
+    }
+  );
+
+
+  /*
+    大分類
+  */
+
+  inspectionCsvGroupFilter.innerHTML =
+    `
+      <option value="">
+        すべて
+      </option>
+    `;
+
+
+  const groups =
+    sortToolGroups(
+      [
+        ...new Set(
+          inspectionTools.map(
+            tool =>
+              getToolGroup(
+                tool
+              )
+          )
+        )
+      ]
+    );
+
+
+  groups.forEach(
+    group => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        group;
+
+
+      option.textContent =
+        group;
+
+
+      inspectionCsvGroupFilter
+        .appendChild(
+          option
+        );
+    }
+  );
+
+
+  updateCsvToolNameFilter();
+}
+
+
+/* =========================================
+   CSV 工具名
+========================================= */
+
+function updateCsvToolNameFilter() {
+
+  const selectedGroup =
+    inspectionCsvGroupFilter.value;
+
+
+  inspectionCsvToolNameFilter.innerHTML =
+    `
+      <option value="">
+        すべて
+      </option>
+    `;
 
 
   if (
-    completedTools.length === 0
+    !selectedGroup
   ) {
-    alert(
-      "点検済み工具がありません"
-    );
+
+    inspectionCsvToolNameFilter.disabled =
+      true;
+
+    updateCsvTargetCount();
 
     return;
   }
 
 
-  if (
-    pendingCount > 0
-  ) {
+  const toolNames =
+    [
+      ...new Set(
+        inspectionTools
+          .filter(
+            tool =>
+              getToolGroup(
+                tool
+              ) ===
+              selectedGroup
+          )
+          .map(
+            tool =>
+              tool.tool_name
+          )
+          .filter(
+            Boolean
+          )
+      )
+    ].sort(
+      (a, b) =>
+        a.localeCompare(
+          b,
+          "ja"
+        )
+    );
 
-    const confirmed =
-      window.confirm(
-        `未点検工具が${pendingCount}件あります。\n\n` +
-        `点検済み${completedTools.length}件のみCSV出力しますか？`
-      );
+
+  toolNames.forEach(
+    toolName => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
 
 
-    if (
-      confirmed !== true
-    ) {
-      return;
+      option.value =
+        toolName;
+
+
+      option.textContent =
+        toolName;
+
+
+      inspectionCsvToolNameFilter
+        .appendChild(
+          option
+        );
     }
-  }
+  );
 
+
+  inspectionCsvToolNameFilter.disabled =
+    false;
+
+
+  updateCsvTargetCount();
+}
+
+
+/* =========================================
+   CSV対象取得
+========================================= */
+
+function getCsvTargetItems(
+  options = {}
+) {
+
+  const ignoreExportStatus =
+    options.ignoreExportStatus ===
+    true;
+
+
+  const exportStatus =
+    inspectionCsvExportStatus.value;
+
+
+  const ownership =
+    inspectionCsvOwnershipFilter.value;
+
+
+  const siteId =
+    inspectionCsvSiteFilter.value;
+
+
+  const employeeId =
+    inspectionCsvEmployeeFilter.value;
+
+
+  const contractor =
+    inspectionCsvContractorFilter.value;
+
+
+  const group =
+    inspectionCsvGroupFilter.value;
+
+
+  const toolName =
+    inspectionCsvToolNameFilter.value;
+
+
+  const items =
+    [];
+
+
+  inspectionRecords.forEach(
+    record => {
+
+      const tool =
+        inspectionTools.find(
+          item =>
+            Number(
+              item.id
+            ) ===
+            Number(
+              record.tool_id
+            )
+        );
+
+
+      if (!tool) {
+        return;
+      }
+
+
+      if (
+        !ignoreExportStatus
+      ) {
+
+        const isExported =
+          record.csv_exported ===
+          true;
+
+
+        if (
+          exportStatus ===
+            "unexported" &&
+          isExported
+        ) {
+
+          return;
+        }
+
+
+        if (
+          exportStatus ===
+            "exported" &&
+          !isExported
+        ) {
+
+          return;
+        }
+      }
+
+
+      if (
+        ownership &&
+        tool.ownership_type !==
+        ownership
+      ) {
+
+        return;
+      }
+
+
+      if (
+        siteId &&
+        String(
+          tool.current_site_id ||
+          ""
+        ) !==
+        String(
+          siteId
+        )
+      ) {
+
+        return;
+      }
+
+
+      if (
+        employeeId &&
+        String(
+          tool.assigned_employee_id ||
+          ""
+        ) !==
+        String(
+          employeeId
+        )
+      ) {
+
+        return;
+      }
+
+
+      if (
+        contractor &&
+        String(
+          tool.owner_company_name ||
+          ""
+        ) !==
+        contractor
+      ) {
+
+        return;
+      }
+
+
+      if (
+        group &&
+        getToolGroup(
+          tool
+        ) !==
+        group
+      ) {
+
+        return;
+      }
+
+
+      if (
+        toolName &&
+        tool.tool_name !==
+        toolName
+      ) {
+
+        return;
+      }
+
+
+      items.push({
+        tool,
+        record
+      });
+    }
+  );
+
+
+  return items;
+}
+
+
+/* =========================================
+   CSV対象件数
+========================================= */
+
+function updateCsvTargetCount() {
+
+  const items =
+    getCsvTargetItems();
+
+
+  inspectionCsvTargetCount.textContent =
+    `出力対象：${items.length}件`;
+
+
+  inspectionCsvExportButton.disabled =
+    items.length ===
+    0;
+}
+
+
+/* =========================================
+   CSV設定を開く
+========================================= */
+
+function openCsvSettings() {
+
+  inspectionCsvMessage.textContent =
+    "";
+
+
+  inspectionCsvSettingsPanel.style.display =
+    "block";
+
+
+  updateCsvTargetCount();
+
+
+  inspectionCsvSettingsPanel
+    .scrollIntoView({
+      behavior:
+        "smooth",
+
+      block:
+        "start"
+    });
+}
+
+
+/* =========================================
+   CSV設定を閉じる
+========================================= */
+
+function closeCsvSettings() {
+
+  inspectionCsvSettingsPanel.style.display =
+    "none";
+
+
+  inspectionCsvMessage.textContent =
+    "";
+}
+
+
+/* =========================================
+   CSV本体作成
+========================================= */
+
+function createCsvText(
+  items
+) {
 
   const header = [
     "工具名",
@@ -1177,20 +2050,15 @@ function exportInspectionCsv() {
   ];
 
 
-  completedTools.forEach(
-    tool => {
+  items.forEach(
+    item => {
+
+      const tool =
+        item.tool;
+
 
       const record =
-        inspectionRecords.find(
-          item =>
-            Number(item.tool_id) ===
-            Number(tool.id)
-        );
-
-
-      if (!record) {
-        return;
-      }
+        item.record;
 
 
       const inspectorName =
@@ -1289,16 +2157,122 @@ function exportInspectionCsv() {
   );
 
 
-  const csvText =
-    rows
-      .map(
-        row =>
-          row
-            .map(csvEscape)
-            .join(",")
-      )
-      .join("\r\n");
+  return rows
+    .map(
+      row =>
+        row
+          .map(
+            csvEscape
+          )
+          .join(",")
+    )
+    .join(
+      "\r\n"
+    );
+}
 
+
+/* =========================================
+   出力済みに更新
+========================================= */
+
+async function markCsvExported(
+  items
+) {
+
+  /*
+    まだ未出力のものだけ更新
+  */
+
+  const ids =
+    items
+      .filter(
+        item =>
+          item.record.csv_exported !==
+          true
+      )
+      .map(
+        item =>
+          item.record.id
+      )
+      .filter(
+        Boolean
+      );
+
+
+  if (
+    ids.length ===
+    0
+  ) {
+
+    return;
+  }
+
+
+  const idList =
+    ids.join(
+      ","
+    );
+
+
+  const url =
+    `${SUPABASE_URL}/rest/v1/tool_inspections` +
+    `?id=in.(${idList})`;
+
+
+  const response =
+    await portalFetch(
+      url,
+      {
+
+        method:
+          "PATCH",
+
+        headers: {
+
+          "Content-Type":
+            "application/json",
+
+          Prefer:
+            "return=minimal"
+        },
+
+        body:
+          JSON.stringify({
+
+            csv_exported:
+              true,
+
+            csv_exported_at:
+              new Date()
+                .toISOString()
+          })
+      }
+    );
+
+
+  if (!response.ok) {
+
+    console.error(
+      await response.text()
+    );
+
+
+    throw new Error(
+      "CSV出力済み状態を保存できませんでした"
+    );
+  }
+}
+
+
+/* =========================================
+   CSVダウンロード
+========================================= */
+
+function downloadCsv(
+  csvText,
+  itemCount
+) {
 
   const blob =
     new Blob(
@@ -1336,17 +2310,38 @@ function exportInspectionCsv() {
       );
 
 
+  const today =
+    new Date();
+
+
+  const dateText =
+    `${today.getFullYear()}` +
+    `${String(
+      today.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    )}` +
+    `${String(
+      today.getDate()
+    ).padStart(
+      2,
+      "0"
+    )}`;
+
+
   link.href =
     url;
 
 
   link.download =
-    `${safeCycleName}_点検結果.csv`;
+    `${safeCycleName}_点検結果_${dateText}_${itemCount}件.csv`;
 
 
-  document.body.appendChild(
-    link
-  );
+  document.body
+    .appendChild(
+      link
+    );
 
 
   link.click();
@@ -1362,71 +2357,422 @@ function exportInspectionCsv() {
 
 
 /* =========================================
+   CSV出力
+========================================= */
+
+async function exportInspectionCsv() {
+
+  inspectionCsvMessage.textContent =
+    "";
+
+
+  const items =
+    getCsvTargetItems();
+
+
+  if (
+    items.length ===
+    0
+  ) {
+
+    alert(
+      "出力対象がありません"
+    );
+
+    return;
+  }
+
+
+  const confirmed =
+    window.confirm(
+      `${items.length}件をCSV出力しますか？`
+  );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  inspectionCsvExportButton.disabled =
+    true;
+
+
+  inspectionCsvExportButton.textContent =
+    "出力中...";
+
+
+  try {
+
+    const csvText =
+      createCsvText(
+        items
+      );
+
+
+    /*
+      出力済み状態を保存してから
+      CSVをダウンロード
+    */
+
+    await markCsvExported(
+      items
+    );
+
+
+    downloadCsv(
+      csvText,
+      items.length
+    );
+
+
+    await loadInspectionRecords();
+
+
+    updateCsvTargetCount();
+
+
+    inspectionCsvMessage.textContent =
+      `${items.length}件を出力済みにしました`;
+
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    inspectionCsvMessage.textContent =
+      error.message;
+
+
+  } finally {
+
+    inspectionCsvExportButton.disabled =
+      false;
+
+
+    inspectionCsvExportButton.textContent =
+      "CSVを出力する";
+
+
+    updateCsvTargetCount();
+  }
+}
+
+
+/* =========================================
+   出力済みを未出力へ戻す
+========================================= */
+
+async function resetCsvExported() {
+
+  inspectionCsvMessage.textContent =
+    "";
+
+
+  /*
+    出力状態の選択には関係なく
+    現在のその他の絞り込み条件で
+    出力済みだけを対象にする
+  */
+
+  const items =
+    getCsvTargetItems({
+      ignoreExportStatus:
+        true
+    })
+      .filter(
+        item =>
+          item.record.csv_exported ===
+          true
+      );
+
+
+  if (
+    items.length ===
+    0
+  ) {
+
+    alert(
+      "未出力に戻せるデータがありません"
+    );
+
+    return;
+  }
+
+
+  const confirmed =
+    window.confirm(
+      `${items.length}件を未出力に戻しますか？`
+  );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  const ids =
+    items
+      .map(
+        item =>
+          item.record.id
+      )
+      .filter(
+        Boolean
+      );
+
+
+  const idList =
+    ids.join(
+      ","
+    );
+
+
+  try {
+
+    inspectionCsvResetExportedButton.disabled =
+      true;
+
+
+    const url =
+      `${SUPABASE_URL}/rest/v1/tool_inspections` +
+      `?id=in.(${idList})`;
+
+
+    const response =
+      await portalFetch(
+        url,
+        {
+
+          method:
+            "PATCH",
+
+          headers: {
+
+            "Content-Type":
+              "application/json",
+
+            Prefer:
+              "return=minimal"
+          },
+
+          body:
+            JSON.stringify({
+
+              csv_exported:
+                false,
+
+              csv_exported_at:
+                null
+            })
+        }
+      );
+
+
+    if (!response.ok) {
+
+      console.error(
+        await response.text()
+      );
+
+
+      throw new Error(
+        "未出力に戻せませんでした"
+      );
+    }
+
+
+    await loadInspectionRecords();
+
+
+    updateCsvTargetCount();
+
+
+    inspectionCsvMessage.textContent =
+      `${items.length}件を未出力に戻しました`;
+
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    inspectionCsvMessage.textContent =
+      error.message;
+
+
+  } finally {
+
+    inspectionCsvResetExportedButton.disabled =
+      false;
+  }
+}
+
+
+/* =========================================
+   CSV条件変更
+========================================= */
+
+function handleCsvFilterChange() {
+
+  updateCsvTargetCount();
+}
+
+
+/* =========================================
    イベント
 ========================================= */
 
-inspectionGroupFilter.addEventListener(
-  "change",
-  () => {
+inspectionGroupFilter
+  .addEventListener(
+    "change",
+    () => {
 
-    updateToolNameFilter();
-
-
-    inspectionToolResultSection.classList.add(
-      "hidden"
-    );
-  }
-);
+      updateToolNameFilter();
 
 
-inspectionToolNameFilter.addEventListener(
-  "change",
-  () => {
-
-    inspectionToolResultSection.classList.add(
-      "hidden"
-    );
-  }
-);
+      inspectionToolResultSection
+        .classList
+        .add(
+          "hidden"
+        );
+    }
+  );
 
 
-inspectionStatusFilter.addEventListener(
-  "change",
-  () => {
+inspectionToolNameFilter
+  .addEventListener(
+    "change",
+    () => {
 
-    inspectionToolResultSection.classList.add(
-      "hidden"
-    );
-  }
-);
-
-
-inspectionSearchButton.addEventListener(
-  "click",
-  searchInspectionTools
-);
+      inspectionToolResultSection
+        .classList
+        .add(
+          "hidden"
+        );
+    }
+  );
 
 
-inspectionToolResultClose.addEventListener(
-  "click",
-  () => {
+inspectionStatusFilter
+  .addEventListener(
+    "change",
+    () => {
 
-    inspectionToolResultSection.classList.add(
-      "hidden"
-    );
-  }
-);
+      inspectionToolResultSection
+        .classList
+        .add(
+          "hidden"
+        );
+    }
+  );
 
 
-if (
-  inspectionCsvExportButton
-) {
+inspectionSearchButton
+  .addEventListener(
+    "click",
+    searchInspectionTools
+  );
 
-  inspectionCsvExportButton.addEventListener(
+
+inspectionToolResultClose
+  .addEventListener(
+    "click",
+    () => {
+
+      inspectionToolResultSection
+        .classList
+        .add(
+          "hidden"
+        );
+    }
+  );
+
+
+/* =========================================
+   CSVイベント
+========================================= */
+
+openInspectionCsvSettingsButton
+  .addEventListener(
+    "click",
+    openCsvSettings
+  );
+
+
+closeInspectionCsvSettingsButton
+  .addEventListener(
+    "click",
+    closeCsvSettings
+  );
+
+
+inspectionCsvExportStatus
+  .addEventListener(
+    "change",
+    handleCsvFilterChange
+  );
+
+
+inspectionCsvOwnershipFilter
+  .addEventListener(
+    "change",
+    handleCsvFilterChange
+  );
+
+
+inspectionCsvSiteFilter
+  .addEventListener(
+    "change",
+    handleCsvFilterChange
+  );
+
+
+inspectionCsvEmployeeFilter
+  .addEventListener(
+    "change",
+    handleCsvFilterChange
+  );
+
+
+inspectionCsvContractorFilter
+  .addEventListener(
+    "change",
+    handleCsvFilterChange
+  );
+
+
+inspectionCsvGroupFilter
+  .addEventListener(
+    "change",
+    updateCsvToolNameFilter
+  );
+
+
+inspectionCsvToolNameFilter
+  .addEventListener(
+    "change",
+    handleCsvFilterChange
+  );
+
+
+inspectionCsvExportButton
+  .addEventListener(
     "click",
     exportInspectionCsv
   );
-}
+
+
+inspectionCsvResetExportedButton
+  .addEventListener(
+    "click",
+    resetCsvExported
+  );
 
 
 /* =========================================
@@ -1434,13 +2780,16 @@ if (
 ========================================= */
 
 async function initialize() {
+
   inspectionListMessage.textContent =
     "";
 
 
-  inspectionToolResultSection.classList.add(
-    "hidden"
-  );
+  inspectionToolResultSection
+    .classList
+    .add(
+      "hidden"
+    );
 
 
   try {
@@ -1451,7 +2800,8 @@ async function initialize() {
     await Promise.all([
       loadInspectionTools(),
       loadInspectionRecords(),
-      loadEmployees()
+      loadEmployees(),
+      loadSites()
     ]);
 
 
@@ -1462,6 +2812,13 @@ async function initialize() {
 
 
     updateToolNameFilter();
+
+
+    buildCsvFilters();
+
+
+    updateCsvTargetCount();
+
 
   } catch (error) {
 

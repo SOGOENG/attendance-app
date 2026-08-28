@@ -64,8 +64,11 @@ let sharedToolRecords = [];
 let siteRecords = [];
 let employeeRecords = [];
 
-const siteNameMap = new Map();
-const employeeNameMap = new Map();
+const siteNameMap =
+  new Map();
+
+const employeeNameMap =
+  new Map();
 
 
 /* =========================================
@@ -77,6 +80,10 @@ const TOOL_GROUP_ORDER = [
   "切断工具",
   "研磨・仕上げ工具",
   "穴あけ・斫り工具",
+  "締付・圧着工具",
+  "溶接機器",
+  "電源・配電機器",
+  "ポンプ・空圧機器",
   "電動・汎用工具",
   "集塵・吸引",
   "測定・探査",
@@ -89,7 +96,10 @@ const TOOL_GROUP_ORDER = [
 ========================================= */
 
 function escapeHtml(value) {
-  return String(value ?? "")
+
+  return String(
+    value ?? ""
+  )
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -99,7 +109,9 @@ function escapeHtml(value) {
 
 
 function formatToolStatus(status) {
+
   switch (status) {
+
     case "available":
       return "貸出可";
 
@@ -122,64 +134,136 @@ function formatToolStatus(status) {
 
 
 function getToolGroup(tool) {
-  return tool.tool_group?.trim() || "その他";
+
+  return (
+    tool.tool_group?.trim() ||
+    "その他"
+  );
 }
 
 
 function getSiteName(tool) {
-  if (!tool.current_site_id) {
+
+  if (
+    !tool.current_site_id
+  ) {
+
     return "倉庫";
   }
 
+
   return (
     siteNameMap.get(
-      String(tool.current_site_id)
-    ) || "-"
+      String(
+        tool.current_site_id
+      )
+    ) ||
+    "-"
   );
 }
 
 
 function getEmployeeName(tool) {
-  if (!tool.assigned_employee_id) {
+
+  if (
+    !tool.assigned_employee_id
+  ) {
+
     return "-";
   }
 
+
   return (
     employeeNameMap.get(
-      String(tool.assigned_employee_id)
-    ) || "-"
+      String(
+        tool.assigned_employee_id
+      )
+    ) ||
+    "-"
   );
 }
 
 
+function getCompactLocationText(
+  tool
+) {
+
+  return tool.current_site_id
+    ? "現場"
+    : "倉庫";
+}
+
+
+function getDisplayStatus(
+  tool
+) {
+
+  if (
+    tool.status === "repair" ||
+    tool.status === "stopped" ||
+    tool.status === "disposed"
+  ) {
+
+    return tool.status;
+  }
+
+
+  return tool.current_site_id
+    ? "in_use"
+    : "available";
+}
+
+
 function sortToolGroups(groups) {
-  return groups.sort((a, b) => {
-    const aIndex =
-      TOOL_GROUP_ORDER.indexOf(a);
 
-    const bIndex =
-      TOOL_GROUP_ORDER.indexOf(b);
+  return groups.sort(
+    (a, b) => {
 
-    if (
-      aIndex !== -1 &&
-      bIndex !== -1
-    ) {
-      return aIndex - bIndex;
+      const aIndex =
+        TOOL_GROUP_ORDER.indexOf(
+          a
+        );
+
+      const bIndex =
+        TOOL_GROUP_ORDER.indexOf(
+          b
+        );
+
+
+      if (
+        aIndex !== -1 &&
+        bIndex !== -1
+      ) {
+
+        return (
+          aIndex -
+          bIndex
+        );
+      }
+
+
+      if (
+        aIndex !== -1
+      ) {
+
+        return -1;
+      }
+
+
+      if (
+        bIndex !== -1
+      ) {
+
+        return 1;
+      }
+
+
+      return a.localeCompare(
+        b,
+        "ja"
+      );
     }
-
-    if (aIndex !== -1) {
-      return -1;
-    }
-
-    if (bIndex !== -1) {
-      return 1;
-    }
-
-    return a.localeCompare(
-      b,
-      "ja"
-    );
-  });
+  );
 }
 
 
@@ -188,37 +272,53 @@ function sortToolGroups(groups) {
 ========================================= */
 
 async function loadSites() {
+
   const url =
     `${SUPABASE_URL}/rest/v1/sites` +
     `?select=id,display_name,visible,display_order` +
     `&visible=eq.true` +
     `&order=display_order.asc`;
 
+
   const response =
-    await portalFetch(url);
+    await portalFetch(
+      url
+    );
 
-  if (!response.ok) {
-    const errorText =
-      await response.text();
 
-    console.error(errorText);
+  if (
+    !response.ok
+  ) {
+
+    console.error(
+      await response.text()
+    );
+
 
     throw new Error(
       "現場一覧を読み込めませんでした"
     );
   }
 
+
   siteRecords =
     await response.json();
 
+
   siteNameMap.clear();
 
-  siteRecords.forEach(site => {
-    siteNameMap.set(
-      String(site.id),
-      site.display_name
-    );
-  });
+
+  siteRecords.forEach(
+    site => {
+
+      siteNameMap.set(
+        String(
+          site.id
+        ),
+        site.display_name
+      );
+    }
+  );
 }
 
 
@@ -227,35 +327,48 @@ async function loadSites() {
 ========================================= */
 
 async function loadEmployees() {
+
   const url =
     `${SUPABASE_URL}/rest/v1/employees` +
     `?select=id,name,active` +
     `&active=eq.true`;
 
+
   const response =
-    await portalFetch(url);
+    await portalFetch(
+      url
+    );
 
-  if (!response.ok) {
-    const errorText =
-      await response.text();
 
-    console.error(errorText);
+  if (
+    !response.ok
+  ) {
+
+    console.error(
+      await response.text()
+    );
+
 
     throw new Error(
       "社員一覧を読み込めませんでした"
     );
   }
 
+
   employeeRecords =
     await response.json();
 
+
   employeeNameMap.clear();
+
 
   employeeRecords.forEach(
     employee => {
 
       employeeNameMap.set(
-        String(employee.id),
+        String(
+          employee.id
+        ),
         employee.name
       );
     }
@@ -268,6 +381,7 @@ async function loadEmployees() {
 ========================================= */
 
 async function loadTools() {
+
   const url =
     `${SUPABASE_URL}/rest/v1/tools` +
     `?select=*` +
@@ -275,19 +389,27 @@ async function loadTools() {
     `&status=neq.disposed` +
     `&order=tool_name.asc,management_code.asc`;
 
+
   const response =
-    await portalFetch(url);
+    await portalFetch(
+      url
+    );
 
-  if (!response.ok) {
-    const errorText =
-      await response.text();
 
-    console.error(errorText);
+  if (
+    !response.ok
+  ) {
+
+    console.error(
+      await response.text()
+    );
+
 
     throw new Error(
       "共有工具を読み込めませんでした"
     );
   }
+
 
   sharedToolRecords =
     await response.json();
@@ -295,21 +417,25 @@ async function loadTools() {
 
 
 /* =========================================
-   大分類プルダウン作成
+   大分類プルダウン
 ========================================= */
 
 function buildGroupSelects() {
+
   const groups =
     sortToolGroups(
       [
         ...new Set(
           sharedToolRecords.map(
             tool =>
-              getToolGroup(tool)
+              getToolGroup(
+                tool
+              )
           )
         )
       ]
     );
+
 
   toolGroupSelect.innerHTML =
     `
@@ -318,6 +444,7 @@ function buildGroupSelects() {
       </option>
     `;
 
+
   stockGroupSelect.innerHTML =
     `
       <option value="">
@@ -325,28 +452,48 @@ function buildGroupSelects() {
       </option>
     `;
 
-  groups.forEach(group => {
-    const option1 =
-      document.createElement("option");
 
-    option1.value = group;
-    option1.textContent = group;
+  groups.forEach(
+    group => {
 
-    toolGroupSelect.appendChild(
-      option1
-    );
+      const option1 =
+        document.createElement(
+          "option"
+        );
 
 
-    const option2 =
-      document.createElement("option");
+      option1.value =
+        group;
 
-    option2.value = group;
-    option2.textContent = group;
 
-    stockGroupSelect.appendChild(
-      option2
-    );
-  });
+      option1.textContent =
+        group;
+
+
+      toolGroupSelect.appendChild(
+        option1
+      );
+
+
+      const option2 =
+        document.createElement(
+          "option"
+        );
+
+
+      option2.value =
+        group;
+
+
+      option2.textContent =
+        group;
+
+
+      stockGroupSelect.appendChild(
+        option2
+      );
+    }
+  );
 }
 
 
@@ -355,8 +502,10 @@ function buildGroupSelects() {
 ========================================= */
 
 function updateToolNameSelect() {
+
   const selectedGroup =
     toolGroupSelect.value;
+
 
   toolNameSelect.innerHTML =
     `
@@ -365,12 +514,17 @@ function updateToolNameSelect() {
       </option>
     `;
 
-  if (!selectedGroup) {
+
+  if (
+    !selectedGroup
+  ) {
+
     toolNameSelect.disabled =
       true;
 
     return;
   }
+
 
   const toolNames =
     [
@@ -378,14 +532,18 @@ function updateToolNameSelect() {
         sharedToolRecords
           .filter(
             tool =>
-              getToolGroup(tool) ===
+              getToolGroup(
+                tool
+              ) ===
               selectedGroup
           )
           .map(
             tool =>
               tool.tool_name
           )
-          .filter(Boolean)
+          .filter(
+            Boolean
+          )
       )
     ].sort(
       (a, b) =>
@@ -395,17 +553,30 @@ function updateToolNameSelect() {
         )
     );
 
-  toolNames.forEach(toolName => {
-    const option =
-      document.createElement("option");
 
-    option.value = toolName;
-    option.textContent = toolName;
+  toolNames.forEach(
+    toolName => {
 
-    toolNameSelect.appendChild(
-      option
-    );
-  });
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        toolName;
+
+
+      option.textContent =
+        toolName;
+
+
+      toolNameSelect.appendChild(
+        option
+      );
+    }
+  );
+
 
   toolNameSelect.disabled =
     false;
@@ -417,8 +588,10 @@ function updateToolNameSelect() {
 ========================================= */
 
 function updateStockToolNameSelect() {
+
   const selectedGroup =
     stockGroupSelect.value;
+
 
   stockToolNameSelect.innerHTML =
     `
@@ -427,12 +600,17 @@ function updateStockToolNameSelect() {
       </option>
     `;
 
-  if (!selectedGroup) {
+
+  if (
+    !selectedGroup
+  ) {
+
     stockToolNameSelect.disabled =
       true;
 
     return;
   }
+
 
   const toolNames =
     [
@@ -440,17 +618,23 @@ function updateStockToolNameSelect() {
         sharedToolRecords
           .filter(
             tool =>
-              tool.status ===
-                "available" &&
               !tool.current_site_id &&
-              getToolGroup(tool) ===
+              getDisplayStatus(
+                tool
+              ) ===
+                "available" &&
+              getToolGroup(
+                tool
+              ) ===
                 selectedGroup
           )
           .map(
             tool =>
               tool.tool_name
           )
-          .filter(Boolean)
+          .filter(
+            Boolean
+          )
       )
     ].sort(
       (a, b) =>
@@ -460,17 +644,30 @@ function updateStockToolNameSelect() {
         )
     );
 
-  toolNames.forEach(toolName => {
-    const option =
-      document.createElement("option");
 
-    option.value = toolName;
-    option.textContent = toolName;
+  toolNames.forEach(
+    toolName => {
 
-    stockToolNameSelect.appendChild(
-      option
-    );
-  });
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        toolName;
+
+
+      option.textContent =
+        toolName;
+
+
+      stockToolNameSelect.appendChild(
+        option
+      );
+    }
+  );
+
 
   stockToolNameSelect.disabled =
     false;
@@ -482,6 +679,7 @@ function updateStockToolNameSelect() {
 ========================================= */
 
 function buildSiteSelect() {
+
   toolSiteSelect.innerHTML =
     `
       <option value="">
@@ -489,33 +687,50 @@ function buildSiteSelect() {
       </option>
     `;
 
-  siteRecords.forEach(site => {
-    const count =
-      sharedToolRecords.filter(
-        tool =>
-          String(
-            tool.current_site_id
-          ) ===
-          String(site.id)
-      ).length;
 
-    if (count === 0) {
-      return;
+  siteRecords.forEach(
+    site => {
+
+      const count =
+        sharedToolRecords.filter(
+          tool =>
+            String(
+              tool.current_site_id
+            ) ===
+            String(
+              site.id
+            )
+        ).length;
+
+
+      if (
+        count ===
+        0
+      ) {
+
+        return;
+      }
+
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        site.id;
+
+
+      option.textContent =
+        `${site.display_name}（${count}）`;
+
+
+      toolSiteSelect.appendChild(
+        option
+      );
     }
-
-    const option =
-      document.createElement("option");
-
-    option.value =
-      site.id;
-
-    option.textContent =
-      `${site.display_name}（${count}）`;
-
-    toolSiteSelect.appendChild(
-      option
-    );
-  });
+  );
 }
 
 
@@ -524,13 +739,19 @@ function buildSiteSelect() {
 ========================================= */
 
 function searchByCategory() {
+
   const group =
     toolGroupSelect.value;
+
 
   const toolName =
     toolNameSelect.value;
 
-  if (!group) {
+
+  if (
+    !group
+  ) {
+
     alert(
       "大分類を選択してください"
     );
@@ -538,7 +759,11 @@ function searchByCategory() {
     return;
   }
 
-  if (!toolName) {
+
+  if (
+    !toolName
+  ) {
+
     alert(
       "工具名を選択してください"
     );
@@ -546,14 +771,18 @@ function searchByCategory() {
     return;
   }
 
+
   const filtered =
     sharedToolRecords.filter(
       tool =>
-        getToolGroup(tool) ===
+        getToolGroup(
+          tool
+        ) ===
           group &&
         tool.tool_name ===
           toolName
     );
+
 
   showResult(
     `${group} ＞ ${toolName}`,
@@ -567,10 +796,15 @@ function searchByCategory() {
 ========================================= */
 
 function searchBySite() {
+
   const siteId =
     toolSiteSelect.value;
 
-  if (!siteId) {
+
+  if (
+    !siteId
+  ) {
+
     alert(
       "現場を選択してください"
     );
@@ -578,10 +812,15 @@ function searchBySite() {
     return;
   }
 
+
   const siteName =
     siteNameMap.get(
-      String(siteId)
-    ) || "";
+      String(
+        siteId
+      )
+    ) ||
+    "";
+
 
   const filtered =
     sharedToolRecords.filter(
@@ -589,8 +828,11 @@ function searchBySite() {
         String(
           tool.current_site_id
         ) ===
-        String(siteId)
+        String(
+          siteId
+        )
     );
+
 
   showResult(
     `現場：${siteName}`,
@@ -604,13 +846,19 @@ function searchBySite() {
 ========================================= */
 
 function searchStock() {
+
   const group =
     stockGroupSelect.value;
+
 
   const toolName =
     stockToolNameSelect.value;
 
-  if (!group) {
+
+  if (
+    !group
+  ) {
+
     alert(
       "大分類を選択してください"
     );
@@ -618,7 +866,11 @@ function searchStock() {
     return;
   }
 
-  if (!toolName) {
+
+  if (
+    !toolName
+  ) {
+
     alert(
       "工具名を選択してください"
     );
@@ -626,17 +878,23 @@ function searchStock() {
     return;
   }
 
+
   const filtered =
     sharedToolRecords.filter(
       tool =>
-        tool.status ===
-          "available" &&
         !tool.current_site_id &&
-        getToolGroup(tool) ===
+        getDisplayStatus(
+          tool
+        ) ===
+          "available" &&
+        getToolGroup(
+          tool
+        ) ===
           group &&
         tool.tool_name ===
           toolName
     );
+
 
   showResult(
     `在庫：${group} ＞ ${toolName}`,
@@ -650,14 +908,21 @@ function searchStock() {
 ========================================= */
 
 function searchTools() {
+
   const rawKeyword =
     sharedToolSearch.value
       .trim();
 
-  const keyword =
-    rawKeyword.toLowerCase();
 
-  if (!keyword) {
+  const keyword =
+    rawKeyword
+      .toLowerCase();
+
+
+  if (
+    !keyword
+  ) {
+
     alert(
       "検索文字を入力してください"
     );
@@ -665,13 +930,16 @@ function searchTools() {
     return;
   }
 
+
   const filtered =
     sharedToolRecords.filter(
       tool => {
 
         const target =
           [
-            getToolGroup(tool),
+            getToolGroup(
+              tool
+            ),
             tool.tool_name,
             tool.specification,
             tool.management_code,
@@ -679,18 +947,26 @@ function searchTools() {
             tool.model_number,
             tool.serial_number,
             tool.performance,
-            getSiteName(tool),
-            getEmployeeName(tool)
+            getSiteName(
+              tool
+            ),
+            getEmployeeName(
+              tool
+            )
           ]
-            .filter(Boolean)
+            .filter(
+              Boolean
+            )
             .join(" ")
             .toLowerCase();
+
 
         return target.includes(
           keyword
         );
       }
     );
+
 
   showResult(
     `検索結果：「${rawKeyword}」`,
@@ -707,24 +983,35 @@ function showResult(
   title,
   tools
 ) {
+
   sharedToolResultTitle.textContent =
     title;
+
 
   sharedToolMessage.textContent =
     `${tools.length}件`;
 
-  sharedToolResultSection.classList.remove(
-    "hidden"
-  );
+
+  sharedToolResultSection
+    .classList
+    .remove(
+      "hidden"
+    );
+
 
   renderToolCards(
     tools
   );
 
-  sharedToolResultSection.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
+
+  sharedToolResultSection
+    .scrollIntoView({
+      behavior:
+        "smooth",
+
+      block:
+        "start"
+    });
 }
 
 
@@ -732,11 +1019,19 @@ function showResult(
    工具カード
 ========================================= */
 
-function renderToolCards(tools) {
+function renderToolCards(
+  tools
+) {
+
   sharedToolList.innerHTML =
     "";
 
-  if (tools.length === 0) {
+
+  if (
+    tools.length ===
+    0
+  ) {
+
     sharedToolList.innerHTML =
       `
         <p class="schedule-empty-message">
@@ -747,148 +1042,280 @@ function renderToolCards(tools) {
     return;
   }
 
-  tools.forEach(tool => {
-    const card =
-      document.createElement(
-        "article"
+
+  tools.forEach(
+    tool => {
+
+      const card =
+        document.createElement(
+          "article"
+        );
+
+
+      const displayStatus =
+        getDisplayStatus(
+          tool
+        );
+
+
+      const locationText =
+        getCompactLocationText(
+          tool
+        );
+
+
+      /* 1工具ごとの区切り */
+
+      card.style.padding =
+        "12px 0";
+
+      card.style.borderBottom =
+        "1px solid #d9e2ef";
+
+
+      /* 管理番号 */
+
+      const code =
+        document.createElement(
+          "div"
+        );
+
+
+      code.textContent =
+        tool.management_code ||
+        "-";
+
+
+      code.style.display =
+        "inline-block";
+
+      code.style.padding =
+        "5px 10px";
+
+      code.style.borderRadius =
+        "8px";
+
+      code.style.backgroundColor =
+        "#2563eb";
+
+      code.style.color =
+        "#ffffff";
+
+      code.style.fontWeight =
+        "700";
+
+      code.style.fontSize =
+        "0.95rem";
+
+
+      /* 工具名 */
+
+      const name =
+        document.createElement(
+          "div"
+        );
+
+
+      name.textContent =
+        tool.tool_name ||
+        "-";
+
+
+      name.style.marginTop =
+        "7px";
+
+      name.style.fontWeight =
+        "700";
+
+      name.style.fontSize =
+        "1.05rem";
+
+
+      /* 現在地・状態 */
+
+      const bottom =
+        document.createElement(
+          "div"
+        );
+
+
+      bottom.style.display =
+        "flex";
+
+      bottom.style.gap =
+        "22px";
+
+      bottom.style.marginTop =
+        "5px";
+
+      bottom.style.fontSize =
+        "0.95rem";
+
+
+      const location =
+        document.createElement(
+          "span"
+        );
+
+
+      location.textContent =
+        locationText;
+
+
+      const status =
+        document.createElement(
+          "span"
+        );
+
+
+      status.textContent =
+        formatToolStatus(
+          displayStatus
+        );
+
+
+      bottom.appendChild(
+        location
       );
 
-    card.className =
-      "tool-item-card";
 
-    let actionButtons =
-      "";
+      bottom.appendChild(
+        status
+      );
 
-    if (
-      tool.status ===
-      "available"
-    ) {
-      actionButtons =
-        `
-          <a
-            href="tool-detail.html?id=${tool.id}"
-            class="admin-secondary-button"
-          >
-            詳細
-          </a>
 
-          <a
-            href="tool-checkout.html?id=${tool.id}"
-            class="admin-primary-button"
-          >
-            持出
-          </a>
-        `;
+      /* 操作ボタン */
+
+      const actions =
+        document.createElement(
+          "div"
+        );
+
+
+      actions.className =
+        "tool-item-actions";
+
+
+      actions.style.marginTop =
+        "10px";
+
+
+      if (
+        displayStatus ===
+        "available"
+      ) {
+
+        actions.innerHTML =
+          `
+            <a
+              href="tool-detail.html?id=${tool.id}"
+              class="admin-secondary-button"
+            >
+              詳細
+            </a>
+
+            <a
+              href="tool-checkout.html?id=${tool.id}"
+              class="admin-primary-button"
+            >
+              持出
+            </a>
+          `;
+      }
+
+
+      if (
+        displayStatus ===
+        "in_use"
+      ) {
+
+        actions.innerHTML =
+          `
+            <a
+              href="tool-detail.html?id=${tool.id}"
+              class="admin-secondary-button"
+            >
+              詳細
+            </a>
+
+            <a
+              href="tool-move.html?id=${tool.id}"
+              class="admin-secondary-button"
+            >
+              移動
+            </a>
+
+            <button
+              type="button"
+              class="admin-primary-button"
+            >
+              返却
+            </button>
+          `;
+
+
+        const returnButton =
+          actions.querySelector(
+            "button"
+          );
+
+
+        returnButton.addEventListener(
+          "click",
+          () => {
+
+            returnTool(
+              tool.id
+            );
+          }
+        );
+      }
+
+
+      if (
+        displayStatus ===
+          "repair" ||
+        displayStatus ===
+          "stopped"
+      ) {
+
+        actions.innerHTML =
+          `
+            <a
+              href="tool-detail.html?id=${tool.id}"
+              class="admin-secondary-button"
+            >
+              詳細
+            </a>
+          `;
+      }
+
+
+      card.appendChild(
+        code
+      );
+
+
+      card.appendChild(
+        name
+      );
+
+
+      card.appendChild(
+        bottom
+      );
+
+
+      card.appendChild(
+        actions
+      );
+
+
+      sharedToolList.appendChild(
+        card
+      );
     }
-
-
-    if (
-      tool.status ===
-      "in_use"
-    ) {
-      actionButtons =
-        `
-          <a
-            href="tool-detail.html?id=${tool.id}"
-            class="admin-secondary-button"
-          >
-            詳細
-          </a>
-
-          <a
-            href="tool-move.html?id=${tool.id}"
-            class="admin-secondary-button"
-          >
-            移動
-          </a>
-
-          <button
-            type="button"
-            class="admin-primary-button"
-            onclick="returnTool(${tool.id})"
-          >
-            返却
-          </button>
-        `;
-    }
-
-
-    if (
-      tool.status ===
-        "repair" ||
-      tool.status ===
-        "stopped"
-    ) {
-      actionButtons =
-        `
-          <a
-            href="tool-detail.html?id=${tool.id}"
-            class="admin-secondary-button"
-          >
-            詳細
-          </a>
-        `;
-    }
-
-
-    card.innerHTML =
-      `
-        <div class="tool-item-main">
-
-          <h3>
-            ${escapeHtml(
-              tool.tool_name
-            )}
-            ${
-              tool.specification
-                ? ` ${escapeHtml(
-                    tool.specification
-                  )}`
-                : ""
-            }
-          </h3>
-
-          <p>
-            管理番号：
-            ${escapeHtml(
-              tool.management_code
-            )}
-          </p>
-
-          <p>
-            現在地：
-            ${escapeHtml(
-              getSiteName(tool)
-            )}
-          </p>
-
-          <p>
-            担当者：
-            ${escapeHtml(
-              getEmployeeName(tool)
-            )}
-          </p>
-
-          <p>
-            状態：
-            ${escapeHtml(
-              formatToolStatus(
-                tool.status
-              )
-            )}
-          </p>
-
-        </div>
-
-        <div class="tool-item-actions">
-          ${actionButtons}
-        </div>
-      `;
-
-    sharedToolList.appendChild(
-      card
-    );
-  });
+  );
 }
 
 
@@ -896,21 +1323,33 @@ function renderToolCards(tools) {
    返却
 ========================================= */
 
-async function returnTool(toolId) {
+async function returnTool(
+  toolId
+) {
+
   const tool =
     sharedToolRecords.find(
       item =>
-        Number(item.id) ===
-        Number(toolId)
+        Number(
+          item.id
+        ) ===
+        Number(
+          toolId
+        )
     );
 
-  if (!tool) {
+
+  if (
+    !tool
+  ) {
+
     alert(
       "工具情報が見つかりません"
     );
 
     return;
   }
+
 
   const confirmed =
     window.confirm(
@@ -923,16 +1362,23 @@ async function returnTool(toolId) {
       "この工具を返却しますか？"
     );
 
-  if (!confirmed) {
+
+  if (
+    !confirmed
+  ) {
+
     return;
   }
 
+
   try {
+
     const loginUser =
       JSON.parse(
         localStorage.getItem(
           "portalLoginUser"
-        ) || "null"
+        ) ||
+        "null"
       );
 
 
@@ -940,13 +1386,17 @@ async function returnTool(toolId) {
       `${SUPABASE_URL}/rest/v1/tools` +
       `?id=eq.${tool.id}`;
 
+
     const toolResponse =
       await portalFetch(
         toolUrl,
         {
-          method: "PATCH",
+
+          method:
+            "PATCH",
 
           headers: {
+
             "Content-Type":
               "application/json",
 
@@ -956,6 +1406,7 @@ async function returnTool(toolId) {
 
           body:
             JSON.stringify({
+
               current_site_id:
                 null,
 
@@ -972,7 +1423,11 @@ async function returnTool(toolId) {
         }
       );
 
-    if (!toolResponse.ok) {
+
+    if (
+      !toolResponse.ok
+    ) {
+
       throw new Error(
         "工具の返却に失敗しました"
       );
@@ -982,13 +1437,17 @@ async function returnTool(toolId) {
     const historyUrl =
       `${SUPABASE_URL}/rest/v1/tool_history`;
 
+
     const historyResponse =
       await portalFetch(
         historyUrl,
         {
-          method: "POST",
+
+          method:
+            "POST",
 
           headers: {
+
             "Content-Type":
               "application/json",
 
@@ -998,6 +1457,7 @@ async function returnTool(toolId) {
 
           body:
             JSON.stringify({
+
               tool_id:
                 tool.id,
 
@@ -1029,7 +1489,11 @@ async function returnTool(toolId) {
         }
       );
 
-    if (!historyResponse.ok) {
+
+    if (
+      !historyResponse.ok
+    ) {
+
       throw new Error(
         "返却履歴の保存に失敗しました"
       );
@@ -1040,14 +1504,23 @@ async function returnTool(toolId) {
       "工具を返却しました"
     );
 
+
     await initialize();
 
-    sharedToolResultSection.classList.add(
-      "hidden"
-    );
+
+    sharedToolResultSection
+      .classList
+      .add(
+        "hidden"
+      );
+
 
   } catch (error) {
-    console.error(error);
+
+    console.error(
+      error
+    );
+
 
     alert(
       error.message
@@ -1060,56 +1533,76 @@ async function returnTool(toolId) {
    イベント
 ========================================= */
 
-toolGroupSelect.addEventListener(
-  "change",
-  updateToolNameSelect
-);
+toolGroupSelect
+  .addEventListener(
+    "change",
+    updateToolNameSelect
+  );
 
-stockGroupSelect.addEventListener(
-  "change",
-  updateStockToolNameSelect
-);
 
-toolSearchByCategoryButton.addEventListener(
-  "click",
-  searchByCategory
-);
+stockGroupSelect
+  .addEventListener(
+    "change",
+    updateStockToolNameSelect
+  );
 
-toolSearchBySiteButton.addEventListener(
-  "click",
-  searchBySite
-);
 
-toolSearchStockButton.addEventListener(
-  "click",
-  searchStock
-);
+toolSearchByCategoryButton
+  .addEventListener(
+    "click",
+    searchByCategory
+  );
 
-sharedToolSearchButton.addEventListener(
-  "click",
-  searchTools
-);
 
-sharedToolSearch.addEventListener(
-  "keydown",
-  event => {
-    if (
-      event.key ===
-      "Enter"
-    ) {
-      searchTools();
+toolSearchBySiteButton
+  .addEventListener(
+    "click",
+    searchBySite
+  );
+
+
+toolSearchStockButton
+  .addEventListener(
+    "click",
+    searchStock
+  );
+
+
+sharedToolSearchButton
+  .addEventListener(
+    "click",
+    searchTools
+  );
+
+
+sharedToolSearch
+  .addEventListener(
+    "keydown",
+    event => {
+
+      if (
+        event.key ===
+        "Enter"
+      ) {
+
+        searchTools();
+      }
     }
-  }
-);
+  );
 
-sharedToolResultClose.addEventListener(
-  "click",
-  () => {
-    sharedToolResultSection.classList.add(
-      "hidden"
-    );
-  }
-);
+
+sharedToolResultClose
+  .addEventListener(
+    "click",
+    () => {
+
+      sharedToolResultSection
+        .classList
+        .add(
+          "hidden"
+        );
+    }
+  );
 
 
 /* =========================================
@@ -1117,23 +1610,34 @@ sharedToolResultClose.addEventListener(
 ========================================= */
 
 async function initialize() {
+
   try {
+
     await Promise.all([
       loadSites(),
       loadEmployees(),
       loadTools()
     ]);
 
+
     buildGroupSelects();
+
 
     buildSiteSelect();
 
+
     updateToolNameSelect();
+
 
     updateStockToolNameSelect();
 
+
   } catch (error) {
-    console.error(error);
+
+    console.error(
+      error
+    );
+
 
     alert(
       error.message

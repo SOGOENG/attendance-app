@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    工具QRコード｜綜合エンジニアリング㈱
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css?v=21"
+  >
+
+  <style>
+
+    .tool-qr-control-row {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin: 16px 0;
+      padding: 16px;
+      background: #f5f8fc;
+      border-radius: 10px;
+    }
+
+    .tool-qr-control-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .tool-qr-control-label input {
+      width: 22px;
+      height: 22px;
+    }
+
+    .tool-qr-item {
+      padding: 14px 0;
+      border-bottom: 1px solid #d9e2ef;
+    }
+
+    .tool-qr-item-main {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .tool-qr-checkbox {
+      width: 22px;
+      height: 22px;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+
+    .tool-qr-item-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tool-qr-code-label {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 8px;
+      background: #2563eb;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .tool-qr-tool-name {
+      margin-top: 7px;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .tool-qr-owner {
+      margin-top: 5px;
+      font-size: 0.95rem;
+    }
+
+    .tool-qr-sticker-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .tool-qr-sticker-option input {
+      width: 20px;
+      height: 20px;
+    }
+
+
+    /* =====================================
+       画面表示
+    ====================================== */
+
+    .tool-qr-output-pages {
+      margin-top: 18px;
+    }
+
+    .tool-qr-print-page {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .tool-qr-print-item {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      justify-content: flex-start;
+      width: fit-content;
+      box-sizing: border-box;
+    }
+
+
+    /* QRラベル本体 */
+
+    .tool-qr-label-body {
+      box-sizing: border-box;
+
+      width: 45mm;
+      height: 45mm;
+
+      min-width: 45mm;
+      min-height: 45mm;
+
+      padding: 3mm;
+
+      border: 1px solid #777;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      text-align: center;
+
+      background: #ffffff;
+      color: #111111;
+    }
+
+    .tool-qr-code-area {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .tool-qr-code-area canvas,
+    .tool-qr-code-area img {
+      width: 28mm !important;
+      height: 28mm !important;
+    }
+
+    .tool-qr-output-code {
+      margin-top: 1.5mm;
+      font-size: 10pt;
+      font-weight: 700;
+      line-height: 1.15;
+    }
+
+    .tool-qr-output-name {
+      margin-top: 0.7mm;
+      max-width: 100%;
+      font-size: 8pt;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+
+
+    /* 点検シール番号タブ */
+
+    .tool-qr-sticker-tab {
+      box-sizing: border-box;
+
+      width: 12mm;
+      height: 45mm;
+
+      min-width: 12mm;
+      min-height: 45mm;
+
+      border-top: 1px solid #777;
+      border-right: 1px solid #777;
+      border-bottom: 1px solid #777;
+      border-left: 1px dashed #444;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 1mm;
+
+      background: #ffffff;
+      color: #111111;
+
+      flex-shrink: 0;
+    }
+
+    .tool-qr-sticker-tab-text {
+      font-size: 8pt;
+      font-weight: 700;
+
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+
+      white-space: nowrap;
+    }
+
+
+    /* =====================================
+       A4印刷
+    ====================================== */
+
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+
+
+    @media print {
+
+      html,
+      body {
+        width: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        overflow: visible !important;
+
+        background: #ffffff !important;
+      }
+
+
+      main.admin-home-page {
+        display: block !important;
+
+        width: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        overflow: visible !important;
+
+        background: #ffffff !important;
+      }
+
+
+      main.admin-home-page > * {
+        display: none !important;
+      }
+
+
+      #toolQrOutputSection {
+        display: block !important;
+
+        position: static !important;
+
+        width: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        border: none !important;
+        border-radius: 0 !important;
+
+        box-shadow: none !important;
+
+        overflow: visible !important;
+
+        background: #ffffff !important;
+      }
+
+
+      #toolQrOutputSection > * {
+        display: none !important;
+      }
+
+
+      #toolQrOutputList {
+        display: block !important;
+
+        position: static !important;
+
+        width: 183mm !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        overflow: visible !important;
+      }
+
+
+      /*
+        1ページ = 15枚
+        Safari対策でflex固定
+      */
+
+      .tool-qr-print-page {
+        display: flex !important;
+
+        flex-direction: row !important;
+
+        flex-wrap: wrap !important;
+
+        align-content: flex-start !important;
+
+        justify-content: flex-start !important;
+
+        width: 183mm !important;
+
+        height: 241mm !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        column-gap: 6mm !important;
+
+        row-gap: 4mm !important;
+
+        break-after: page !important;
+
+        page-break-after: always !important;
+
+        overflow: hidden !important;
+      }
+
+
+      .tool-qr-print-page:last-child {
+        break-after: auto !important;
+        page-break-after: auto !important;
+      }
+
+
+      /*
+        1枠 57mm
+        3列固定
+      */
+
+      .tool-qr-print-item {
+        display: flex !important;
+
+        flex-direction: row !important;
+
+        align-items: stretch !important;
+
+        justify-content: flex-start !important;
+
+        box-sizing: border-box !important;
+
+        width: 57mm !important;
+
+        height: 45mm !important;
+
+        min-width: 57mm !important;
+        min-height: 45mm !important;
+
+        max-width: 57mm !important;
+        max-height: 45mm !important;
+
+        margin: 0 !important;
+        padding: 0 !important;
+
+        flex:
+          0 0 57mm !important;
+
+        overflow: hidden !important;
+
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+      }
+
+
+      .tool-qr-label-body {
+        box-sizing: border-box !important;
+
+        width: 45mm !important;
+        height: 45mm !important;
+
+        min-width: 45mm !important;
+        min-height: 45mm !important;
+
+        max-width: 45mm !important;
+        max-height: 45mm !important;
+
+        margin: 0 !important;
+
+        padding: 2mm !important;
+
+        border: 0.3mm solid #555 !important;
+
+        background: #ffffff !important;
+
+        color: #000000 !important;
+
+        overflow: hidden !important;
+
+        flex:
+          0 0 45mm !important;
+
+        print-color-adjust: exact;
+
+        -webkit-print-color-adjust: exact;
+      }
+
+
+      .tool-qr-code-area canvas,
+      .tool-qr-code-area img {
+        width: 28mm !important;
+
+        height: 28mm !important;
+
+        max-width: 28mm !important;
+
+        max-height: 28mm !important;
+      }
+
+
+      .tool-qr-output-code {
+        margin-top: 1.5mm !important;
+
+        font-size: 10pt !important;
+
+        font-weight: 700 !important;
+
+        line-height: 1.1 !important;
+
+        color: #000000 !important;
+      }
+
+
+      .tool-qr-output-name {
+        margin-top: 0.7mm !important;
+
+        font-size: 8pt !important;
+
+        line-height: 1.1 !important;
+
+        color: #000000 !important;
+      }
+
+
+      .tool-qr-sticker-tab {
+        box-sizing: border-box !important;
+
+        width: 12mm !important;
+        height: 45mm !important;
+
+        min-width: 12mm !important;
+        min-height: 45mm !important;
+
+        max-width: 12mm !important;
+        max-height: 45mm !important;
+
+        margin: 0 !important;
+
+        padding: 1mm !important;
+
+        border-top: 0.3mm solid #555 !important;
+        border-right: 0.3mm solid #555 !important;
+        border-bottom: 0.3mm solid #555 !important;
+        border-left: 0.3mm dashed #555 !important;
+
+        background: #ffffff !important;
+
+        color: #000000 !important;
+
+        overflow: hidden !important;
+
+        flex:
+          0 0 12mm !important;
+      }
+
+
+      .tool-qr-sticker-tab-text {
+        font-size: 8pt !important;
+
+        font-weight: 700 !important;
+
+        color: #000000 !important;
+      }
+    }
+
+  </style>
+
+</head>
+
+
+<body>
+
+  <main class="admin-home-page">
+
+    <header class="admin-home-header">
+
+      <div class="admin-home-header-text">
+
+        <h1>
+          綜合エンジニアリング㈱
+
+          <span class="admin-home-portal-title">
+            Staff Portal
+          </span>
+        </h1>
+
+        <p>
+          工具QRコード
+        </p>
+
+      </div>
+
+
+      <a
+        href="tool-management.html"
+        class="admin-home-back-button"
+      >
+        工具管理へ戻る
+      </a>
+
+    </header>
+
+
+    <section class="admin-section-card">
+
+      <h2>
+        QRコード発行
+      </h2>
+
+      <p class="tool-search-guide">
+        工具を検索してQRコードを表示・PDF保存します。
+      </p>
+
+
+      <label class="admin-form-label">
+
+        大分類
+
+        <select
+          id="toolQrGroup"
+          class="admin-form-control"
+        >
+          <option value="">
+            すべて
+          </option>
+        </select>
+
+      </label>
+
+
+      <label class="admin-form-label">
+
+        工具名
+
+        <select
+          id="toolQrName"
+          class="admin-form-control"
+        >
+          <option value="">
+            すべて
+          </option>
+        </select>
+
+      </label>
+
+
+      <label class="admin-form-label">
+
+        所有区分
+
+        <select
+          id="toolQrOwnership"
+          class="admin-form-control"
+        >
+
+          <option value="">
+            すべて
+          </option>
+
+          <option value="shared">
+            共有（会社）
+          </option>
+
+          <option value="personal">
+            個人（会社社員）
+          </option>
+
+          <option value="contractor">
+            協力業者
+          </option>
+
+        </select>
+
+      </label>
+
+
+      <label
+        id="toolQrEmployeeLabel"
+        class="admin-form-label"
+        hidden
+      >
+
+        社員名
+
+        <select
+          id="toolQrEmployee"
+          class="admin-form-control"
+        >
+          <option value="">
+            すべて
+          </option>
+        </select>
+
+      </label>
+
+
+      <label
+        id="toolQrContractorLabel"
+        class="admin-form-label"
+        hidden
+      >
+
+        協力業者名
+
+        <select
+          id="toolQrContractor"
+          class="admin-form-control"
+        >
+          <option value="">
+            すべて
+          </option>
+        </select>
+
+      </label>
+
+
+      <label class="admin-form-label">
+
+        フリーワード
+
+        <input
+          id="toolQrSearch"
+          type="search"
+          class="admin-form-control"
+          placeholder="管理番号・工具名・メーカーなど"
+        >
+
+      </label>
+
+
+      <button
+        id="toolQrSearchButton"
+        type="button"
+        class="admin-primary-button"
+      >
+        検索
+      </button>
+
+    </section>
+
+
+    <section
+      id="toolQrResultSection"
+      class="admin-section-card hidden"
+    >
+
+      <div class="tool-result-header">
+
+        <h2 id="toolQrResultTitle">
+          検索結果
+        </h2>
+
+
+        <button
+          id="toolQrResultClose"
+          type="button"
+          class="admin-secondary-button"
+        >
+          閉じる
+        </button>
+
+      </div>
+
+
+      <div class="tool-qr-control-row">
+
+        <label class="tool-qr-control-label">
+
+          <input
+            id="toolQrSelectAll"
+            type="checkbox"
+          >
+
+          すべての工具にチェック
+
+        </label>
+
+
+        <label class="tool-qr-control-label">
+
+          <input
+            id="toolQrStickerAll"
+            type="checkbox"
+          >
+
+          点検シール番号をすべて印字
+
+        </label>
+
+      </div>
+
+
+      <p
+        id="toolQrMessage"
+        class="schedule-message"
+      ></p>
+
+
+      <div
+        id="toolQrList"
+        class="tool-list"
+      ></div>
+
+
+      <div
+        class="admin-action-buttons"
+        style="margin-top:18px;"
+      >
+
+        <button
+          id="toolQrCreateButton"
+          type="button"
+          class="admin-primary-button"
+        >
+          選択したQRを表示
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <section
+      id="toolQrOutputSection"
+      class="admin-section-card hidden"
+    >
+
+      <div class="tool-result-header">
+
+        <h2>
+          QRコード
+        </h2>
+
+
+        <button
+          id="toolQrOutputClose"
+          type="button"
+          class="admin-secondary-button"
+        >
+          閉じる
+        </button>
+
+      </div>
+
+
+      <p
+        id="toolQrOutputMessage"
+        class="schedule-message"
+      ></p>
+
+
+      <button
+        id="toolQrPrintButton"
+        type="button"
+        class="admin-primary-button"
+      >
+        PDF保存
+      </button>
+
+
+      <div
+        id="toolQrOutputList"
+        class="tool-qr-output-pages"
+      ></div>
+
+    </section>
+
+  </main>
+
+
+  <script src="portal-auth.js"></script>
+
+  <script
+    src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
+  ></script>
+
+  <script src="./tool-qr.js?v=14"></script>
+
+</body>
+
+</html>

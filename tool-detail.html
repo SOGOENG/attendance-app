@@ -46,10 +46,11 @@
       </div>
 
       <a
+        id="detailBackButton"
         href="shared-tools.html"
         class="admin-home-back-button"
       >
-        共有工具へ戻る
+        工具一覧へ戻る
       </a>
 
     </header>
@@ -115,29 +116,43 @@
           </span>
         </p>
 
-        <p>
+
+        <!-- 個人工具では非表示 -->
+        <p id="detailCurrentSiteRow">
+
           <strong>現在地：</strong>
+
           <span id="detailCurrentSite">
             -
           </span>
+
         </p>
+
 
         <p>
           <strong>担当者：</strong>
+
           <span id="detailAssignedEmployee">
             -
           </span>
         </p>
 
-        <p>
+
+        <!-- 個人工具では非表示 -->
+        <p id="detailStatusRow">
+
           <strong>状態：</strong>
+
           <span id="detailStatus">
             -
           </span>
+
         </p>
+
 
         <p>
           <strong>備考：</strong>
+
           <span id="detailNote">
             -
           </span>
@@ -150,8 +165,12 @@
 
     <!-- ==============================
          操作
+         個人工具では非表示
     ============================== -->
-    <section class="admin-section-card">
+    <section
+      id="detailActionSection"
+      class="admin-section-card"
+    >
 
       <h2>
         操作
@@ -176,6 +195,7 @@
 
       <p>
         <strong>点検対象：</strong>
+
         <span id="detailInspectionRequired">
           -
         </span>
@@ -183,6 +203,7 @@
 
       <p>
         <strong>点検区分：</strong>
+
         <span id="detailInspectionCategory">
           -
         </span>
@@ -190,6 +211,7 @@
 
       <p>
         <strong>最終点検日：</strong>
+
         <span id="detailLastInspectionDate">
           未登録
         </span>
@@ -197,10 +219,168 @@
 
       <p>
         <strong>点検シール番号：</strong>
+
         <span id="detailStickerNumber">
           未登録
         </span>
       </p>
+
+    </section>
+
+
+    <!-- ==============================
+         バッテリー管理
+         充電工具のみ表示
+    ============================== -->
+    <section
+      id="batteryManagementSection"
+      class="admin-section-card"
+      style="display: none;"
+    >
+
+      <h2>
+        バッテリー管理
+      </h2>
+
+      <p>
+        <strong>最終交換日：</strong>
+
+        <span id="detailLastBatteryReplacementDate">
+          未登録
+        </span>
+      </p>
+
+
+      <div class="tool-item-actions">
+
+        <button
+          id="openBatteryHistoryFormButton"
+          type="button"
+          class="admin-primary-button"
+        >
+          バッテリー交換を登録
+        </button>
+
+      </div>
+
+
+      <!-- ==============================
+           バッテリー交換登録フォーム
+      ============================== -->
+      <div
+        id="batteryHistoryForm"
+        style="display: none; margin-top: 20px;"
+      >
+
+        <h3>
+          バッテリー交換登録
+        </h3>
+
+
+        <label class="admin-form-label">
+
+          交換日
+
+          <input
+            id="batteryReplacementDate"
+            type="date"
+            class="admin-form-control"
+          >
+
+        </label>
+
+
+        <label class="admin-form-label">
+
+          バッテリー型式
+
+          <input
+            id="batteryModel"
+            type="text"
+            class="admin-form-control"
+            placeholder="例：BL1860B"
+          >
+
+        </label>
+
+
+        <label class="admin-form-label">
+
+          交換理由
+
+          <input
+            id="batteryReplacementReason"
+            type="text"
+            class="admin-form-control"
+            placeholder="例：容量低下"
+          >
+
+        </label>
+
+
+        <label class="admin-form-label">
+
+          備考
+
+          <textarea
+            id="batteryReplacementNote"
+            class="admin-form-control"
+            rows="3"
+          ></textarea>
+
+        </label>
+
+
+        <div class="tool-item-actions">
+
+          <button
+            id="saveBatteryHistoryButton"
+            type="button"
+            class="admin-primary-button"
+          >
+            登録する
+          </button>
+
+          <button
+            id="cancelBatteryHistoryButton"
+            type="button"
+            class="admin-secondary-button"
+          >
+            キャンセル
+          </button>
+
+        </div>
+
+
+        <p
+          id="batteryHistoryMessage"
+          class="schedule-message"
+        ></p>
+
+      </div>
+
+
+      <!-- ==============================
+           バッテリー交換履歴
+      ============================== -->
+      <div style="margin-top: 24px;">
+
+        <h3>
+          交換履歴
+        </h3>
+
+        <div
+          id="batteryHistoryList"
+          class="tool-history-list"
+        >
+
+          <p class="schedule-empty-message">
+            履歴を読み込み中...
+          </p>
+
+        </div>
+
+      </div>
 
     </section>
 
@@ -246,9 +426,11 @@
         id="toolHistoryList"
         class="tool-history-list"
       >
+
         <p class="schedule-empty-message">
           履歴を読み込み中...
         </p>
+
       </div>
 
     </section>
@@ -263,7 +445,8 @@
 
 
   <script src="portal-auth.js"></script>
-  <script src="./tool-detail.js?v=2"></script>
+
+  <script src="./tool-detail.js?v=5"></script>
 
 </body>
 

@@ -2,176 +2,124 @@ const SUPABASE_URL =
   "https://fgmvmbjnoyagnpygcbky.supabase.co";
 
 
+/* =========================================
+   HTML要素
+========================================= */
+
 const openNewToolButton =
-  document.getElementById(
-    "openNewToolButton"
-  );
+  document.getElementById("openNewToolButton");
 
 const toolFormSection =
-  document.getElementById(
-    "toolFormSection"
-  );
+  document.getElementById("toolFormSection");
 
 const toolFormTitle =
-  document.getElementById(
-    "toolFormTitle"
-  );
+  document.getElementById("toolFormTitle");
 
 const editingToolId =
-  document.getElementById(
-    "editingToolId"
-  );
-
+  document.getElementById("editingToolId");
 
 const toolGroup =
-  document.getElementById(
-    "toolGroup"
-  );
+  document.getElementById("toolGroup");
 
 const toolName =
-  document.getElementById(
-    "toolName"
-  );
+  document.getElementById("toolName");
 
 const toolSpecification =
-  document.getElementById(
-    "toolSpecification"
-  );
+  document.getElementById("toolSpecification");
 
 const toolManagementCode =
-  document.getElementById(
-    "toolManagementCode"
-  );
+  document.getElementById("toolManagementCode");
 
 const toolOwnershipType =
-  document.getElementById(
-    "toolOwnershipType"
-  );
-
+  document.getElementById("toolOwnershipType");
 
 const assignedEmployeeLabel =
-  document.getElementById(
-    "assignedEmployeeLabel"
-  );
+  document.getElementById("assignedEmployeeLabel");
 
 const toolAssignedEmployee =
-  document.getElementById(
-    "toolAssignedEmployee"
-  );
-
+  document.getElementById("toolAssignedEmployee");
 
 const contractorOwnerLabel =
-  document.getElementById(
-    "contractorOwnerLabel"
-  );
+  document.getElementById("contractorOwnerLabel");
 
 const toolOwnerCompanyName =
-  document.getElementById(
-    "toolOwnerCompanyName"
-  );
-
+  document.getElementById("toolOwnerCompanyName");
 
 const toolManufacturer =
-  document.getElementById(
-    "toolManufacturer"
-  );
+  document.getElementById("toolManufacturer");
 
 const toolModelNumber =
-  document.getElementById(
-    "toolModelNumber"
-  );
+  document.getElementById("toolModelNumber");
 
 const toolSerialNumber =
-  document.getElementById(
-    "toolSerialNumber"
-  );
+  document.getElementById("toolSerialNumber");
 
 const toolPerformance =
-  document.getElementById(
-    "toolPerformance"
-  );
+  document.getElementById("toolPerformance");
 
 const toolInspectionRequired =
-  document.getElementById(
-    "toolInspectionRequired"
-  );
+  document.getElementById("toolInspectionRequired");
 
 const toolInspectionCategory =
-  document.getElementById(
-    "toolInspectionCategory"
-  );
+  document.getElementById("toolInspectionCategory");
+
+const toolInspectionCategoryLabel =
+  document.getElementById("toolInspectionCategoryLabel");
 
 const toolNote =
-  document.getElementById(
-    "toolNote"
-  );
-
+  document.getElementById("toolNote");
 
 const saveToolButton =
-  document.getElementById(
-    "saveToolButton"
-  );
+  document.getElementById("saveToolButton");
 
 const cancelToolEditButton =
-  document.getElementById(
-    "cancelToolEditButton"
-  );
+  document.getElementById("cancelToolEditButton");
 
 const stopToolButton =
-  document.getElementById(
-    "stopToolButton"
-  );
+  document.getElementById("stopToolButton");
 
 const disposeToolButton =
-  document.getElementById(
-    "disposeToolButton"
-  );
+  document.getElementById("disposeToolButton");
 
 const toolMasterMessage =
-  document.getElementById(
-    "toolMasterMessage"
-  );
-
+  document.getElementById("toolMasterMessage");
 
 const toolSearchGroup =
-  document.getElementById(
-    "toolSearchGroup"
-  );
+  document.getElementById("toolSearchGroup");
 
 const toolSearchName =
-  document.getElementById(
-    "toolSearchName"
-  );
+  document.getElementById("toolSearchName");
 
 const toolSearchOwnership =
-  document.getElementById(
-    "toolSearchOwnership"
-  );
+  document.getElementById("toolSearchOwnership");
 
 const toolMasterSearch =
-  document.getElementById(
-    "toolMasterSearch"
-  );
+  document.getElementById("toolMasterSearch");
 
 const toolMasterList =
-  document.getElementById(
-    "toolMasterList"
-  );
+  document.getElementById("toolMasterList");
 
 const toolSearchResultTitle =
-  document.getElementById(
-    "toolSearchResultTitle"
-  );
+  document.getElementById("toolSearchResultTitle");
 
+
+/* =========================================
+   データ
+========================================= */
 
 let toolRecords = [];
-
 let employeeRecords = [];
+let siteRecords = [];
 
-let newToolNameInput =
-  null;
+let newToolNameInput = null;
+
+let latheSizeLabel = null;
+let latheSizeSelect = null;
 
 
+/* =========================================
+   大分類別 工具名候補
+========================================= */
 
 const TOOL_NAME_OPTIONS = {
 
@@ -276,17 +224,52 @@ const TOOL_NAME_OPTIONS = {
     "ブラジェット"
   ],
 
+  "充電工具": [
+    "充電インパクト",
+    "充電ドライバー",
+    "充電ハンマードリル",
+    "充電全ねじカッター",
+    "充電パンチャー",
+    "充電セーパーソー"
+  ],
+
   "その他": []
 };
 
 
-function escapeHtml(
-  value
-) {
+/* =========================================
+   新規充電工具用 管理番号
+========================================= */
 
-  return String(
-    value ?? ""
-  )
+const BATTERY_TOOL_PREFIXES = {
+
+  "充電インパクト":
+    "BI",
+
+  "充電ドライバー":
+    "BD",
+
+  "充電ハンマードリル":
+    "BHD",
+
+  "充電全ねじカッター":
+    "BRC",
+
+  "充電パンチャー":
+    "BP",
+
+  "充電セーパーソー":
+    "BRS"
+};
+
+
+/* =========================================
+   共通
+========================================= */
+
+function escapeHtml(value) {
+
+  return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -295,9 +278,7 @@ function escapeHtml(
 }
 
 
-function showToolMessage(
-  message
-) {
+function showToolMessage(message) {
 
   toolMasterMessage.textContent =
     message;
@@ -311,9 +292,11 @@ function clearToolMessage() {
 }
 
 
-function getEmployeeName(
-  employeeId
-) {
+/* =========================================
+   社員
+========================================= */
+
+function getEmployeeName(employeeId) {
 
   if (!employeeId) {
     return "";
@@ -377,20 +360,87 @@ function populateEmployeeOptions() {
             "option"
           );
 
+
         option.value =
           employee.id;
+
 
         option.textContent =
           name;
 
-        toolAssignedEmployee
-          .appendChild(
-            option
-          );
+
+        toolAssignedEmployee.appendChild(
+          option
+        );
       }
     );
 }
 
+
+/* =========================================
+   現場
+========================================= */
+
+function getSiteName(siteId) {
+
+  if (!siteId) {
+    return "";
+  }
+
+
+  const site =
+    siteRecords.find(
+      item =>
+        String(item.id) ===
+        String(siteId)
+    );
+
+
+  if (!site) {
+    return "";
+  }
+
+
+  return (
+    site.display_name ||
+    site.site_name ||
+    site.name ||
+    ""
+  );
+}
+
+
+function getCurrentLocationText(tool) {
+
+  if (
+    tool.current_site_id
+  ) {
+
+    return (
+      getSiteName(
+        tool.current_site_id
+      ) ||
+      "現場"
+    );
+  }
+
+
+  if (
+    tool.ownership_type ===
+    "shared"
+  ) {
+
+    return "倉庫";
+  }
+
+
+  return "-";
+}
+
+
+/* =========================================
+   所有区分
+========================================= */
 
 function updateOwnershipFields() {
 
@@ -398,20 +448,18 @@ function updateOwnershipFields() {
     toolOwnershipType.value;
 
 
-  assignedEmployeeLabel.hidden =
-    ownership !==
-    "personal";
-
-
-  contractorOwnerLabel.hidden =
-    ownership !==
-    "contractor";
-
-
   if (
-    ownership !==
+    ownership ===
     "personal"
   ) {
+
+    assignedEmployeeLabel.style.display =
+      "block";
+
+  } else {
+
+    assignedEmployeeLabel.style.display =
+      "none";
 
     toolAssignedEmployee.value =
       "";
@@ -419,15 +467,607 @@ function updateOwnershipFields() {
 
 
   if (
-    ownership !==
+    ownership ===
     "contractor"
   ) {
+
+    contractorOwnerLabel.style.display =
+      "block";
+
+  } else {
+
+    contractorOwnerLabel.style.display =
+      "none";
 
     toolOwnerCompanyName.value =
       "";
   }
 }
 
+
+/* =========================================
+   半年点検
+========================================= */
+
+function updateInspectionFields() {
+
+  const isBatteryTool =
+    toolGroup.value ===
+    "充電工具";
+
+
+  if (isBatteryTool) {
+
+    toolInspectionRequired.value =
+      "false";
+
+    toolInspectionCategory.value =
+      "";
+
+    toolInspectionRequired.disabled =
+      true;
+
+
+    if (
+      toolInspectionCategoryLabel
+    ) {
+
+      toolInspectionCategoryLabel
+        .style.display =
+        "none";
+    }
+
+  } else {
+
+    toolInspectionRequired.disabled =
+      false;
+
+
+    if (
+      toolInspectionCategoryLabel
+    ) {
+
+      toolInspectionCategoryLabel
+        .style.display =
+        "block";
+    }
+  }
+}
+
+
+/* =========================================
+   管理番号解析
+========================================= */
+
+function parseManagementCode(
+  managementCode
+) {
+
+  const value =
+    String(
+      managementCode ||
+      ""
+    ).trim();
+
+
+  const match =
+    value.match(
+      /^(.+)-(\d+)$/
+    );
+
+
+  if (!match) {
+
+    return null;
+  }
+
+
+  return {
+
+    prefix:
+      match[1],
+
+    number:
+      Number(
+        match[2]
+      )
+  };
+}
+
+
+/* =========================================
+   既存工具から接頭辞を取得
+========================================= */
+
+function findExistingPrefix(
+  toolNameValue
+) {
+
+  const prefixCount =
+    new Map();
+
+
+  toolRecords
+    .filter(
+      tool =>
+        tool.tool_name ===
+        toolNameValue
+    )
+    .forEach(
+      tool => {
+
+        const parsed =
+          parseManagementCode(
+            tool.management_code
+          );
+
+
+        if (!parsed) {
+          return;
+        }
+
+
+        const currentCount =
+          prefixCount.get(
+            parsed.prefix
+          ) || 0;
+
+
+        prefixCount.set(
+          parsed.prefix,
+          currentCount + 1
+        );
+      }
+    );
+
+
+  if (
+    prefixCount.size ===
+    0
+  ) {
+
+    return null;
+  }
+
+
+  return [
+    ...prefixCount.entries()
+  ]
+    .sort(
+      (a, b) =>
+        b[1] - a[1]
+    )[0][0];
+}
+
+
+/* =========================================
+   接頭辞の次番号
+========================================= */
+
+function createNextManagementCode(
+  prefix
+) {
+
+  if (!prefix) {
+    return "";
+  }
+
+
+  let maxNumber =
+    0;
+
+
+  toolRecords.forEach(
+    tool => {
+
+      const parsed =
+        parseManagementCode(
+          tool.management_code
+        );
+
+
+      if (!parsed) {
+        return;
+      }
+
+
+      if (
+        parsed.prefix !==
+        prefix
+      ) {
+
+        return;
+      }
+
+
+      if (
+        parsed.number >
+        maxNumber
+      ) {
+
+        maxNumber =
+          parsed.number;
+      }
+    }
+  );
+
+
+  const nextNumber =
+    maxNumber + 1;
+
+
+  return (
+    `${prefix}-` +
+    String(
+      nextNumber
+    ).padStart(
+      3,
+      "0"
+    )
+  );
+}
+
+
+/* =========================================
+   旋盤サイズ欄
+========================================= */
+
+function createLatheSizeField() {
+
+  if (
+    latheSizeLabel
+  ) {
+
+    return;
+  }
+
+
+  latheSizeLabel =
+    document.createElement(
+      "label"
+    );
+
+
+  latheSizeLabel.className =
+    "admin-form-label";
+
+
+  latheSizeLabel.style.display =
+    "none";
+
+
+  const title =
+    document.createElement(
+      "span"
+    );
+
+
+  title.textContent =
+    "旋盤サイズ";
+
+
+  latheSizeSelect =
+    document.createElement(
+      "select"
+    );
+
+
+  latheSizeSelect.id =
+    "latheSizeSelect";
+
+
+  latheSizeSelect.className =
+    "admin-form-control";
+
+
+  latheSizeSelect.innerHTML =
+    `
+      <option value="">
+        ---- 選択 ----
+      </option>
+
+      <option value="1IN">1IN</option>
+      <option value="2IN">2IN</option>
+      <option value="3IN">3IN</option>
+      <option value="4IN">4IN</option>
+    `;
+
+
+  latheSizeLabel.appendChild(
+    title
+  );
+
+
+  latheSizeLabel.appendChild(
+    latheSizeSelect
+  );
+
+
+  toolName.parentElement
+    .insertAdjacentElement(
+      "afterend",
+      latheSizeLabel
+    );
+
+
+  latheSizeSelect.addEventListener(
+    "change",
+    () => {
+
+      if (
+        editingToolId.value
+      ) {
+
+        return;
+      }
+
+
+      updateAutomaticManagementCode();
+    }
+  );
+}
+
+
+/* =========================================
+   旋盤サイズ表示
+========================================= */
+
+function updateLatheSizeField(
+  selectedSize = ""
+) {
+
+  createLatheSizeField();
+
+
+  const isLathe =
+    getToolNameValue() ===
+    "旋盤";
+
+
+  if (!isLathe) {
+
+    latheSizeLabel.style.display =
+      "none";
+
+
+    latheSizeSelect.value =
+      "";
+
+
+    return;
+  }
+
+
+  latheSizeLabel.style.display =
+    "block";
+
+
+  if (
+    selectedSize
+  ) {
+
+    latheSizeSelect.value =
+      selectedSize;
+  }
+}
+
+
+/* =========================================
+   管理番号入力状態
+========================================= */
+
+function setManagementCodeAutomatic(
+  code
+) {
+
+  toolManagementCode.value =
+    code;
+
+
+  toolManagementCode.readOnly =
+    Boolean(
+      code
+    );
+}
+
+
+function setManagementCodeManual() {
+
+  toolManagementCode.value =
+    "";
+
+
+  toolManagementCode.readOnly =
+    false;
+}
+
+
+/* =========================================
+   自動管理番号
+========================================= */
+
+function updateAutomaticManagementCode() {
+
+  if (
+    editingToolId.value
+  ) {
+
+    return;
+  }
+
+
+  const currentToolName =
+    getToolNameValue();
+
+
+  if (
+    !currentToolName
+  ) {
+
+    setManagementCodeManual();
+
+    return;
+  }
+
+
+  if (
+    toolName.value ===
+    "__new__"
+  ) {
+
+    setManagementCodeManual();
+
+    return;
+  }
+
+
+  if (
+    currentToolName ===
+    "旋盤"
+  ) {
+
+    updateLatheSizeField();
+
+
+    const size =
+      latheSizeSelect
+        ? latheSizeSelect.value
+        : "";
+
+
+    if (!size) {
+
+      setManagementCodeManual();
+
+      toolManagementCode.readOnly =
+        true;
+
+      toolManagementCode.placeholder =
+        "先に旋盤サイズを選択";
+
+      return;
+    }
+
+
+    const prefix =
+      `SB-${size}`;
+
+
+    const code =
+      createNextManagementCode(
+        prefix
+      );
+
+
+    toolManagementCode.placeholder =
+      "";
+
+
+    setManagementCodeAutomatic(
+      code
+    );
+
+
+    return;
+  }
+
+
+  let prefix =
+    findExistingPrefix(
+      currentToolName
+    );
+
+
+  if (
+    !prefix &&
+    BATTERY_TOOL_PREFIXES[
+      currentToolName
+    ]
+  ) {
+
+    prefix =
+      BATTERY_TOOL_PREFIXES[
+        currentToolName
+      ];
+  }
+
+
+  if (!prefix) {
+
+    setManagementCodeManual();
+
+    toolManagementCode.placeholder =
+      "管理番号を入力";
+
+    return;
+  }
+
+
+  const code =
+    createNextManagementCode(
+      prefix
+    );
+
+
+  toolManagementCode.placeholder =
+    "";
+
+
+  setManagementCodeAutomatic(
+    code
+  );
+}
+
+
+/* =========================================
+   大分類変更
+========================================= */
+
+function handleToolGroupChange() {
+
+  updateToolNameOptions();
+
+  hideNewToolNameInput();
+
+  updateLatheSizeField();
+
+
+  if (
+    !editingToolId.value
+  ) {
+
+    setManagementCodeManual();
+  }
+
+
+  if (
+    toolGroup.value ===
+    "充電工具"
+  ) {
+
+    toolOwnershipType.value =
+      "personal";
+
+
+    updateOwnershipFields();
+
+
+    toolInspectionRequired.value =
+      "false";
+
+
+    toolInspectionCategory.value =
+      "";
+  }
+
+
+  updateInspectionFields();
+}
+
+
+/* =========================================
+   工具名候補
+========================================= */
 
 function getToolNamesForGroup(
   group
@@ -444,7 +1084,8 @@ function getToolNamesForGroup(
         tool =>
           (
             !group ||
-            tool.tool_group === group
+            tool.tool_group ===
+              group
           ) &&
           tool.tool_name
       )
@@ -470,6 +1111,10 @@ function getToolNamesForGroup(
 }
 
 
+/* =========================================
+   登録用 工具名
+========================================= */
+
 function updateToolNameOptions(
   selectedName = ""
 ) {
@@ -493,8 +1138,10 @@ function updateToolNameOptions(
       "option"
     );
 
+
   defaultOption.value =
     "";
+
 
   defaultOption.textContent =
     group
@@ -515,11 +1162,14 @@ function updateToolNameOptions(
           "option"
         );
 
+
       option.value =
         name;
 
+
       option.textContent =
         name;
+
 
       toolName.appendChild(
         option
@@ -540,11 +1190,14 @@ function updateToolNameOptions(
         "option"
       );
 
+
     option.value =
       selectedName;
 
+
     option.textContent =
       selectedName;
+
 
     toolName.appendChild(
       option
@@ -559,11 +1212,14 @@ function updateToolNameOptions(
         "option"
       );
 
+
     newOption.value =
       "__new__";
 
+
     newOption.textContent =
       "＋ 新しい工具名を入力";
+
 
     toolName.appendChild(
       newOption
@@ -571,7 +1227,9 @@ function updateToolNameOptions(
   }
 
 
-  if (selectedName) {
+  if (
+    selectedName
+  ) {
 
     toolName.value =
       selectedName;
@@ -580,7 +1238,7 @@ function updateToolNameOptions(
 
 
 /* =========================================
-   検索用 工具名プルダウン
+   検索用 工具名
 ========================================= */
 
 function updateSearchToolNameOptions() {
@@ -593,11 +1251,6 @@ function updateSearchToolNameOptions() {
     toolRecords;
 
 
-  /*
-    大分類が選ばれている場合は
-    その分類だけに絞る
-  */
-
   if (group) {
 
     targetTools =
@@ -608,11 +1261,6 @@ function updateSearchToolNameOptions() {
       );
   }
 
-
-  /*
-    実際にDBに登録されている
-    工具名から候補を作る
-  */
 
   const names = [
     ...new Set(
@@ -649,60 +1297,92 @@ function updateSearchToolNameOptions() {
           "option"
         );
 
+
       option.value =
         name;
+
 
       option.textContent =
         name;
 
-      toolSearchName
-        .appendChild(
-          option
-        );
+
+      toolSearchName.appendChild(
+        option
+      );
     }
   );
 }
 
 
+/* =========================================
+   新しい工具名
+========================================= */
+
 function showNewToolNameInput(
   value = ""
 ) {
 
-  if (!newToolNameInput) {
+  if (
+    !newToolNameInput
+  ) {
 
     newToolNameInput =
       document.createElement(
         "input"
       );
 
+
     newToolNameInput.type =
       "text";
+
 
     newToolNameInput.id =
       "newToolNameInput";
 
+
     newToolNameInput.className =
       "admin-form-control";
 
+
     newToolNameInput.placeholder =
       "新しい工具名を入力";
+
 
     newToolNameInput.style.marginTop =
       "8px";
 
 
-    toolName.parentElement
-      .appendChild(
-        newToolNameInput
-      );
+    toolName.parentElement.appendChild(
+      newToolNameInput
+    );
+
+
+    newToolNameInput.addEventListener(
+      "input",
+      () => {
+
+        if (
+          !editingToolId.value
+        ) {
+
+          setManagementCodeManual();
+        }
+      }
+    );
   }
 
 
   newToolNameInput.hidden =
     false;
 
+
+  newToolNameInput.style.display =
+    "block";
+
+
   newToolNameInput.value =
     value;
+
 
   newToolNameInput.focus();
 }
@@ -710,13 +1390,21 @@ function showNewToolNameInput(
 
 function hideNewToolNameInput() {
 
-  if (!newToolNameInput) {
+  if (
+    !newToolNameInput
+  ) {
+
     return;
   }
 
 
   newToolNameInput.hidden =
     true;
+
+
+  newToolNameInput.style.display =
+    "none";
+
 
   newToolNameInput.value =
     "";
@@ -740,6 +1428,10 @@ function getToolNameValue() {
 }
 
 
+/* =========================================
+   フォーム
+========================================= */
+
 function openToolForm() {
 
   toolFormSection.hidden =
@@ -752,7 +1444,9 @@ function closeToolForm() {
   toolFormSection.hidden =
     true;
 
+
   resetToolForm();
+
 
   clearToolMessage();
 }
@@ -761,6 +1455,7 @@ function closeToolForm() {
 function startNewTool() {
 
   resetToolForm();
+
 
   openToolForm();
 
@@ -783,10 +1478,19 @@ function startNewTool() {
 }
 
 
+/* =========================================
+   保存データ
+========================================= */
+
 function createToolData() {
 
   const ownership =
     toolOwnershipType.value;
+
+
+  const isBatteryTool =
+    toolGroup.value ===
+    "充電工具";
 
 
   return {
@@ -857,12 +1561,20 @@ function createToolData() {
       null,
 
     inspection_required:
-      toolInspectionRequired.value ===
-      "true",
+      isBatteryTool
+        ? false
+        : (
+            toolInspectionRequired.value ===
+            "true"
+          ),
 
     inspection_category:
-      toolInspectionCategory.value ||
-      null,
+      isBatteryTool
+        ? null
+        : (
+            toolInspectionCategory.value ||
+            null
+          ),
 
     note:
       toolNote.value
@@ -876,9 +1588,15 @@ function createToolData() {
 }
 
 
+/* =========================================
+   入力確認
+========================================= */
+
 function validateTool() {
 
-  if (!toolGroup.value) {
+  if (
+    !toolGroup.value
+  ) {
 
     throw new Error(
       "大分類を選択してください"
@@ -886,10 +1604,28 @@ function validateTool() {
   }
 
 
-  if (!getToolNameValue()) {
+  if (
+    !getToolNameValue()
+  ) {
 
     throw new Error(
       "工具名を入力してください"
+    );
+  }
+
+
+  if (
+    getToolNameValue() ===
+      "旋盤" &&
+    !editingToolId.value &&
+    (
+      !latheSizeSelect ||
+      !latheSizeSelect.value
+    )
+  ) {
+
+    throw new Error(
+      "旋盤サイズを選択してください"
     );
   }
 
@@ -929,6 +1665,10 @@ function validateTool() {
 }
 
 
+/* =========================================
+   登録・保存
+========================================= */
+
 async function saveTool() {
 
   clearToolMessage();
@@ -953,7 +1693,9 @@ async function saveTool() {
 
 
   const isEditing =
-    Boolean(toolId);
+    Boolean(
+      toolId
+    );
 
 
   const record =
@@ -964,7 +1706,7 @@ async function saveTool() {
     window.confirm(
       isEditing
         ? "工具情報を保存しますか？"
-        : "工具を登録しますか？"
+        : `管理番号 ${record.management_code} で工具を登録しますか？`
     );
 
 
@@ -978,14 +1720,18 @@ async function saveTool() {
     let url =
       `${SUPABASE_URL}/rest/v1/tools`;
 
+
     let method =
       "POST";
 
 
-    if (isEditing) {
+    if (
+      isEditing
+    ) {
 
       url +=
         `?id=eq.${toolId}`;
+
 
       method =
         "PATCH";
@@ -1016,13 +1762,12 @@ async function saveTool() {
       );
 
 
-    if (!response.ok) {
-
-      const text =
-        await response.text();
+    if (
+      !response.ok
+    ) {
 
       console.error(
-        text
+        await response.text()
       );
 
 
@@ -1043,7 +1788,7 @@ async function saveTool() {
     alert(
       isEditing
         ? "工具情報を保存しました"
-        : "工具を登録しました"
+        : `工具を登録しました\n管理番号：${record.management_code}`
     );
 
 
@@ -1053,6 +1798,7 @@ async function saveTool() {
       error
     );
 
+
     showToolMessage(
       error.message
     );
@@ -1060,11 +1806,16 @@ async function saveTool() {
 }
 
 
+/* =========================================
+   編集
+========================================= */
+
 function startToolEdit(
   tool
 ) {
 
   resetToolForm();
+
 
   openToolForm();
 
@@ -1096,6 +1847,10 @@ function startToolEdit(
   toolManagementCode.value =
     tool.management_code ||
     "";
+
+
+  toolManagementCode.readOnly =
+    false;
 
 
   toolOwnershipType.value =
@@ -1166,21 +1921,52 @@ function startToolEdit(
         "option"
       );
 
+
     option.value =
       currentCategory;
+
 
     option.textContent =
       currentCategory;
 
-    toolInspectionCategory
-      .appendChild(
-        option
-      );
+
+    toolInspectionCategory.appendChild(
+      option
+    );
   }
 
 
   toolInspectionCategory.value =
     currentCategory;
+
+
+  updateInspectionFields();
+
+
+  if (
+    tool.tool_name ===
+    "旋盤"
+  ) {
+
+    const match =
+      String(
+        tool.management_code ||
+        ""
+      ).match(
+        /^SB-(1IN|2IN|3IN|4IN)-/
+      );
+
+
+    updateLatheSizeField(
+      match
+        ? match[1]
+        : ""
+    );
+
+  } else {
+
+    updateLatheSizeField();
+  }
 
 
   toolNote.value =
@@ -1200,6 +1986,7 @@ function startToolEdit(
     stopToolButton.hidden =
       true;
 
+
     disposeToolButton.hidden =
       true;
 
@@ -1207,6 +1994,7 @@ function startToolEdit(
 
     stopToolButton.hidden =
       false;
+
 
     disposeToolButton.hidden =
       false;
@@ -1231,6 +2019,10 @@ function startToolEdit(
 }
 
 
+/* =========================================
+   フォーム初期化
+========================================= */
+
 function resetToolForm() {
 
   editingToolId.value =
@@ -1251,11 +2043,22 @@ function resetToolForm() {
   hideNewToolNameInput();
 
 
+  updateLatheSizeField();
+
+
   toolSpecification.value =
     "";
 
 
   toolManagementCode.value =
+    "";
+
+
+  toolManagementCode.readOnly =
+    false;
+
+
+  toolManagementCode.placeholder =
     "";
 
 
@@ -1290,12 +2093,26 @@ function resetToolForm() {
     "";
 
 
+  toolInspectionRequired.disabled =
+    false;
+
+
   toolInspectionRequired.value =
     "false";
 
 
   toolInspectionCategory.value =
     "";
+
+
+  if (
+    toolInspectionCategoryLabel
+  ) {
+
+    toolInspectionCategoryLabel
+      .style.display =
+      "block";
+  }
 
 
   toolNote.value =
@@ -1314,6 +2131,10 @@ function resetToolForm() {
     true;
 }
 
+
+/* =========================================
+   状態
+========================================= */
 
 function formatToolStatus(
   status
@@ -1341,6 +2162,49 @@ function formatToolStatus(
   }
 }
 
+
+/*
+  現在地と状態がズレている既存データにも対応
+*/
+
+function getDisplayToolStatus(
+  tool
+) {
+
+  if (
+    tool.status ===
+      "repair" ||
+    tool.status ===
+      "stopped" ||
+    tool.status ===
+      "disposed"
+  ) {
+
+    return tool.status;
+  }
+
+
+  if (
+    tool.ownership_type ===
+      "shared"
+  ) {
+
+    return tool.current_site_id
+      ? "in_use"
+      : "available";
+  }
+
+
+  return (
+    tool.status ||
+    "available"
+  );
+}
+
+
+/* =========================================
+   使用停止
+========================================= */
 
 async function stopTool() {
 
@@ -1410,9 +2274,14 @@ async function stopTool() {
 
   await loadTools();
 
+
   closeToolForm();
 }
 
+
+/* =========================================
+   廃棄
+========================================= */
 
 async function disposeTool() {
 
@@ -1431,12 +2300,17 @@ async function disposeTool() {
     );
 
 
-  if (reason === null) {
+  if (
+    reason === null
+  ) {
+
     return;
   }
 
 
-  if (!reason.trim()) {
+  if (
+    !reason.trim()
+  ) {
 
     alert(
       "廃棄理由を入力してください"
@@ -1506,7 +2380,9 @@ async function disposeTool() {
     );
 
 
-  if (!response.ok) {
+  if (
+    !response.ok
+  ) {
 
     alert(
       "廃棄にできませんでした"
@@ -1518,9 +2394,14 @@ async function disposeTool() {
 
   await loadTools();
 
+
   closeToolForm();
 }
 
+
+/* =========================================
+   社員読込
+========================================= */
 
 async function loadEmployees() {
 
@@ -1530,7 +2411,9 @@ async function loadEmployees() {
     );
 
 
-  if (!response.ok) {
+  if (
+    !response.ok
+  ) {
 
     throw new Error(
       "社員情報を読み込めませんでした"
@@ -1546,6 +2429,37 @@ async function loadEmployees() {
 }
 
 
+/* =========================================
+   現場読込
+========================================= */
+
+async function loadSites() {
+
+  const response =
+    await portalFetch(
+      `${SUPABASE_URL}/rest/v1/sites?select=*&order=id.asc`
+    );
+
+
+  if (
+    !response.ok
+  ) {
+
+    throw new Error(
+      "現場情報を読み込めませんでした"
+    );
+  }
+
+
+  siteRecords =
+    await response.json();
+}
+
+
+/* =========================================
+   工具読込
+========================================= */
+
 async function loadTools() {
 
   const response =
@@ -1554,7 +2468,9 @@ async function loadTools() {
     );
 
 
-  if (!response.ok) {
+  if (
+    !response.ok
+  ) {
 
     throw new Error(
       "工具情報を読み込めませんでした"
@@ -1568,25 +2484,28 @@ async function loadTools() {
 
   updateToolNameOptions();
 
+
   updateSearchToolNameOptions();
+
 
   displayTools();
 }
 
+
+/* =========================================
+   工具一覧
+========================================= */
 
 function displayTools() {
 
   const groupFilter =
     toolSearchGroup.value;
 
-
   const nameFilter =
     toolSearchName.value;
 
-
   const ownershipFilter =
     toolSearchOwnership.value;
-
 
   const searchText =
     toolMasterSearch.value
@@ -1598,36 +2517,26 @@ function displayTools() {
     toolRecords.filter(
       tool => {
 
-
         if (
           groupFilter &&
-          tool.tool_group !==
-            groupFilter
+          tool.tool_group !== groupFilter
         ) {
-
           return false;
         }
-
 
         if (
           nameFilter &&
-          tool.tool_name !==
-            nameFilter
+          tool.tool_name !== nameFilter
         ) {
-
           return false;
         }
-
 
         if (
           ownershipFilter &&
-          tool.ownership_type !==
-            ownershipFilter
+          tool.ownership_type !== ownershipFilter
         ) {
-
           return false;
         }
-
 
         if (searchText) {
 
@@ -1636,6 +2545,10 @@ function displayTools() {
               tool.assigned_employee_id
             );
 
+          const siteName =
+            getSiteName(
+              tool.current_site_id
+            );
 
           const searchableText =
             [
@@ -1648,23 +2561,21 @@ function displayTools() {
               tool.serial_number,
               tool.performance,
               employeeName,
-              tool.owner_company_name
+              tool.owner_company_name,
+              siteName
             ]
               .filter(Boolean)
               .join(" ")
               .toLowerCase();
-
 
           if (
             !searchableText.includes(
               searchText
             )
           ) {
-
             return false;
           }
         }
-
 
         return true;
       }
@@ -1672,7 +2583,7 @@ function displayTools() {
 
 
   toolSearchResultTitle.textContent =
-    `検索結果（${filteredTools.length}件）`;
+    `検索結果（${filteredTools.length}件)`;
 
 
   toolMasterList.innerHTML =
@@ -1680,8 +2591,7 @@ function displayTools() {
 
 
   if (
-    filteredTools.length ===
-    0
+    filteredTools.length === 0
   ) {
 
     toolMasterList.innerHTML =
@@ -1704,153 +2614,168 @@ function displayTools() {
         );
 
 
-      card.className =
-        "tool-item-card";
+      const locationText =
+        tool.current_site_id
+          ? "現場"
+          : "倉庫";
 
 
-      const ownershipText =
-        tool.ownership_type ===
-          "personal"
-          ? "個人（会社社員）"
-
-          : tool.ownership_type ===
-            "contractor"
-            ? "協力業者"
-
-            : "共有（会社）";
-
-
-      const employeeName =
-        getEmployeeName(
-          tool.assigned_employee_id
+      const displayStatus =
+        formatToolStatus(
+          getDisplayToolStatus(
+            tool
+          )
         );
 
 
-      const ownerText =
-        tool.ownership_type ===
-          "personal"
-          ? employeeName
+      /* 1工具ごとの区切り */
 
-          : tool.ownership_type ===
-            "contractor"
-            ? (
-                tool.owner_company_name ||
-                ""
-              )
+      card.style.padding =
+        "12px 0";
 
-            : "";
+      card.style.borderBottom =
+        "1px solid #d9e2ef";
+
+      card.style.cursor =
+        "pointer";
 
 
-      card.innerHTML =
-        `
-          <div class="tool-item-main">
+      /* 管理番号 */
 
-            <h3>
-              ${escapeHtml(
-                tool.tool_name
-              )}
-
-              ${
-                tool.specification
-                  ? ` ${escapeHtml(
-                      tool.specification
-                    )}`
-                  : ""
-              }
-            </h3>
-
-            <p>
-              大分類：
-              ${escapeHtml(
-                tool.tool_group ||
-                "未設定"
-              )}
-            </p>
-
-            <p>
-              管理番号：
-              ${escapeHtml(
-                tool.management_code
-              )}
-            </p>
-
-            <p>
-              所有区分：
-              ${escapeHtml(
-                ownershipText
-              )}
-            </p>
-
-            ${
-              ownerText
-                ? `
-                  <p>
-                    所有者：
-                    ${escapeHtml(
-                      ownerText
-                    )}
-                  </p>
-                `
-                : ""
-            }
-
-            <p>
-              状態：
-              ${escapeHtml(
-                formatToolStatus(
-                  tool.status
-                )
-              )}
-            </p>
-
-            <p>
-              半年点検：
-              ${
-                tool.inspection_required
-                  ? "対象"
-                  : "対象外"
-              }
-            </p>
-
-          </div>
-
-
-          <div class="tool-item-actions">
-
-            <button
-              type="button"
-              class="admin-secondary-button edit-tool-button"
-            >
-              編集
-            </button>
-
-          </div>
-        `;
-
-
-      card
-        .querySelector(
-          ".edit-tool-button"
-        )
-        .addEventListener(
-          "click",
-          () => {
-
-            startToolEdit(
-              tool
-            );
-          }
+      const code =
+        document.createElement(
+          "div"
         );
 
+      code.textContent =
+        tool.management_code ||
+        "-";
 
-      toolMasterList
-        .appendChild(
-          card
+      code.style.display =
+        "inline-block";
+
+      code.style.padding =
+        "5px 10px";
+
+      code.style.borderRadius =
+        "8px";
+
+      code.style.backgroundColor =
+        "#2563eb";
+
+      code.style.color =
+        "#ffffff";
+
+      code.style.fontWeight =
+        "700";
+
+      code.style.fontSize =
+        "0.95rem";
+
+
+      /* 工具名 */
+
+      const name =
+        document.createElement(
+          "div"
         );
+
+      name.textContent =
+        tool.tool_name ||
+        "-";
+
+      name.style.marginTop =
+        "7px";
+
+      name.style.fontWeight =
+        "700";
+
+      name.style.fontSize =
+        "1.05rem";
+
+
+      /* 現在地 ＋ 状態 */
+
+      const bottom =
+        document.createElement(
+          "div"
+        );
+
+      bottom.style.display =
+        "flex";
+
+      bottom.style.gap =
+        "22px";
+
+      bottom.style.marginTop =
+        "5px";
+
+      bottom.style.fontSize =
+        "0.95rem";
+
+
+      const location =
+        document.createElement(
+          "span"
+        );
+
+      location.textContent =
+        locationText;
+
+
+      const status =
+        document.createElement(
+          "span"
+        );
+
+      status.textContent =
+        displayStatus;
+
+
+      bottom.appendChild(
+        location
+      );
+
+      bottom.appendChild(
+        status
+      );
+
+
+      card.appendChild(
+        code
+      );
+
+      card.appendChild(
+        name
+      );
+
+      card.appendChild(
+        bottom
+      );
+
+
+      card.addEventListener(
+        "click",
+        () => {
+
+          startToolEdit(
+            tool
+          );
+        }
+      );
+
+
+      toolMasterList.appendChild(
+        card
+      );
     }
   );
 }
 
+
+/* =========================================
+   イベント
+========================================= */
 
 openNewToolButton
   .addEventListener(
@@ -1869,12 +2794,7 @@ cancelToolEditButton
 toolGroup
   .addEventListener(
     "change",
-    () => {
-
-      updateToolNameOptions();
-
-      hideNewToolNameInput();
-    }
+    handleToolGroupChange
   );
 
 
@@ -1894,6 +2814,12 @@ toolName
 
         hideNewToolNameInput();
       }
+
+
+      updateLatheSizeField();
+
+
+      updateAutomaticManagementCode();
     }
   );
 
@@ -1926,7 +2852,6 @@ disposeToolButton
   );
 
 
-/* 大分類変更 → 工具名候補変更 */
 toolSearchGroup
   .addEventListener(
     "change",
@@ -1934,8 +2859,10 @@ toolSearchGroup
 
       updateSearchToolNameOptions();
 
+
       toolSearchName.value =
         "";
+
 
       displayTools();
     }
@@ -1963,16 +2890,31 @@ toolMasterSearch
   );
 
 
+/* =========================================
+   初期処理
+========================================= */
+
 async function initializeToolMaster() {
 
   try {
 
+    createLatheSizeField();
+
+
     updateOwnershipFields();
+
 
     updateToolNameOptions();
 
 
-    await loadEmployees();
+    updateInspectionFields();
+
+
+    await Promise.all([
+      loadEmployees(),
+      loadSites()
+    ]);
+
 
     await loadTools();
 
