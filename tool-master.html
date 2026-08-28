@@ -24,9 +24,6 @@
 
   <main class="admin-home-page">
 
-    <!-- ==============================
-         ヘッダー
-    ============================== -->
     <header class="admin-home-header">
 
       <div class="admin-home-header-text">
@@ -55,10 +52,26 @@
     </header>
 
 
-    <!-- ==============================
-         工具登録・編集
-    ============================== -->
+    <!-- 新規工具登録ボタン -->
     <section class="admin-section-card">
+
+      <button
+        id="openNewToolButton"
+        type="button"
+        class="admin-primary-button"
+      >
+        ＋ 新規工具登録
+      </button>
+
+    </section>
+
+
+    <!-- 工具登録・編集 -->
+    <section
+      id="toolFormSection"
+      class="admin-section-card"
+      hidden
+    >
 
       <h2 id="toolFormTitle">
         工具登録
@@ -82,37 +95,19 @@
             ---- 選択 ----
           </option>
 
-          <option value="配管加工機">
-            配管加工機
-          </option>
+          <option value="配管加工機">配管加工機</option>
+          <option value="切断工具">切断工具</option>
+          <option value="研磨・仕上げ工具">研磨・仕上げ工具</option>
+          <option value="穴あけ・斫り工具">穴あけ・斫り工具</option>
+          <option value="締付・圧着工具">締付・圧着工具</option>
+          <option value="溶接機器">溶接機器</option>
+          <option value="電源・配電機器">電源・配電機器</option>
+          <option value="ポンプ・空圧機器">ポンプ・空圧機器</option>
+          <option value="集塵・吸引">集塵・吸引</option>
+          <option value="測定・探査">測定・探査</option>
+          <option value="電動・汎用工具">電動・汎用工具</option>
+          <option value="その他">その他</option>
 
-          <option value="切断工具">
-            切断工具
-          </option>
-
-          <option value="研磨・仕上げ工具">
-            研磨・仕上げ工具
-          </option>
-
-          <option value="穴あけ・斫り工具">
-            穴あけ・斫り工具
-          </option>
-
-          <option value="電動・汎用工具">
-            電動・汎用工具
-          </option>
-
-          <option value="集塵・吸引">
-            集塵・吸引
-          </option>
-
-          <option value="測定・探査">
-            測定・探査
-          </option>
-
-          <option value="その他">
-            その他
-          </option>
         </select>
       </label>
 
@@ -120,12 +115,14 @@
       <label class="admin-form-label">
         工具名
 
-        <input
+        <select
           id="toolName"
-          type="text"
           class="admin-form-control"
-          placeholder="例：旋盤"
         >
+          <option value="">
+            ---- 先に大分類を選択 ----
+          </option>
+        </select>
       </label>
 
 
@@ -161,18 +158,51 @@
           class="admin-form-control"
         >
           <option value="shared">
-  共有（会社）
-</option>
+            共有（会社）
+          </option>
 
-<option value="personal">
-  個人（会社社員）
-</option>
+          <option value="personal">
+            個人（会社社員）
+          </option>
 
-<option value="contractor">
-  協力業者
-</option>
+          <option value="contractor">
+            協力業者
           </option>
         </select>
+      </label>
+
+
+      <label
+        id="assignedEmployeeLabel"
+        class="admin-form-label"
+        hidden
+      >
+        社員名
+
+        <select
+          id="toolAssignedEmployee"
+          class="admin-form-control"
+        >
+          <option value="">
+            ---- 選択 ----
+          </option>
+        </select>
+      </label>
+
+
+      <label
+        id="contractorOwnerLabel"
+        class="admin-form-label"
+        hidden
+      >
+        協力業者名
+
+        <input
+          id="toolOwnerCompanyName"
+          type="text"
+          class="admin-form-control"
+          placeholder="例：岩田工業"
+        >
       </label>
 
 
@@ -249,29 +279,12 @@
             ---- 選択 ----
           </option>
 
-          <option value="3p">
-            3P工具
-          </option>
-
-          <option value="double_insulated">
-            二重絶縁工具
-          </option>
-
-          <option value="battery">
-            充電式工具
-          </option>
-
-          <option value="cord_reel">
-            コードリール
-          </option>
-
-          <option value="ac_welder">
-            交流式溶接機
-          </option>
-
-          <option value="dc_welder">
-            直流式溶接機
-          </option>
+          <option value="3p">3P工具</option>
+          <option value="double_insulated">二重絶縁工具</option>
+          <option value="battery">充電式工具</option>
+          <option value="cord_reel">コードリール</option>
+          <option value="ac_welder">交流式溶接機</option>
+          <option value="dc_welder">直流式溶接機</option>
         </select>
       </label>
 
@@ -301,9 +314,8 @@
           id="cancelToolEditButton"
           type="button"
           class="admin-secondary-button"
-          hidden
         >
-          編集をやめる
+          閉じる
         </button>
 
         <button
@@ -334,25 +346,103 @@
     </section>
 
 
-    <!-- ==============================
-         工具一覧
-    ============================== -->
+    <!-- 工具検索 -->
     <section class="admin-section-card">
 
       <h2>
-        登録済み工具
+        工具検索
       </h2>
 
+
       <label class="admin-form-label">
-        工具検索
+        大分類
+
+        <select
+          id="toolSearchGroup"
+          class="admin-form-control"
+        >
+          <option value="">
+            すべて
+          </option>
+
+          <option value="配管加工機">配管加工機</option>
+          <option value="切断工具">切断工具</option>
+          <option value="研磨・仕上げ工具">研磨・仕上げ工具</option>
+          <option value="穴あけ・斫り工具">穴あけ・斫り工具</option>
+          <option value="締付・圧着工具">締付・圧着工具</option>
+          <option value="溶接機器">溶接機器</option>
+          <option value="電源・配電機器">電源・配電機器</option>
+          <option value="ポンプ・空圧機器">ポンプ・空圧機器</option>
+          <option value="集塵・吸引">集塵・吸引</option>
+          <option value="測定・探査">測定・探査</option>
+          <option value="電動・汎用工具">電動・汎用工具</option>
+          <option value="その他">その他</option>
+
+        </select>
+      </label>
+
+
+      <!-- ★検索用工具名 -->
+      <label class="admin-form-label">
+        工具名
+
+        <select
+          id="toolSearchName"
+          class="admin-form-control"
+        >
+          <option value="">
+            すべて
+          </option>
+        </select>
+      </label>
+
+
+      <label class="admin-form-label">
+        所有区分
+
+        <select
+          id="toolSearchOwnership"
+          class="admin-form-control"
+        >
+          <option value="">
+            すべて
+          </option>
+
+          <option value="shared">
+            共有（会社）
+          </option>
+
+          <option value="personal">
+            個人（会社社員）
+          </option>
+
+          <option value="contractor">
+            協力業者
+          </option>
+        </select>
+      </label>
+
+
+      <label class="admin-form-label">
+        フリーワード
 
         <input
           id="toolMasterSearch"
           type="search"
           class="admin-form-control"
-          placeholder="工具名・管理番号で検索"
+          placeholder="管理番号・社員名・協力業者名・メーカーなど"
         >
       </label>
+
+    </section>
+
+
+    <!-- 検索結果 -->
+    <section class="admin-section-card">
+
+      <h2 id="toolSearchResultTitle">
+        検索結果
+      </h2>
 
       <div
         id="toolMasterList"
@@ -377,13 +467,18 @@
       );
 
     if (!savedUser) {
+
       window.location.href =
         "login.html";
 
     } else {
+
       try {
+
         const loginUser =
-          JSON.parse(savedUser);
+          JSON.parse(
+            savedUser
+          );
 
         const canManageTools =
           loginUser.adminScope ===
@@ -395,6 +490,7 @@
           );
 
         if (!canManageTools) {
+
           alert(
             "工具マスタを開く権限がありません"
           );
@@ -404,7 +500,10 @@
         }
 
       } catch (error) {
-        console.error(error);
+
+        console.error(
+          error
+        );
 
         window.location.href =
           "login.html";
@@ -412,7 +511,8 @@
     }
   </script>
 
-  <script src="./tool-master.js?v=4"></script>
+
+  <script src="./tool-master.js?v=14"></script>
 
 </body>
 

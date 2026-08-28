@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ja">
+
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    個人管理工具｜綜合エンジニアリング㈱
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css?v=20"
+  >
+</head>
+
+
+<body>
+
+  <main class="admin-home-page">
+
+    <!-- ==============================
+         ヘッダー
+    ============================== -->
+    <header class="admin-home-header">
+
+      <div class="admin-home-header-text">
+
+        <h1>
+          綜合エンジニアリング㈱
+
+          <span class="admin-home-portal-title">
+            Staff Portal
+          </span>
+        </h1>
+
+        <p>
+          個人管理工具
+        </p>
+
+      </div>
+
+      <a
+        href="tool-management.html"
+        class="admin-home-back-button"
+      >
+        工具管理へ戻る
+      </a>
+
+    </header>
+
+
+    <!-- ==============================
+         絞り込み
+    ============================== -->
+    <section class="admin-section-card">
+
+      <h2>
+        個人工具検索
+      </h2>
+
+      <label class="admin-form-label">
+        社員名
+
+        <select
+          id="personalToolEmployee"
+          class="admin-form-control"
+        >
+          <option value="">
+            すべて
+          </option>
+        </select>
+      </label>
+
+
+      <label class="admin-form-label">
+        フリーワード
+
+        <input
+          id="personalToolSearch"
+          type="search"
+          class="admin-form-control"
+          placeholder="工具名・管理番号・メーカーなど"
+        >
+      </label>
+
+    </section>
+
+
+    <!-- ==============================
+         一覧
+    ============================== -->
+    <section class="admin-section-card">
+
+      <h2 id="personalToolResultTitle">
+        個人工具一覧
+      </h2>
+
+      <div
+        id="personalToolList"
+        class="tool-list"
+      >
+        <p class="schedule-empty-message">
+          工具情報を読み込み中...
+        </p>
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script src="portal-auth.js"></script>
+
+  <script>
+    const savedUser =
+      localStorage.getItem(
+        "portalLoginUser"
+      );
+
+    if (!savedUser) {
+
+      window.location.href =
+        "login.html";
+
+    } else {
+
+      try {
+
+        JSON.parse(
+          savedUser
+        );
+
+      } catch (error) {
+
+        console.error(
+          error
+        );
+
+        window.location.href =
+          "login.html";
+      }
+    }
+  </script>
+
+
+  <script src="./personal-tools.js?v=1"></script>
+
+</body>
+
+</html>
