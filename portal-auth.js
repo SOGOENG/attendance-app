@@ -4,6 +4,67 @@
 
 
 /* =========================================
+   共通表示設定
+========================================= */
+
+const PORTAL_THEME_KEY =
+  "staffPortalTheme";
+
+const PORTAL_FONT_SIZE_KEY =
+  "staffPortalFontSize";
+
+
+function applyPortalDisplayPreferences() {
+  const savedTheme =
+    localStorage.getItem(
+      PORTAL_THEME_KEY
+    );
+
+  const savedFontSize =
+    localStorage.getItem(
+      PORTAL_FONT_SIZE_KEY
+    );
+
+  document.documentElement.dataset.portalTheme =
+    savedTheme === "dark"
+      ? "dark"
+      : "light";
+
+  document.documentElement.dataset.portalFontSize =
+    ["small", "large"].includes(
+      savedFontSize
+    )
+      ? savedFontSize
+      : "standard";
+}
+
+
+function savePortalDisplayPreferences(
+  theme,
+  fontSize
+) {
+  localStorage.setItem(
+    PORTAL_THEME_KEY,
+    theme === "dark"
+      ? "dark"
+      : "light"
+  );
+
+  localStorage.setItem(
+    PORTAL_FONT_SIZE_KEY,
+    ["small", "large"].includes(fontSize)
+      ? fontSize
+      : "standard"
+  );
+
+  applyPortalDisplayPreferences();
+}
+
+
+applyPortalDisplayPreferences();
+
+
+/* =========================================
    Supabase接続設定
 ========================================= */
 

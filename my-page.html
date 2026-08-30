@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    マイページ｜綜合エンジニアリング㈱
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css?v=17"
+  >
+
+  <style>
+    .submission-status-card {
+      margin-top: 10px;
+      margin-bottom: 16px;
+      padding: 18px;
+      background: #ffffff;
+      border: 1px solid #dbe7f7;
+      border-radius: 16px;
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+    }
+
+    .submission-status-card h2 {
+      margin: 0 0 12px;
+      color: #0f172a;
+      font-size: 18px;
+    }
+
+    .submission-status-list {
+      margin: 0;
+    }
+
+    .submission-status-row {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .submission-status-row:last-child {
+      border-bottom: none;
+    }
+
+    .submission-status-row dt {
+      color: #334155;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .submission-deadline-notice {
+      margin: 4px 0 0;
+      color: #b45309;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    .submission-deadline-notice.is-today {
+      color: #dc2626;
+      font-weight: 800;
+    }
+
+    .submission-deadline-notice.hidden {
+      display: none;
+    }
+
+    .submission-status-row dd {
+      margin: 0;
+      padding: 5px 10px;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+      background: #f1f5f9;
+      border-radius: 999px;
+    }
+
+    .submission-status-row dd.is-submitted {
+      color: #166534;
+      background: #dcfce7;
+    }
+
+    .submission-status-row dd.is-not-submitted {
+      color: #b45309;
+      background: #fef3c7;
+    }
+
+    .my-page-menu .home-menu-card {
+      color: #2563eb;
+      background: #ffffff;
+      border: 1px solid #bfdbfe;
+    }
+
+    .my-page-menu .home-menu-card:hover,
+    .my-page-menu .home-menu-card:active {
+      background: #eff6ff;
+      opacity: 1;
+    }
+
+    .my-page-menu .home-menu-text h2,
+    .my-page-menu .home-menu-arrow {
+      color: #2563eb;
+    }
+
+    .my-page-menu .home-menu-text p {
+      color: #64748b;
+    }
+  </style>
+</head>
+
+
+<body>
+
+  <main class="home-page">
+
+    <!-- ==============================
+         ヘッダー
+    ============================== -->
+    <header class="home-header">
+
+      <div>
+
+        <h1>
+          マイページ
+        </h1>
+
+        <p>
+          個人向けメニュー
+        </p>
+
+      </div>
+
+      <a
+        href="home.html"
+        class="logout-button"
+        style="display: block; box-sizing: border-box; text-align: center; text-decoration: none;"
+      >
+        〈 ホーム
+      </a>
+
+    </header>
+
+
+    <!-- ==============================
+         マイページメニュー
+    ============================== -->
+    <section class="home-menu my-page-menu">
+
+      <!-- ==============================
+           出勤簿
+      ============================== -->
+      <a
+        href="index.html"
+        class="home-menu-card"
+      >
+
+        <div class="home-menu-text">
+
+          <h2>
+            出勤簿
+          </h2>
+
+          <p>
+            勤務時間・現場を入力
+          </p>
+
+        </div>
+
+        <span class="home-menu-arrow">
+          〉
+        </span>
+
+      </a>
+
+
+      <!-- ==============================
+           向上提案
+      ============================== -->
+      <a
+        href="improvement.html"
+        class="home-menu-card"
+      >
+
+        <div class="home-menu-text">
+
+          <h2>
+            向上提案
+          </h2>
+
+          <p>
+            業務改善の提案を入力
+          </p>
+
+        </div>
+
+        <span class="home-menu-arrow">
+          〉
+        </span>
+
+      </a>
+
+
+      <!-- ==============================
+           ヒヤリハット
+      ============================== -->
+      <a
+        href="near-miss.html"
+        class="home-menu-card"
+      >
+
+        <div class="home-menu-text">
+
+          <h2>
+            ヒヤリハット
+          </h2>
+
+          <p>
+            気づいた危険を共有
+          </p>
+
+        </div>
+
+        <span class="home-menu-arrow">
+          〉
+        </span>
+
+      </a>
+
+
+      <!-- ==============================
+           個人工具
+      ============================== -->
+      <a
+        href="personal-tools.html?mine=1"
+        class="home-menu-card"
+      >
+
+        <div class="home-menu-text">
+
+          <h2>
+            個人工具
+          </h2>
+
+          <p>
+            自分の工具・点検状況を確認
+          </p>
+
+        </div>
+
+        <span class="home-menu-arrow">
+          〉
+        </span>
+
+      </a>
+
+    </section>
+
+
+    <!-- ==============================
+         提出状況
+    ============================== -->
+    <section class="submission-status-card">
+
+      <h2>
+        提出状況
+      </h2>
+
+      <dl class="submission-status-list">
+
+        <div class="submission-status-row">
+          <dt>
+            出勤簿
+
+            <p
+              id="attendanceDeadlineNotice"
+              class="submission-deadline-notice hidden"
+            ></p>
+          </dt>
+
+          <dd id="attendanceSubmissionStatus">
+            未判定
+          </dd>
+        </div>
+
+        <div class="submission-status-row">
+          <dt>
+            向上提案
+
+            <p
+              id="improvementDeadlineNotice"
+              class="submission-deadline-notice hidden"
+            ></p>
+          </dt>
+
+          <dd id="improvementSubmissionStatus">
+            未判定
+          </dd>
+        </div>
+
+        <div class="submission-status-row">
+          <dt>
+            ヒヤリハット
+
+            <p
+              id="nearMissDeadlineNotice"
+              class="submission-deadline-notice hidden"
+            ></p>
+          </dt>
+
+          <dd id="nearMissSubmissionStatus">
+            未判定
+          </dd>
+        </div>
+
+      </dl>
+
+    </section>
+
+  </main>
+
+
+  <script src="portal-auth.js"></script>
+
+  <script>
+    const savedUser =
+      localStorage.getItem(
+        "portalLoginUser"
+      );
+
+    if (!savedUser) {
+      window.location.href =
+        "login.html";
+
+    } else {
+      try {
+        JSON.parse(
+          savedUser
+        );
+
+      } catch (error) {
+        console.error(
+          error
+        );
+
+        clearPortalLoginInformation();
+
+        window.location.href =
+          "login.html";
+      }
+    }
+  </script>
+
+  <script src="my-page.js?v=5"></script>
+
+</body>
+
+</html>

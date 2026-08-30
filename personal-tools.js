@@ -2,6 +2,12 @@ const SUPABASE_URL =
   "https://fgmvmbjnoyagnpygcbky.supabase.co";
 
 
+const isMineMode =
+  new URLSearchParams(
+    window.location.search
+  ).get("mine") === "1";
+
+
 const personalToolEmployee =
   document.getElementById(
     "personalToolEmployee"
@@ -319,6 +325,105 @@ async function loadSites() {
       );
     }
   );
+}
+
+
+/* =========================================
+   ログイン中社員を選択
+========================================= */
+
+function selectLoginEmployee() {
+
+  if (!isMineMode) {
+    return;
+  }
+
+
+  const savedUser =
+    localStorage.getItem(
+      "portalLoginUser"
+    );
+
+
+  if (!savedUser) {
+    throw new Error(
+      "ログイン社員情報がありません"
+    );
+  }
+
+
+  let loginUser;
+
+
+  try {
+    loginUser =
+      JSON.parse(savedUser);
+
+  } catch (error) {
+    console.error(error);
+
+    throw new Error(
+      "ログイン社員情報を読み込めませんでした"
+    );
+  }
+
+
+  const loginEmployeeId =
+    String(loginUser.id ?? "");
+
+
+  if (!loginEmployeeId) {
+    throw new Error(
+      "ログイン社員を特定できませんでした"
+    );
+  }
+
+
+  const hasLoginEmployeeOption =
+    Array.from(
+      personalToolEmployee.options
+    ).some(
+      option =>
+        option.value ===
+        loginEmployeeId
+    );
+
+
+  if (!hasLoginEmployeeOption) {
+
+    const loginEmployee =
+      employeeRecords.find(
+        employee =>
+          String(employee.id) ===
+          loginEmployeeId
+      );
+
+
+    const option =
+      document.createElement(
+        "option"
+      );
+
+
+    option.value =
+      loginEmployeeId;
+
+
+    option.textContent =
+      loginEmployee?.name ||
+      loginEmployee?.employee_name ||
+      loginEmployee?.full_name ||
+      loginUser.name ||
+      "ログイン中の社員";
+
+
+    personalToolEmployee
+      .appendChild(option);
+  }
+
+
+  personalToolEmployee.value =
+    loginEmployeeId;
 }
 
 
@@ -680,6 +785,9 @@ async function initializePersonalTools() {
 
 
     populateEmployeeOptions();
+
+
+    selectLoginEmployee();
 
 
     displayPersonalTools();

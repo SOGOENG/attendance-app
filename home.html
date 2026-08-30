@@ -33,6 +33,72 @@
     content="#0f172a"
   >
 
+  <style>
+    .home-primary-link {
+      width: 100%;
+      min-height: 84px;
+      margin-top: 10px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-sizing: border-box;
+      color: #2563eb;
+      text-decoration: none;
+      text-align: left;
+      background: #ffffff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+    }
+
+    .home-primary-link:hover,
+    .home-primary-link:active {
+      background: #eff6ff;
+    }
+
+    .home-primary-link-text {
+      flex: 1;
+    }
+
+    .home-primary-link-text h2 {
+      margin: 0 0 4px;
+      color: #2563eb;
+      font-size: 18px;
+    }
+
+    .home-submission-warning {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 1px;
+      margin: 0 0 6px;
+      padding: 5px 8px;
+      color: #b91c1c;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.35;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 7px;
+    }
+
+    .home-submission-warning.hidden {
+      display: none;
+    }
+
+    .home-primary-link-text p {
+      margin: 0;
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .home-primary-link-arrow {
+      flex-shrink: 0;
+      color: #2563eb;
+      font-size: 24px;
+      font-weight: 700;
+    }
+  </style>
+
 </head>
 
 
@@ -77,156 +143,6 @@
          ホームメニュー
     ============================== -->
     <section class="home-menu">
-
-      <div class="home-menu-grid">
-
-
-        <!-- ==============================
-             出勤簿
-        ============================== -->
-        <a
-          href="index.html"
-          class="home-square-card"
-        >
-
-          <div class="home-square-icon">
-
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M9 5h6m-7 4h8m-8 4h8m-8 4h5M9 3h6l1 2h3v16H5V5h3l1-2Z"
-              />
-            </svg>
-
-          </div>
-
-          <div class="home-square-text">
-
-            <h2>
-              出勤簿
-            </h2>
-
-            <p>
-              勤務時間・現場を入力
-            </p>
-
-          </div>
-
-        </a>
-
-
-        <!-- ==============================
-             向上提案
-        ============================== -->
-        <a
-          href="improvement.html"
-          class="home-square-card"
-        >
-
-          <div class="home-square-icon">
-
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M9 18h6m-5 3h4M8.5 14.5C7 13.4 6 11.7 6 9.5a6 6 0 1 1 12 0c0 2.2-1 3.9-2.5 5-1 .8-1.5 1.6-1.5 2.5h-4c0-.9-.5-1.7-1.5-2.5Z"
-              />
-            </svg>
-
-          </div>
-
-          <div class="home-square-text">
-
-            <h2>
-              向上提案
-            </h2>
-
-            <p id="improvementThemeSummary">
-              今月のテーマを読み込み中...
-            </p>
-
-          </div>
-
-        </a>
-
-
-        <!-- ==============================
-             ヒヤリハット
-        ============================== -->
-        <a
-          href="near-miss.html"
-          class="home-square-card"
-        >
-
-          <div class="home-square-icon">
-
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M12 3 2.8 20h18.4L12 3Zm0 6v5m0 3v.1"
-              />
-            </svg>
-
-          </div>
-
-          <div class="home-square-text">
-
-            <h2>
-              ヒヤリハット
-            </h2>
-
-            <p>
-              気づいた危険を共有
-            </p>
-
-          </div>
-
-        </a>
-
-
-        <!-- ==============================
-             現場搬入予定表
-        ============================== -->
-        <a
-          href="#"
-          id="deliveryCalendarLink"
-          class="home-square-card"
-        >
-
-          <div class="home-square-icon">
-
-            <svg
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M3 6h11v10H3V6Zm11 4h4l3 3v3h-7v-6ZM7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm10 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"
-              />
-            </svg>
-
-          </div>
-
-          <div class="home-square-text">
-
-            <h2>
-              現場搬入予定表
-            </h2>
-
-            <p>
-              Googleカレンダー
-            </p>
-
-          </div>
-
-        </a>
-
-      </div>
-
 
       <!-- ==============================
            今日・明日の予定
@@ -281,6 +197,101 @@
           </span>
 
         </div>
+
+      </a>
+
+
+      <!-- ==============================
+           マイページ
+      ============================== -->
+      <a
+        href="my-page.html"
+        class="home-primary-link"
+      >
+
+        <div class="home-primary-link-text">
+
+          <h2>
+            マイページ
+          </h2>
+
+          <span
+            id="homeSubmissionWarning"
+            class="home-submission-warning hidden"
+          >
+            <span>
+              未提出があります
+            </span>
+
+            <span>
+              マイページを確認してください
+            </span>
+          </span>
+
+          <p>
+            出勤簿・提案・ヒヤリ・個人工具
+          </p>
+
+        </div>
+
+        <span class="home-primary-link-arrow">
+          〉
+        </span>
+
+      </a>
+
+
+      <!-- ==============================
+           現場搬入予定表
+      ============================== -->
+      <a
+        href="#"
+        id="deliveryCalendarLink"
+        class="home-primary-link"
+      >
+
+        <div class="home-primary-link-text">
+
+          <h2>
+            現場搬入予定表
+          </h2>
+
+          <p>
+            Googleカレンダー
+          </p>
+
+        </div>
+
+        <span class="home-primary-link-arrow">
+          〉
+        </span>
+
+      </a>
+
+
+      <!-- ==============================
+           設定
+      ============================== -->
+      <a
+        href="settings.html"
+        class="home-primary-link"
+      >
+
+        <div class="home-primary-link-text">
+
+          <h2>
+            設定
+          </h2>
+
+          <p>
+            プロフィール・通知・表示設定
+          </p>
+
+        </div>
+
+        <span class="home-primary-link-arrow">
+          〉
+        </span>
 
       </a>
 
@@ -354,7 +365,8 @@
 
 
   <script src="portal-auth.js"></script>
-  <script src="home.js?v=4"></script>
+  <script src="my-page.js?v=5"></script>
+  <script src="home.js?v=6"></script>
 
 </body>
 

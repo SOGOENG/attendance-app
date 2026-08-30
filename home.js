@@ -146,6 +146,9 @@ function showHomeScreen() {
           "今月のテーマを読み込めませんでした";
       }
     });
+
+
+  loadHomeSubmissionWarning();
 }
 
 
@@ -524,6 +527,59 @@ async function loadImprovementTheme() {
 
   improvementThemeSummary.textContent =
     `${targetMonth}月のテーマ：${summaryText}`;
+}
+
+
+/* =========================================
+   マイページ未提出警告
+========================================= */
+
+async function loadHomeSubmissionWarning() {
+  const warningElement =
+    document.getElementById(
+      "homeSubmissionWarning"
+    );
+
+  if (!warningElement) {
+    return;
+  }
+
+  warningElement.classList.add(
+    "hidden"
+  );
+
+  try {
+    const [
+      attendanceSubmission,
+      improvementSubmission,
+      nearMissSubmission
+    ] =
+      await Promise.all([
+        loadAttendanceSubmissionStatus(),
+        loadImprovementSubmissionStatus(),
+        loadNearMissSubmissionStatus()
+      ]);
+
+    const hasOverdueSubmission =
+      isMyPageSubmissionOverdue(
+        attendanceSubmission
+      ) ||
+      isMyPageSubmissionOverdue(
+        improvementSubmission
+      ) ||
+      isMyPageSubmissionOverdue(
+        nearMissSubmission
+      );
+
+    if (hasOverdueSubmission) {
+      warningElement.classList.remove(
+        "hidden"
+      );
+    }
+
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 

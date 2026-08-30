@@ -1860,6 +1860,77 @@ body {
 }
 
 /* =========================================
+   Staff Portal 共通表示設定
+========================================= */
+
+html[data-portal-font-size="small"] body,
+html[data-portal-font-size="small"] button,
+html[data-portal-font-size="small"] input,
+html[data-portal-font-size="small"] select,
+html[data-portal-font-size="small"] textarea {
+  font-size: 14px;
+}
+
+html[data-portal-font-size="standard"] body {
+  font-size: 16px;
+}
+
+html[data-portal-font-size="large"] body,
+html[data-portal-font-size="large"] button,
+html[data-portal-font-size="large"] input,
+html[data-portal-font-size="large"] select,
+html[data-portal-font-size="large"] textarea {
+  font-size: 18px;
+}
+
+html[data-portal-theme="dark"] body {
+  color: #e2e8f0;
+  background: #0f172a;
+}
+
+html[data-portal-theme="dark"] .card,
+html[data-portal-theme="dark"] .admin-section-card,
+html[data-portal-theme="dark"] .schedule-card,
+html[data-portal-theme="dark"] .home-square-card,
+html[data-portal-theme="dark"] .improvement-user-card,
+html[data-portal-theme="dark"] .improvement-setting-card,
+html[data-portal-theme="dark"] .improvement-form-card,
+html[data-portal-theme="dark"] .near-miss-user-card,
+html[data-portal-theme="dark"] .near-miss-setting-card,
+html[data-portal-theme="dark"] .near-miss-form-card,
+html[data-portal-theme="dark"] .near-miss-history-card,
+html[data-portal-theme="dark"] .submission-status-card,
+html[data-portal-theme="dark"] .home-primary-link,
+html[data-portal-theme="dark"] .my-page-menu .home-menu-card {
+  color: #e2e8f0 !important;
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+html[data-portal-theme="dark"] h2,
+html[data-portal-theme="dark"] h3,
+html[data-portal-theme="dark"] .home-primary-link-text h2,
+html[data-portal-theme="dark"] .my-page-menu .home-menu-text h2,
+html[data-portal-theme="dark"] .schedule-card h2 {
+  color: #f8fafc !important;
+}
+
+html[data-portal-theme="dark"] p,
+html[data-portal-theme="dark"] label,
+html[data-portal-theme="dark"] .home-primary-link-text p,
+html[data-portal-theme="dark"] .my-page-menu .home-menu-text p {
+  color: #cbd5e1;
+}
+
+html[data-portal-theme="dark"] input,
+html[data-portal-theme="dark"] select,
+html[data-portal-theme="dark"] textarea {
+  color: #f8fafc;
+  background: #0f172a;
+  border-color: #475569;
+}
+
+/* =========================================
    工具管理カード
 ========================================= */
 

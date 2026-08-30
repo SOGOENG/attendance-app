@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    設定｜綜合エンジニアリング㈱
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css?v=23"
+  >
+
+  <style>
+    .settings-page {
+      width: min(100% - 24px, 760px);
+      margin: 0 auto;
+      padding: 12px 0 60px;
+    }
+
+    .settings-header {
+      margin-bottom: 14px;
+      padding: 18px;
+      color: #ffffff;
+      background: #0f172a;
+      border-radius: 16px;
+    }
+
+    .settings-header h1 {
+      margin: 0 0 14px;
+      color: #ffffff;
+      font-size: 22px;
+    }
+
+    .settings-back-button {
+      width: 100%;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 700;
+      text-decoration: none;
+      background: #2563eb;
+      border-radius: 10px;
+    }
+
+    .settings-card {
+      margin-bottom: 12px;
+      padding: 18px;
+      background: #ffffff;
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+      box-shadow: 0 5px 15px rgba(15, 23, 42, 0.06);
+    }
+
+    .settings-card h2 {
+      margin: 0 0 14px;
+      color: #2563eb;
+      font-size: 18px;
+    }
+
+    .settings-profile-list {
+      margin: 0;
+    }
+
+    .settings-profile-row {
+      padding: 11px 0;
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .settings-profile-row:last-child {
+      border-bottom: none;
+    }
+
+    .settings-profile-row dt {
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .settings-profile-row dd {
+      margin: 0;
+      color: #0f172a;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .settings-profile-input {
+      width: 100%;
+      min-height: 44px;
+      margin: 0;
+      padding: 9px 11px;
+      color: #0f172a;
+      font: inherit;
+      font-weight: 500;
+      background: #ffffff;
+      border: 1px solid #93c5fd;
+      border-radius: 9px;
+      box-sizing: border-box;
+    }
+
+    .settings-profile-input:focus {
+      border-color: #2563eb;
+      outline: 3px solid rgba(37, 99, 235, 0.14);
+    }
+
+    .settings-profile-save-button {
+      width: 100%;
+      min-height: 46px;
+      margin: 14px 0 0;
+      color: #ffffff;
+      font-weight: 700;
+      background: #2563eb;
+      border: none;
+      border-radius: 10px;
+    }
+
+    .settings-profile-save-button:disabled {
+      cursor: wait;
+      opacity: 0.65;
+    }
+
+    .settings-profile-message {
+      min-height: 1.5em;
+      margin: 10px 0 0;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .settings-profile-message.is-success {
+      color: #15803d;
+    }
+
+    .settings-profile-message.is-error {
+      color: #b91c1c;
+    }
+
+    .settings-help-text {
+      margin: 10px 0 0;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .settings-control-row {
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .settings-control-row + .settings-control-row {
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .settings-control-title {
+      color: #334155;
+      font-weight: 700;
+    }
+
+    .settings-switch {
+      width: 48px;
+      height: 28px;
+      margin: 0;
+      accent-color: #2563eb;
+    }
+
+    .settings-select {
+      width: auto;
+      min-width: 110px;
+      margin: 0;
+    }
+
+    .settings-placeholder-button {
+      width: 100%;
+      min-height: 46px;
+      margin: 0;
+      color: #2563eb;
+      background: #ffffff;
+      border: 1px solid #bfdbfe;
+      border-radius: 10px;
+    }
+
+    .settings-placeholder-button:disabled {
+      color: #64748b;
+      background: #f8fafc;
+      opacity: 1;
+    }
+
+    html[data-portal-theme="dark"] .settings-card {
+      color: #e2e8f0;
+      background: #1e293b;
+      border-color: #334155;
+    }
+
+    html[data-portal-theme="dark"] .settings-profile-row dd,
+    html[data-portal-theme="dark"] .settings-control-title {
+      color: #f8fafc;
+    }
+
+    html[data-portal-theme="dark"] .settings-profile-input {
+      color: #f8fafc;
+      background: #0f172a;
+      border-color: #3b82f6;
+    }
+
+    html[data-portal-theme="dark"] .settings-profile-message.is-success {
+      color: #86efac;
+    }
+
+    html[data-portal-theme="dark"] .settings-profile-message.is-error {
+      color: #fca5a5;
+    }
+
+    @media (max-width: 520px) {
+      .settings-profile-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+      }
+    }
+  </style>
+</head>
+
+
+<body>
+
+  <main class="settings-page">
+
+    <header class="settings-header">
+      <h1>
+        設定
+      </h1>
+
+      <a
+        href="home.html"
+        class="settings-back-button"
+      >
+        ホームへ戻る
+      </a>
+    </header>
+
+
+    <section class="settings-card">
+      <h2>
+        1. プロフィール
+      </h2>
+
+      <form id="settingsProfileForm">
+      <dl class="settings-profile-list">
+        <div class="settings-profile-row">
+          <dt>氏名</dt>
+          <dd id="settingsProfileName">読み込み中...</dd>
+        </div>
+
+        <div class="settings-profile-row">
+          <dt>所属部署</dt>
+          <dd id="settingsProfileDepartment">読み込み中...</dd>
+        </div>
+
+        <div
+          id="settingsProfilePositionRow"
+          class="settings-profile-row hidden"
+        >
+          <dt>役職</dt>
+          <dd id="settingsProfilePosition"></dd>
+        </div>
+
+        <div class="settings-profile-row">
+          <dt>メールアドレス</dt>
+          <dd>
+            <input
+              id="settingsProfileEmail"
+              type="email"
+              class="settings-profile-input"
+              autocomplete="email"
+              maxlength="254"
+              disabled
+            >
+          </dd>
+        </div>
+
+        <div class="settings-profile-row">
+          <dt>電話番号</dt>
+          <dd>
+            <input
+              id="settingsProfilePhone"
+              type="tel"
+              class="settings-profile-input"
+              autocomplete="tel"
+              maxlength="100"
+              disabled
+            >
+          </dd>
+        </div>
+      </dl>
+
+      <button
+        id="settingsProfileSaveButton"
+        type="submit"
+        class="settings-profile-save-button"
+        disabled
+      >
+        保存
+      </button>
+
+      <p
+        id="settingsProfileMessage"
+        class="settings-profile-message"
+        role="status"
+        aria-live="polite"
+      ></p>
+      </form>
+
+      <p class="settings-help-text">
+        氏名・所属部署・役職は管理者のみ変更できます。ここで設定するメールアドレスはプロフィール用で、ログイン用メールアドレスは変更されません。
+      </p>
+    </section>
+
+
+    <section class="settings-card">
+      <h2>
+        2. パスワード変更
+      </h2>
+
+      <button
+        type="button"
+        class="settings-placeholder-button"
+        disabled
+      >
+        パスワードを変更（今後対応）
+      </button>
+    </section>
+
+
+    <section class="settings-card">
+      <h2>
+        3. 通知設定
+      </h2>
+
+      <div class="settings-control-row">
+        <span class="settings-control-title">
+          通知を受け取る
+        </span>
+
+        <input
+          type="checkbox"
+          class="settings-switch"
+          aria-label="通知を受け取る"
+          disabled
+        >
+      </div>
+
+      <p class="settings-help-text">
+        提出期限や予定の通知との連携は今後対応予定です。
+      </p>
+    </section>
+
+
+    <section class="settings-card">
+      <h2>
+        4. 表示設定
+      </h2>
+
+      <label class="settings-control-row">
+        <span class="settings-control-title">
+          ダークモード
+        </span>
+
+        <input
+          id="settingsDarkMode"
+          type="checkbox"
+          class="settings-switch"
+        >
+      </label>
+
+      <label class="settings-control-row">
+        <span class="settings-control-title">
+          文字サイズ
+        </span>
+
+        <select
+          id="settingsFontSize"
+          class="settings-select"
+        >
+          <option value="small">小</option>
+          <option value="standard">標準</option>
+          <option value="large">大</option>
+        </select>
+      </label>
+    </section>
+
+
+    <section class="settings-card">
+      <h2>
+        5. このアプリの使い方
+      </h2>
+
+      <button
+        type="button"
+        class="settings-placeholder-button"
+        disabled
+      >
+        使い方を見る（今後対応）
+      </button>
+    </section>
+
+
+    <section class="settings-card">
+      <h2>
+        6. アプリを最新状態に更新
+      </h2>
+
+      <button
+        type="button"
+        class="settings-placeholder-button"
+        disabled
+      >
+        最新状態に更新（今後対応）
+      </button>
+
+      <p class="settings-help-text">
+        安全な更新処理は今後対応予定です。
+      </p>
+    </section>
+
+  </main>
+
+
+  <script src="portal-auth.js"></script>
+  <script src="settings.js?v=2"></script>
+
+</body>
+
+</html>
