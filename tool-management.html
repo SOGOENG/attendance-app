@@ -15,7 +15,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=18"
+    href="style.css?v=19"
   >
 </head>
 
@@ -93,11 +93,10 @@
 
 
         <!-- 個人管理工具 -->
-        <!-- 個人管理工具 -->
-<a
-  href="personal-tools.html"
-  class="admin-menu-card"
->
+        <a
+          href="personal-tools.html"
+          class="admin-menu-card"
+        >
 
           <div class="admin-menu-card-text">
 
@@ -107,6 +106,31 @@
 
             <p>
               使用者・点検状況を確認
+            </p>
+
+          </div>
+
+          <span class="admin-menu-card-arrow">
+            〉
+          </span>
+
+        </a>
+
+
+        <!-- QR読取 -->
+        <a
+          href="tool-qr-reader.html"
+          class="admin-menu-card"
+        >
+
+          <div class="admin-menu-card-text">
+
+            <h3>
+              QR読取
+            </h3>
+
+            <p>
+              工具QRを読み取って詳細を表示
             </p>
 
           </div>
@@ -169,17 +193,17 @@
         </a>
 
 
-        <!-- QRコード -->
+        <!-- QRコード発行 -->
         <a
           href="tool-qr.html"
-id="toolQrMenu"
+          id="toolQrMenu"
           class="admin-menu-card hidden"
         >
 
           <div class="admin-menu-card-text">
 
             <h3>
-              QRコード
+              QRコード発行
             </h3>
 
             <p>
@@ -204,32 +228,47 @@ id="toolQrMenu"
   <script src="portal-auth.js"></script>
 
   <script>
+
     const savedUser =
       localStorage.getItem(
         "portalLoginUser"
       );
 
+
     if (!savedUser) {
+
       window.location.href =
         "login.html";
 
+
     } else {
+
       try {
+
         const loginUser =
-          JSON.parse(savedUser);
+          JSON.parse(
+            savedUser
+          );
+
 
         const isToolAdmin =
-          loginUser.adminScope === "tool_admin";
+          loginUser.adminScope ===
+          "tool_admin";
+
 
         const isAdmin =
           loginUser.adminScope &&
-          loginUser.adminScope !== "none" &&
-          loginUser.adminScope !== "tool_admin";
+          loginUser.adminScope !==
+          "none" &&
+          loginUser.adminScope !==
+          "tool_admin";
+
 
         if (
           isToolAdmin ||
           isAdmin
         ) {
+
           document
             .getElementById(
               "toolMasterMenu"
@@ -237,6 +276,7 @@ id="toolQrMenu"
             .classList.remove(
               "hidden"
             );
+
 
           document
             .getElementById(
@@ -247,13 +287,19 @@ id="toolQrMenu"
             );
         }
 
+
       } catch (error) {
-        console.error(error);
+
+        console.error(
+          error
+        );
+
 
         window.location.href =
           "login.html";
       }
     }
+
   </script>
 
 </body>
