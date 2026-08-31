@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>
+    このアプリの使い方｜綜合エンジニアリング㈱
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="style.css?v=23"
+  >
+
+  <style>
+    .help-page {
+      width: min(100% - 24px, 760px);
+      margin: 0 auto;
+      padding: 12px 0 60px;
+    }
+
+    .help-header {
+      margin-bottom: 14px;
+      padding: 18px;
+      color: #ffffff;
+      background: #0f172a;
+      border-radius: 16px;
+    }
+
+    .help-header h1 {
+      margin: 0 0 14px;
+      color: #ffffff;
+      font-size: 22px;
+    }
+
+    .help-header-links {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .help-header-link {
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 700;
+      text-align: center;
+      text-decoration: none;
+      background: #2563eb;
+      border-radius: 10px;
+    }
+
+    .help-introduction {
+      margin: 0 0 12px;
+      padding: 14px 16px;
+      color: #475569;
+      line-height: 1.7;
+      background: #ffffff;
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+    }
+
+    .help-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .help-item {
+      overflow: hidden;
+      background: #ffffff;
+      border: 1px solid #bfdbfe;
+      border-radius: 14px;
+      box-shadow: 0 5px 15px rgba(15, 23, 42, 0.06);
+    }
+
+    .help-item summary {
+      min-height: 54px;
+      padding: 13px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #2563eb;
+      font-weight: 700;
+      cursor: pointer;
+      list-style: none;
+      box-sizing: border-box;
+    }
+
+    .help-item summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .help-item summary::after {
+      margin-left: auto;
+      content: "＋";
+      color: #64748b;
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .help-item[open] summary::after {
+      content: "−";
+    }
+
+    .help-item-number {
+      width: 28px;
+      height: 28px;
+      flex: 0 0 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 13px;
+      background: #2563eb;
+      border-radius: 999px;
+    }
+
+    .help-item p {
+      margin: 0;
+      padding: 0 16px 16px 54px;
+      color: #475569;
+      line-height: 1.75;
+    }
+
+    html[data-portal-theme="dark"] .help-introduction,
+    html[data-portal-theme="dark"] .help-item {
+      color: #e2e8f0;
+      background: #1e293b;
+      border-color: #334155;
+    }
+
+    html[data-portal-theme="dark"] .help-item summary {
+      color: #93c5fd;
+    }
+
+    html[data-portal-theme="dark"] .help-item summary::after {
+      color: #cbd5e1;
+    }
+
+    @media (max-width: 520px) {
+      .help-header-links {
+        grid-template-columns: 1fr;
+      }
+
+      .help-item p {
+        padding-left: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="help-page">
+
+    <header class="help-header">
+      <h1>
+        このアプリの使い方
+      </h1>
+
+      <nav
+        class="help-header-links"
+        aria-label="ヘルプページの移動"
+      >
+        <a
+          href="settings.html?v=2"
+          class="help-header-link"
+        >
+          設定へ戻る
+        </a>
+
+        <a
+          href="home.html"
+          class="help-header-link"
+        >
+          ホームへ戻る
+        </a>
+      </nav>
+    </header>
+
+    <p class="help-introduction">
+      確認したい項目を押すと、使い方が表示されます。
+    </p>
+
+    <section
+      class="help-list"
+      aria-label="Staff Portalの主な使い方"
+    >
+      <details class="help-item">
+        <summary>
+          <span class="help-item-number">1</span>
+          マイページ
+        </summary>
+        <p>
+          出勤簿・向上提案・ヒヤリハット・個人工具の確認や入力を行います。
+        </p>
+      </details>
+
+      <details class="help-item">
+        <summary>
+          <span class="help-item-number">2</span>
+          出勤簿
+        </summary>
+        <p>
+          勤務時間や現場を入力し、毎月の締切までに提出します。
+        </p>
+      </details>
+
+      <details class="help-item">
+        <summary>
+          <span class="help-item-number">3</span>
+          向上提案
+        </summary>
+        <p>
+          公開されている対象月のテーマに沿って提案を入力・提出します。
+        </p>
+      </details>
+
+      <details class="help-item">
+        <summary>
+          <span class="help-item-number">4</span>
+          ヒヤリハット
+        </summary>
+        <p>
+          作業中に気づいた危険やヒヤリとした内容を入力・提出します。
+        </p>
+      </details>
+
+      <details class="help-item">
+        <summary>
+          <span class="help-item-number">5</span>
+          今日・明日の予定
+        </summary>
+        <p>
+          全社または所属部署向けの今日・明日の予定を確認します。
+        </p>
+      </details>
+
+      <details class="help-item">
+        <summary>
+          <span class="help-item-number">6</span>
+          現場搬入予定表
+        </summary>
+        <p>
+          現場への搬入予定を確認します。
+        </p>
+      </details>
+
+      <details class="help-item">
+        <summary>
+          <span class="help-item-number">7</span>
+          工具管理
+        </summary>
+        <p>
+          共有工具・個人工具・QR読取・点検などを行います。権限によって表示される機能が異なります。
+        </p>
+      </details>
+
+      <details class="help-item">
+        <summary>
+          <span class="help-item-number">8</span>
+          設定
+        </summary>
+        <p>
+          プロフィール、パスワード、通知、ダークモード、文字サイズなどを設定します。
+        </p>
+      </details>
+
+      <details class="help-item">
+        <summary>
+          <span class="help-item-number">9</span>
+          通知
+        </summary>
+        <p>
+          設定画面で通知をONにすると、この端末でStaff Portalの通知を受け取れます。通知内容には、未提出のお知らせや今日・明日の予定などがあります。
+        </p>
+      </details>
+
+      <details class="help-item">
+        <summary>
+          <span class="help-item-number">10</span>
+          アプリを最新状態に更新
+        </summary>
+        <p>
+          表示が古い、更新内容が反映されない場合は、設定画面の「最新状態に更新」を実行してください。
+        </p>
+      </details>
+    </section>
+
+  </main>
+
+  <script src="portal-auth.js"></script>
+
+</body>
+
+</html>

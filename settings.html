@@ -146,6 +146,19 @@
       color: #b91c1c;
     }
 
+    .settings-password-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .settings-password-label {
+      display: grid;
+      gap: 6px;
+      color: #334155;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
     .settings-help-text {
       margin: 10px 0 0;
       color: #64748b;
@@ -199,6 +212,15 @@
       opacity: 1;
     }
 
+    .settings-help-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
     html[data-portal-theme="dark"] .settings-card {
       color: #e2e8f0;
       background: #1e293b;
@@ -206,7 +228,8 @@
     }
 
     html[data-portal-theme="dark"] .settings-profile-row dd,
-    html[data-portal-theme="dark"] .settings-control-title {
+    html[data-portal-theme="dark"] .settings-control-title,
+    html[data-portal-theme="dark"] .settings-password-label {
       color: #f8fafc;
     }
 
@@ -222,6 +245,12 @@
 
     html[data-portal-theme="dark"] .settings-profile-message.is-error {
       color: #fca5a5;
+    }
+
+    html[data-portal-theme="dark"] .settings-help-link {
+      color: #93c5fd;
+      background: #0f172a;
+      border-color: #475569;
     }
 
     @media (max-width: 520px) {
@@ -334,13 +363,51 @@
         2. パスワード変更
       </h2>
 
-      <button
-        type="button"
-        class="settings-placeholder-button"
-        disabled
+      <form
+        id="settingsPasswordForm"
+        class="settings-password-form"
       >
-        パスワードを変更（今後対応）
-      </button>
+        <label class="settings-password-label">
+          新しいパスワード
+          <input
+            id="settingsNewPassword"
+            type="password"
+            class="settings-profile-input"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="128"
+            required
+          >
+        </label>
+
+        <label class="settings-password-label">
+          新しいパスワード（確認）
+          <input
+            id="settingsNewPasswordConfirmation"
+            type="password"
+            class="settings-profile-input"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="128"
+            required
+          >
+        </label>
+
+        <button
+          id="settingsPasswordChangeButton"
+          type="submit"
+          class="settings-profile-save-button"
+        >
+          パスワードを変更
+        </button>
+
+        <p
+          id="settingsPasswordMessage"
+          class="settings-profile-message"
+          role="status"
+          aria-live="polite"
+        ></p>
+      </form>
     </section>
 
 
@@ -355,16 +422,23 @@
         </span>
 
         <input
+          id="settingsPushNotifications"
           type="checkbox"
           class="settings-switch"
           aria-label="通知を受け取る"
-          disabled
         >
       </div>
 
       <p class="settings-help-text">
         提出期限や予定の通知との連携は今後対応予定です。
       </p>
+
+      <p
+        id="settingsPushNotificationMessage"
+        class="settings-profile-message"
+        role="status"
+        aria-live="polite"
+      ></p>
     </section>
 
 
@@ -407,13 +481,12 @@
         5. このアプリの使い方
       </h2>
 
-      <button
-        type="button"
-        class="settings-placeholder-button"
-        disabled
+      <a
+        href="help.html"
+        class="settings-placeholder-button settings-help-link"
       >
-        使い方を見る（今後対応）
-      </button>
+        使い方を見る
+      </a>
     </section>
 
 
@@ -423,23 +496,28 @@
       </h2>
 
       <button
+        id="settingsAppUpdateButton"
         type="button"
         class="settings-placeholder-button"
-        disabled
       >
-        最新状態に更新（今後対応）
+        最新状態に更新
       </button>
 
-      <p class="settings-help-text">
-        安全な更新処理は今後対応予定です。
-      </p>
+      <p
+        id="settingsAppUpdateMessage"
+        class="settings-profile-message"
+        role="status"
+        aria-live="polite"
+      ></p>
     </section>
 
   </main>
 
 
   <script src="portal-auth.js"></script>
-  <script src="settings.js?v=2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="push-notifications.js?v=2"></script>
+  <script src="settings.js?v=10"></script>
 
 </body>
 

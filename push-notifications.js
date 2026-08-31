@@ -479,7 +479,42 @@ async function isPushEnabled() {
   const subscription =
     await getCurrentPushSubscription();
 
-  return Boolean(subscription);
+  if (!subscription) {
+    return false;
+  }
+
+  const employee =
+    getPushLoginEmployee();
+
+  if (!employee || !employee.id) {
+    return false;
+  }
+
+  const endpointFilter =
+    encodeURIComponent(
+      subscription.endpoint
+    );
+
+  const response =
+    await portalFetch(
+      `${PUSH_SUPABASE_URL}` +
+      `/rest/v1/push_subscriptions` +
+      `?employee_id=eq.${employee.id}` +
+      `&endpoint=eq.${endpointFilter}` +
+      `&active=eq.true` +
+      `&select=id&limit=1`
+    );
+
+  if (!response.ok) {
+    throw new Error(
+      "通知設定を確認できませんでした"
+    );
+  }
+
+  const rows = await response.json();
+
+  return Array.isArray(rows) &&
+    rows.length > 0;
 }
 
 
@@ -536,4 +571,4 @@ async function syncPushSubscription() {
   );
 
   return true;
-}  
+}
