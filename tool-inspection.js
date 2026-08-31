@@ -5,6 +5,9 @@
 const SUPABASE_URL =
   "https://fgmvmbjnoyagnpygcbky.supabase.co";
 
+const START_INSPECTION_FUNCTION_URL =
+  `${SUPABASE_URL}/functions/v1/start-tool-inspection-cycle`;
+
 
 /* =========================================
    HTML要素
@@ -33,6 +36,11 @@ const inspectionMessage =
 const inspectionCycleList =
   document.getElementById(
     "inspectionCycleList"
+  );
+
+const startInspectionSection =
+  document.getElementById(
+    "startInspectionSection"
   );
 
 
@@ -73,34 +81,16 @@ function getLoginUser() {
 }
 
 
-/* =========================================
-   cycle_code作成
-========================================= */
-
-function createCycleCode() {
-  const now =
-    new Date();
-
-  const year =
-    now.getFullYear();
-
-  const month =
-    String(
-      now.getMonth() + 1
-    ).padStart(
-      2,
-      "0"
-    );
-
-  const seconds =
-    String(
-      now.getSeconds()
-    ).padStart(
-      2,
-      "0"
-    );
-
-  return `${year}-${month}-${seconds}`;
+function canStartInspectionCycle(
+  loginUser
+) {
+  return Boolean(
+    loginUser &&
+    (
+      loginUser.adminScope === "all" ||
+      loginUser.adminScope === "tool_admin"
+    )
+  );
 }
 
 
@@ -156,15 +146,9 @@ async function startInspectionCycle() {
     "開始中...";
 
   try {
-    const loginUser =
-      getLoginUser();
-
-    const url =
-      `${SUPABASE_URL}/rest/v1/tool_inspection_cycles`;
-
     const response =
       await portalFetch(
-        url,
+        START_INSPECTION_FUNCTION_URL,
         {
           method: "POST",
 
@@ -172,57 +156,40 @@ async function startInspectionCycle() {
             "Content-Type":
               "application/json",
 
-            Prefer:
-              "return=representation"
           },
 
           body:
             JSON.stringify({
-              cycle_code:
-                createCycleCode(),
-
-              cycle_name:
+              cycleName:
                 cycleName,
 
-              start_sticker_number:
-                startSticker,
-
-              next_sticker_number:
-                startSticker,
-
-              status:
-                "active",
-
-              created_by_employee_id:
-                loginUser
-                  ? loginUser.id
-                  : null,
-
-              updated_at:
-                new Date()
-                  .toISOString()
+              startStickerNumber:
+                startSticker
             })
         }
       );
 
     if (!response.ok) {
-      const errorText =
-        await response.text();
+      const errorData =
+        await response
+          .json()
+          .catch(() => null);
 
       console.error(
-        errorText
+        errorData
       );
 
       throw new Error(
+        errorData?.error ||
         "半年点検を開始できませんでした"
       );
     }
 
-    const records =
+    const responseData =
       await response.json();
 
     const createdCycle =
-      records[0];
+      responseData.cycle;
 
     inspectionCycleName.value =
       "";
@@ -425,10 +392,23 @@ function displayInspectionCycles(
    イベント
 ========================================= */
 
-startInspectionButton.addEventListener(
-  "click",
-  startInspectionCycle
-);
+const loginUser =
+  getLoginUser();
+
+if (
+  canStartInspectionCycle(
+    loginUser
+  )
+) {
+  startInspectionSection.classList.remove(
+    "hidden"
+  );
+
+  startInspectionButton.addEventListener(
+    "click",
+    startInspectionCycle
+  );
+}
 
 
 /* =========================================
