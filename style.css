@@ -2180,3 +2180,292 @@ html[data-portal-theme="dark"] textarea {
 .tool-master-bottom-row span {
   white-space: nowrap;
 }
+
+/* =========================================
+   Staff Portal dark theme final overrides
+   Keep this block last so page and feature styles cannot restore light colors.
+========================================= */
+
+html[data-portal-theme="dark"] .home-menu-card,
+html[data-portal-theme="dark"] #toolManagementMenu,
+html[data-portal-theme="dark"] .admin-home-page .admin-menu-card,
+html[data-portal-theme="dark"] .admin-section-card,
+html[data-portal-theme="dark"] .settings-card,
+html[data-portal-theme="dark"] .submission-status-card,
+html[data-portal-theme="dark"] .improvement-admin-card,
+html[data-portal-theme="dark"] .near-miss-admin-card,
+html[data-portal-theme="dark"] .improvement-admin-row,
+html[data-portal-theme="dark"] .near-miss-admin-row,
+html[data-portal-theme="dark"] .employee-status-button,
+html[data-portal-theme="dark"] .inspection-check-row {
+  color: #e2e8f0 !important;
+  background: #1e293b !important;
+  border-color: #475569 !important;
+}
+
+html[data-portal-theme="dark"] .home-menu-card:hover,
+html[data-portal-theme="dark"] .home-menu-card:active,
+html[data-portal-theme="dark"] #toolManagementMenu:hover,
+html[data-portal-theme="dark"] #toolManagementMenu:active,
+html[data-portal-theme="dark"] .admin-home-page .admin-menu-card:hover,
+html[data-portal-theme="dark"] .improvement-admin-row:hover,
+html[data-portal-theme="dark"] .near-miss-admin-row:hover,
+html[data-portal-theme="dark"] .employee-status-button:hover {
+  background: #263449 !important;
+  border-color: #60a5fa !important;
+}
+
+html[data-portal-theme="dark"] .admin-home-page .admin-menu-section > h2,
+html[data-portal-theme="dark"] .admin-home-page .admin-menu-card-text h3,
+html[data-portal-theme="dark"] .admin-section-card h2,
+html[data-portal-theme="dark"] .settings-card h2,
+html[data-portal-theme="dark"] .submission-status-card h2,
+html[data-portal-theme="dark"] .submission-status-row dt,
+html[data-portal-theme="dark"] .employee-status-name,
+html[data-portal-theme="dark"] .improvement-admin-card h2,
+html[data-portal-theme="dark"] .improvement-admin-row-name,
+html[data-portal-theme="dark"] .improvement-admin-setting-box strong,
+html[data-portal-theme="dark"] .improvement-admin-theme-block h3,
+html[data-portal-theme="dark"] .near-miss-admin-card h2,
+html[data-portal-theme="dark"] .near-miss-admin-row-title,
+html[data-portal-theme="dark"] .near-miss-admin-detail-item strong,
+html[data-portal-theme="dark"] .near-miss-admin-detail-item p,
+html[data-portal-theme="dark"] .inspection-check-row span,
+html[data-portal-theme="dark"] .inspection-check-row strong,
+html[data-portal-theme="dark"] .tool-master-name {
+  color: #f8fafc !important;
+}
+
+html[data-portal-theme="dark"] .admin-home-page .admin-menu-card-text p,
+html[data-portal-theme="dark"] #toolManagementMenu .home-menu-text p,
+html[data-portal-theme="dark"] .my-page-menu .home-menu-text p,
+html[data-portal-theme="dark"] .admin-form-label,
+html[data-portal-theme="dark"] .settings-profile-row dt,
+html[data-portal-theme="dark"] .settings-password-label,
+html[data-portal-theme="dark"] .settings-help-text,
+html[data-portal-theme="dark"] .settings-control-title,
+html[data-portal-theme="dark"] .improvement-admin-toolbar label,
+html[data-portal-theme="dark"] .improvement-admin-edit-form label,
+html[data-portal-theme="dark"] .improvement-admin-summary,
+html[data-portal-theme="dark"] .near-miss-admin-toolbar label,
+html[data-portal-theme="dark"] .near-miss-admin-summary,
+html[data-portal-theme="dark"] .near-miss-admin-row-sub,
+html[data-portal-theme="dark"] .near-miss-admin-detail-meta,
+html[data-portal-theme="dark"] .near-miss-admin-detail-item span,
+html[data-portal-theme="dark"] .near-miss-admin-empty,
+html[data-portal-theme="dark"] .improvement-admin-empty {
+  color: #cbd5e1 !important;
+}
+
+html[data-portal-theme="dark"] .settings-profile-row dd {
+  color: #f8fafc !important;
+}
+
+html[data-portal-theme="dark"] #toolManagementMenu .home-menu-text h2,
+html[data-portal-theme="dark"] #toolManagementMenu .home-menu-arrow,
+html[data-portal-theme="dark"] .my-page-menu .home-menu-text h2,
+html[data-portal-theme="dark"] .my-page-menu .home-menu-arrow,
+html[data-portal-theme="dark"] .admin-home-page .admin-menu-card-arrow,
+html[data-portal-theme="dark"] .improvement-admin-department-title,
+html[data-portal-theme="dark"] .improvement-admin-setting-box p,
+html[data-portal-theme="dark"] .near-miss-admin-row-count {
+  color: #93c5fd !important;
+}
+
+html[data-portal-theme="dark"] .admin-home-page .admin-menu-card-icon,
+html[data-portal-theme="dark"] #toolManagementMenu .home-menu-icon,
+html[data-portal-theme="dark"] .improvement-admin-setting-box,
+html[data-portal-theme="dark"] .improvement-admin-theme-block,
+html[data-portal-theme="dark"] .near-miss-admin-detail-item {
+  background: #0f172a !important;
+  border-color: #475569 !important;
+}
+
+html[data-portal-theme="dark"] .near-miss-admin-loading-box {
+  color: #e2e8f0;
+  background: #1e293b !important;
+  border: 1px solid #475569;
+}
+
+html[data-portal-theme="dark"] .near-miss-admin-loading-box p {
+  color: #cbd5e1 !important;
+}
+
+html[data-portal-theme="dark"] .admin-form-control,
+html[data-portal-theme="dark"] .settings-profile-input,
+html[data-portal-theme="dark"] .settings-select,
+html[data-portal-theme="dark"] .improvement-admin-toolbar input,
+html[data-portal-theme="dark"] .improvement-admin-edit-form input,
+html[data-portal-theme="dark"] .improvement-admin-edit-form select,
+html[data-portal-theme="dark"] .improvement-admin-edit-form textarea,
+html[data-portal-theme="dark"] .near-miss-admin-toolbar input,
+html[data-portal-theme="dark"] .near-miss-admin-toolbar select {
+  color: #f8fafc !important;
+  background: #0f172a !important;
+  border-color: #475569 !important;
+}
+
+html[data-portal-theme="dark"] input::placeholder,
+html[data-portal-theme="dark"] textarea::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+html[data-portal-theme="dark"] .admin-secondary-button,
+html[data-portal-theme="dark"] .settings-placeholder-button,
+html[data-portal-theme="dark"] .improvement-admin-secondary-button,
+html[data-portal-theme="dark"] .near-miss-admin-secondary-button {
+  color: #bfdbfe !important;
+  background: #263449 !important;
+  border-color: #64748b !important;
+}
+
+html[data-portal-theme="dark"] .admin-secondary-button:hover,
+html[data-portal-theme="dark"] .settings-placeholder-button:hover,
+html[data-portal-theme="dark"] .improvement-admin-secondary-button:hover,
+html[data-portal-theme="dark"] .near-miss-admin-secondary-button:hover {
+  color: #ffffff !important;
+  background: #334155 !important;
+  border-color: #60a5fa !important;
+}
+
+html[data-portal-theme="dark"] .schedule-card-icon,
+html[data-portal-theme="dark"] .today-date-icon {
+  background: #0f172a;
+  border-color: #60a5fa;
+}
+
+html[data-portal-theme="dark"] .schedule-card-icon .today-calendar-day,
+html[data-portal-theme="dark"] .today-date-icon strong {
+  color: #f8fafc;
+}
+
+html[data-portal-theme="dark"] .schedule-card-footer,
+html[data-portal-theme="dark"] .tool-master-compact-item,
+html[data-portal-theme="dark"] .submission-status-row,
+html[data-portal-theme="dark"] .settings-profile-row,
+html[data-portal-theme="dark"] .settings-control-row + .settings-control-row {
+  border-color: #475569 !important;
+}
+
+html[data-portal-theme="dark"] .inspection-check-row input[type="checkbox"] {
+  background: #0f172a;
+  border-color: #94a3b8;
+}
+
+html[data-portal-theme="dark"] .inspection-check-row:has(input[type="checkbox"]:checked) {
+  background: #1e3a5f !important;
+  border-color: #60a5fa !important;
+}
+
+html[data-portal-theme="dark"] .inspection-check-row input[type="checkbox"]:checked {
+  background: #2563eb;
+  border-color: #60a5fa;
+}
+
+/* Keep status meaning while improving contrast on the dark surface. */
+html[data-portal-theme="dark"] .status-submitted .employee-status-text,
+html[data-portal-theme="dark"] .submission-status-row dd.is-submitted,
+html[data-portal-theme="dark"] .improvement-admin-status-submitted {
+  color: #86efac !important;
+}
+
+html[data-portal-theme="dark"] .status-draft .employee-status-text,
+html[data-portal-theme="dark"] .submission-status-row dd.is-not-submitted,
+html[data-portal-theme="dark"] .improvement-admin-status-draft {
+  color: #fde68a !important;
+}
+
+html[data-portal-theme="dark"] .status-locked .employee-status-text {
+  color: #cbd5e1 !important;
+}
+
+html[data-portal-theme="dark"] .submission-status-row dd {
+  color: #cbd5e1;
+  background: #334155;
+}
+
+html[data-portal-theme="dark"] .submission-status-row dd.is-submitted {
+  background: #14532d;
+}
+
+html[data-portal-theme="dark"] .submission-status-row dd.is-not-submitted {
+  background: #713f12;
+}
+
+html[data-portal-theme="dark"] .status-not-saved .employee-status-text,
+html[data-portal-theme="dark"] .improvement-admin-status-not-submitted {
+  color: #fecdd3 !important;
+  background: #881337 !important;
+  border-color: #fb7185 !important;
+}
+
+/* Calendar states retain their meaning without leaving bright white tiles. */
+html[data-portal-theme="dark"] .holiday-calendar-weekday,
+html[data-portal-theme="dark"] .holiday-calendar-day,
+html[data-portal-theme="dark"] .holiday-day-normal,
+html[data-portal-theme="dark"] .holiday-guide-normal {
+  color: #e2e8f0;
+  background: #1e293b;
+  border-color: #475569;
+}
+
+html[data-portal-theme="dark"] .holiday-day-holiday,
+html[data-portal-theme="dark"] .holiday-guide-holiday {
+  color: #fecaca;
+  background: #7f1d1d;
+}
+
+html[data-portal-theme="dark"] .holiday-day-public,
+html[data-portal-theme="dark"] .holiday-guide-public {
+  color: #fef3c7;
+  background: #78350f;
+}
+
+html[data-portal-theme="dark"] .holiday-day-work,
+html[data-portal-theme="dark"] .holiday-guide-work {
+  color: #dbeafe;
+  background: #1e3a5f;
+}
+
+/* Attendance rows: remove light holiday colors from the dark surface. */
+html[data-portal-theme="dark"] .day-row {
+  background: #1e293b;
+  border-color: #475569;
+}
+
+html[data-portal-theme="dark"] .day-row .day,
+html[data-portal-theme="dark"] .day-row .week {
+  color: #e2e8f0;
+}
+
+html[data-portal-theme="dark"] .day-row.attendance-saturday {
+  background: #1e293b;
+  border-color: #3b82f6;
+}
+
+html[data-portal-theme="dark"] .day-row.attendance-saturday .date-box {
+  background: #172554;
+  border-left: 3px solid #60a5fa;
+}
+
+html[data-portal-theme="dark"] .day-row.attendance-saturday .day,
+html[data-portal-theme="dark"] .day-row.attendance-saturday .week {
+  color: #bfdbfe;
+}
+
+html[data-portal-theme="dark"] .day-row.sunday .day,
+html[data-portal-theme="dark"] .day-row.sunday .week {
+  color: #fca5a5;
+}
+
+html[data-portal-theme="dark"] .day-row.company-holiday:not(.attendance-saturday) .date-box {
+  color: #fecaca;
+  background: #3f1d2a;
+  border-left: 3px solid #f87171;
+}
+
+html[data-portal-theme="dark"] .day-row.company-holiday:not(.attendance-saturday) .day,
+html[data-portal-theme="dark"] .day-row.company-holiday:not(.attendance-saturday) .week {
+  color: #fecaca;
+}

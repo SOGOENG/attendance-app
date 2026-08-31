@@ -3,7 +3,7 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v26";
+  "staff-portal-v30";
 
 const CACHE_FILES = [
   "./",
@@ -33,6 +33,8 @@ const CACHE_FILES = [
   "./attendance-admin.js",
   "./improvement-admin.js",
   "./near-miss-admin.js",
+  "./side-menu.css?v=1",
+  "./side-menu.js?v=1",
   "./manifest.json",
   "./icons/se-icon-192.png",
   "./icons/se-icon-512.png",

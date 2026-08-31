@@ -60,6 +60,26 @@ const employeeDepartment =
     "employeeDepartment"
   );
 
+const employeeAdminProfileFields =
+  document.getElementById(
+    "employeeAdminProfileFields"
+  );
+
+const employeeJobTitle =
+  document.getElementById(
+    "employeeJobTitle"
+  );
+
+const employeeProfileEmail =
+  document.getElementById(
+    "employeeProfileEmail"
+  );
+
+const employeePhoneNumber =
+  document.getElementById(
+    "employeePhoneNumber"
+  );
+
 const employeeInitialPasswordWrap =
   document.getElementById(
     "employeeInitialPasswordWrap"
@@ -110,12 +130,38 @@ const deleteEmployeeButton =
     "deleteEmployeeButton"
   );
 
+const employeePasswordResetSection =
+  document.getElementById(
+    "employeePasswordResetSection"
+  );
+
+const employeeResetPassword =
+  document.getElementById(
+    "employeeResetPassword"
+  );
+
+const employeeResetPasswordConfirmation =
+  document.getElementById(
+    "employeeResetPasswordConfirmation"
+  );
+
+const resetEmployeePasswordButton =
+  document.getElementById(
+    "resetEmployeePasswordButton"
+  );
+
+const employeePasswordResetMessage =
+  document.getElementById(
+    "employeePasswordResetMessage"
+  );
+
 
 /* =========================================
    現在使用中のデータ
 ========================================= */
 
 let employeeRecords = [];
+let isEmployeePasswordResetting = false;
 
 
 /* =========================================
@@ -175,6 +221,11 @@ function checkAdminAccess() {
   }
 
   return true;
+}
+
+
+function isAllEmployeeAdministrator() {
+  return getLoginUser()?.adminScope === "all";
 }
 
 
@@ -509,11 +560,21 @@ function startNewEmployeeRegistration() {
   employeeDepartment.value =
     "工事部";
 
+  employeeJobTitle.value = "";
+  employeeProfileEmail.value = "";
+  employeePhoneNumber.value = "";
+  employeeAdminProfileFields.hidden = true;
+
   employeeInitialPassword.value =
     "";
 
   employeeInitialPasswordWrap.hidden =
     false;
+
+  employeeResetPassword.value = "";
+  employeeResetPasswordConfirmation.value = "";
+  employeePasswordResetMessage.textContent = "";
+  employeePasswordResetSection.hidden = true;
 
   employeeActive.value =
     "true";
@@ -569,11 +630,32 @@ function startEmployeeEdit(
     employee.department ||
     "工事部";
 
+  employeeJobTitle.value =
+    employee.job_title || "";
+
+  employeeProfileEmail.value =
+    employee.profile_email || "";
+
+  employeePhoneNumber.value =
+    employee.phone_number || "";
+
+  const canManageEmployeeProfile =
+    isAllEmployeeAdministrator();
+
+  employeeAdminProfileFields.hidden =
+    !canManageEmployeeProfile;
+
   employeeInitialPassword.value =
     "";
 
   employeeInitialPasswordWrap.hidden =
     true;
+
+  employeeResetPassword.value = "";
+  employeeResetPasswordConfirmation.value = "";
+  employeePasswordResetMessage.textContent = "";
+  employeePasswordResetSection.hidden =
+    !canManageEmployeeProfile;
 
   employeeActive.value =
     String(
@@ -648,6 +730,55 @@ function createEmployeeUpdateData() {
     near_miss_required:
       employeeNearMissRequired.value ===
       "true"
+  };
+}
+
+
+function createEmployeeAdministrativeData() {
+  return {
+    active:
+      employeeActive.value ===
+      "true",
+
+    admin_scope:
+      employeeAdminScope.value,
+
+    attendance_required:
+      employeeAttendanceRequired.value ===
+      "true",
+
+    improvement_required:
+      employeeImprovementRequired.value ===
+      "true",
+
+    near_miss_required:
+      employeeNearMissRequired.value ===
+      "true"
+  };
+}
+
+
+function createEmployeeProfileData(
+  employeeId
+) {
+  return {
+    employeeId:
+      Number(employeeId),
+
+    name:
+      employeeName.value,
+
+    department:
+      employeeDepartment.value,
+
+    job_title:
+      employeeJobTitle.value,
+
+    profile_email:
+      employeeProfileEmail.value,
+
+    phone_number:
+      employeePhoneNumber.value
   };
 }
 
@@ -794,6 +925,166 @@ async function updateExistingEmployee(
     throw new Error(
       "社員情報を保存できませんでした"
     );
+  }
+}
+
+
+/* =========================================
+   全体管理者によるプロフィール更新
+========================================= */
+
+async function updateEmployeeProfileAsAdmin(
+  employeeId
+) {
+  const response =
+    await portalFetch(
+      `${SUPABASE_URL}` +
+      `/functions/v1/admin-update-employee-profile`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":
+            "application/json"
+        },
+        body:
+          JSON.stringify(
+            createEmployeeProfileData(
+              employeeId
+            )
+          )
+      }
+    );
+
+  const responseData =
+    await response.json()
+      .catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      responseData.error ||
+      "社員プロフィールを更新できませんでした"
+    );
+  }
+
+  return responseData.employee;
+}
+
+
+/* =========================================
+   全体管理者によるパスワード再発行
+========================================= */
+
+async function resetEmployeePassword() {
+  if (isEmployeePasswordResetting) {
+    return;
+  }
+
+  const employeeId =
+    editingEmployeeId.value;
+
+  if (
+    !employeeId ||
+    !isAllEmployeeAdministrator()
+  ) {
+    return;
+  }
+
+  const newPassword =
+    employeeResetPassword.value;
+
+  const confirmation =
+    employeeResetPasswordConfirmation.value;
+
+  employeePasswordResetMessage.textContent = "";
+
+  if (!newPassword || !confirmation) {
+    employeePasswordResetMessage.textContent =
+      "2つのパスワードを入力してください。";
+    return;
+  }
+
+  if (newPassword !== confirmation) {
+    employeePasswordResetMessage.textContent =
+      "入力したパスワードが一致しません。";
+    return;
+  }
+
+  if (newPassword.length < 8) {
+    employeePasswordResetMessage.textContent =
+      "パスワードは8文字以上で入力してください。";
+    return;
+  }
+
+  if (newPassword.length > 128) {
+    employeePasswordResetMessage.textContent =
+      "パスワードは128文字以内で入力してください。";
+    return;
+  }
+
+  const confirmed =
+    window.confirm(
+      "この社員のログインパスワードを変更します。よろしいですか？"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  isEmployeePasswordResetting = true;
+  resetEmployeePasswordButton.disabled = true;
+  resetEmployeePasswordButton.textContent =
+    "再発行中...";
+
+  try {
+    const response =
+      await portalFetch(
+        `${SUPABASE_URL}` +
+        `/functions/v1/admin-reset-employee-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+          body:
+            JSON.stringify({
+              employeeId:
+                Number(employeeId),
+              newPassword:
+                newPassword
+            })
+        }
+      );
+
+    const responseData =
+      await response.json()
+        .catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(
+        responseData.error ||
+        "パスワードを再発行できませんでした"
+      );
+    }
+
+    employeeResetPassword.value = "";
+    employeeResetPasswordConfirmation.value = "";
+    employeePasswordResetMessage.textContent =
+      responseData.message ||
+      "パスワードを再発行しました";
+
+  } catch (error) {
+    console.error(error);
+
+    employeePasswordResetMessage.textContent =
+      error.message ||
+      "パスワードを再発行できませんでした。";
+
+  } finally {
+    isEmployeePasswordResetting = false;
+    resetEmployeePasswordButton.disabled = false;
+    resetEmployeePasswordButton.textContent =
+      "パスワードを再発行";
   }
 }
 
@@ -1020,10 +1311,34 @@ async function saveEmployee() {
       既存社員
     */
 
-    await updateExistingEmployee(
-      employeeId,
-      updateData
-    );
+    let savedData =
+      updateData;
+
+    if (isAllEmployeeAdministrator()) {
+      const updatedProfile =
+        await updateEmployeeProfileAsAdmin(
+          employeeId
+        );
+
+      const administrativeData =
+        createEmployeeAdministrativeData();
+
+      await updateExistingEmployee(
+        employeeId,
+        administrativeData
+      );
+
+      savedData = {
+        ...updatedProfile,
+        ...administrativeData
+      };
+
+    } else {
+      await updateExistingEmployee(
+        employeeId,
+        updateData
+      );
+    }
 
     const recordIndex =
       employeeRecords.findIndex(
@@ -1042,7 +1357,7 @@ async function saveEmployee() {
           recordIndex
         ],
 
-        ...updateData
+        ...savedData
       };
     }
 
@@ -1082,11 +1397,21 @@ function closeEmployeeEdit() {
   employeeName.value =
     "";
 
+  employeeJobTitle.value = "";
+  employeeProfileEmail.value = "";
+  employeePhoneNumber.value = "";
+  employeeAdminProfileFields.hidden = true;
+
   employeeInitialPassword.value =
     "";
 
   employeeInitialPasswordWrap.hidden =
     true;
+
+  employeeResetPassword.value = "";
+  employeeResetPasswordConfirmation.value = "";
+  employeePasswordResetMessage.textContent = "";
+  employeePasswordResetSection.hidden = true;
 
   deleteEmployeeButton.hidden =
     true;
@@ -1130,6 +1455,12 @@ saveEmployeeButton.addEventListener(
 deleteEmployeeButton.addEventListener(
   "click",
   deleteEmployeeAccount
+);
+
+
+resetEmployeePasswordButton.addEventListener(
+  "click",
+  resetEmployeePassword
 );
 
 

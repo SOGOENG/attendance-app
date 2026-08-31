@@ -699,58 +699,8 @@ const deliveryCalendarLink =
 function openGoogleCalendar(
   event
 ) {
-  event.preventDefault();
-
-  const userAgent =
-    navigator.userAgent || "";
-
-  const isAndroid =
-    /Android/i.test(
-      userAgent
-    );
-
-  const isIPhoneOrIPad =
-    /iPhone|iPad|iPod/i.test(
-      userAgent
-    );
-
-  /*
-    Android
-    Googleカレンダーアプリを指定して開く
-  */
-
-  if (isAndroid) {
-    window.location.href =
-      "intent://calendar.google.com/calendar/u/0/r" +
-      "#Intent;" +
-      "scheme=https;" +
-      "package=com.google.android.calendar;" +
-      "end";
-
-    return;
-  }
-
-  /*
-    iPhone・iPad
-    Googleカレンダーアプリを開く
-  */
-
-  if (isIPhoneOrIPad) {
-    window.location.href =
-      "com.google.calendar://";
-
-    return;
-  }
-
-  /*
-    パソコン
-    GoogleカレンダーのWeb版を開く
-  */
-
-  window.open(
-    "https://calendar.google.com/calendar/u/0/r",
-    "_blank",
-    "noopener"
+  window.openPortalDeliveryCalendar(
+    event
   );
 }
 

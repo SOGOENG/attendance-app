@@ -1153,6 +1153,12 @@ function renderRows() {
         );
       }
 
+      if (periodDay.weekNo === 6) {
+        row.classList.add(
+          "attendance-saturday"
+        );
+      }
+
       /*
         休日・祝日は休日表示
       */

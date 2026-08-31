@@ -15,7 +15,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=17"
+    href="style.css?v=25"
   >
 </head>
 
@@ -212,6 +212,55 @@
       </label>
 
 
+      <div
+        id="employeeAdminProfileFields"
+        hidden
+      >
+        <label class="admin-form-label">
+
+          役職
+
+          <input
+            id="employeeJobTitle"
+            type="text"
+            class="admin-form-control"
+            maxlength="100"
+          >
+
+        </label>
+
+
+        <label class="admin-form-label">
+
+          プロフィール用メール
+
+          <input
+            id="employeeProfileEmail"
+            type="email"
+            class="admin-form-control"
+            autocomplete="email"
+            maxlength="254"
+          >
+
+        </label>
+
+
+        <label class="admin-form-label">
+
+          電話番号
+
+          <input
+            id="employeePhoneNumber"
+            type="tel"
+            class="admin-form-control"
+            autocomplete="tel"
+            maxlength="100"
+          >
+
+        </label>
+      </div>
+
+
       <!-- ==============================
            新規社員登録時のみ表示
       ============================== -->
@@ -394,13 +443,68 @@
 
       </div>
 
+
+      <div
+        id="employeePasswordResetSection"
+        hidden
+      >
+        <h3>
+          パスワード再発行
+        </h3>
+
+        <label class="admin-form-label">
+
+          新しいパスワード
+
+          <input
+            id="employeeResetPassword"
+            type="password"
+            class="admin-form-control"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="128"
+          >
+
+        </label>
+
+        <label class="admin-form-label">
+
+          新しいパスワード（確認）
+
+          <input
+            id="employeeResetPasswordConfirmation"
+            type="password"
+            class="admin-form-control"
+            autocomplete="new-password"
+            minlength="8"
+            maxlength="128"
+          >
+
+        </label>
+
+        <button
+          id="resetEmployeePasswordButton"
+          type="button"
+          class="admin-secondary-button"
+        >
+          パスワードを再発行
+        </button>
+
+        <p
+          id="employeePasswordResetMessage"
+          class="schedule-message"
+          role="status"
+          aria-live="polite"
+        ></p>
+      </div>
+
     </section>
 
   </main>
 
 
   <script src="portal-auth.js"></script>
-  <script src="employee-admin.js?v=9"></script>
+  <script src="employee-admin.js?v=10"></script>
 
 </body>
 
