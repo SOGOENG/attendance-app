@@ -18,6 +18,21 @@ const personalToolSearch =
     "personalToolSearch"
   );
 
+const personalToolSearchButton =
+  document.getElementById(
+    "personalToolSearchButton"
+  );
+
+const personalToolTotalCount =
+  document.getElementById(
+    "personalToolTotalCount"
+  );
+
+const personalToolResultSection =
+  document.getElementById(
+    "personalToolResultSection"
+  );
+
 const personalToolResultTitle =
   document.getElementById(
     "personalToolResultTitle"
@@ -28,6 +43,31 @@ const personalToolList =
     "personalToolList"
   );
 
+const personalToolResultClose =
+  document.getElementById(
+    "personalToolResultClose"
+  );
+
+const personalToolQrStartButton =
+  document.getElementById(
+    "personalToolQrStartButton"
+  );
+
+const personalToolQrPanel =
+  document.getElementById(
+    "personalToolQrPanel"
+  );
+
+const personalToolQrCancelButton =
+  document.getElementById(
+    "personalToolQrCancelButton"
+  );
+
+const personalToolQrMessage =
+  document.getElementById(
+    "personalToolQrMessage"
+  );
+
 
 let employeeRecords = [];
 let personalToolRecords = [];
@@ -35,6 +75,481 @@ let siteRecords = [];
 
 const siteNameMap =
   new Map();
+
+let personalToolQrScanner =
+  null;
+
+let personalToolQrScanning =
+  false;
+
+let personalToolQrProcessing =
+  false;
+
+let personalToolQrSessionId =
+  0;
+
+
+/* =========================================
+   QRコード読取
+========================================= */
+
+function getToolIdFromQrText(
+  decodedText
+) {
+
+  let url;
+
+
+  try {
+
+    url =
+      new URL(
+        decodedText,
+        window.location.href
+      );
+
+  } catch (error) {
+
+    return null;
+  }
+
+
+  if (
+    !url.pathname.endsWith(
+      "/tool-detail.html"
+    )
+  ) {
+
+    return null;
+  }
+
+
+  return url.searchParams.get(
+    "id"
+  );
+}
+
+
+async function stopPersonalToolQrReader() {
+
+  if (
+    !personalToolQrScanner ||
+    !personalToolQrScanning
+  ) {
+
+    return;
+  }
+
+
+  try {
+
+    await personalToolQrScanner.stop();
+
+  } catch (error) {
+
+    console.warn(
+      error
+    );
+  }
+
+
+  personalToolQrScanning =
+    false;
+
+
+  try {
+
+    personalToolQrScanner.clear();
+
+  } catch (error) {
+
+    console.warn(
+      error
+    );
+  }
+
+
+  personalToolQrScanner =
+    null;
+}
+
+
+async function cancelPersonalToolQrReader() {
+
+  personalToolQrSessionId +=
+    1;
+
+
+  await stopPersonalToolQrReader();
+
+
+  personalToolQrProcessing =
+    false;
+
+
+  personalToolQrPanel.classList.add(
+    "hidden"
+  );
+
+
+  personalToolQrStartButton.disabled =
+    false;
+
+
+  personalToolQrMessage.textContent =
+    "QRコードの読み取りをキャンセルしました";
+}
+
+
+async function loadQrTool(
+  toolId
+) {
+
+  const url =
+    `${SUPABASE_URL}/rest/v1/tools` +
+    `?id=eq.${encodeURIComponent(
+      toolId
+    )}` +
+    `&select=id,ownership_type`;
+
+
+  const response =
+    await portalFetch(
+      url
+    );
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      "工具情報を確認できませんでした"
+    );
+  }
+
+
+  const records =
+    await response.json();
+
+
+  return records[0] || null;
+}
+
+
+async function handlePersonalToolQrResult(
+  decodedText
+) {
+
+  if (personalToolQrProcessing) {
+    return;
+  }
+
+
+  const toolId =
+    getToolIdFromQrText(
+      decodedText
+    );
+
+
+  if (!toolId) {
+
+    personalToolQrMessage.textContent =
+      "工具用QRコードではありません";
+
+    return;
+  }
+
+
+  personalToolQrProcessing =
+    true;
+
+
+  await stopPersonalToolQrReader();
+
+
+  personalToolQrPanel.classList.add(
+    "hidden"
+  );
+
+
+  personalToolQrMessage.textContent =
+    "工具情報を確認しています…";
+
+
+  try {
+
+    const tool =
+      await loadQrTool(
+        toolId
+      );
+
+
+    if (!tool) {
+
+      personalToolQrMessage.textContent =
+        "工具が見つかりません";
+
+      return;
+    }
+
+
+    if (
+      tool.ownership_type !==
+      "personal"
+    ) {
+
+      personalToolQrMessage.textContent =
+        "この工具は個人工具ではありません";
+
+      return;
+    }
+
+
+    window.location.href =
+      `tool-detail.html?id=${encodeURIComponent(
+        tool.id
+      )}`;
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    personalToolQrMessage.textContent =
+      error.message;
+
+
+  } finally {
+
+    personalToolQrProcessing =
+      false;
+
+
+    personalToolQrStartButton.disabled =
+      false;
+  }
+}
+
+
+function getCameraErrorMessage(
+  error
+) {
+
+  const errorText =
+    String(
+      error?.name ||
+      error?.message ||
+      error ||
+      ""
+    ).toLowerCase();
+
+
+  if (
+    errorText.includes(
+      "notallowed"
+    ) ||
+    errorText.includes(
+      "permission"
+    ) ||
+    errorText.includes(
+      "denied"
+    )
+  ) {
+
+    return "カメラの使用が許可されていません。Safariの設定でカメラを許可してください";
+  }
+
+
+  if (!window.isSecureContext) {
+
+    return "カメラを使用するにはHTTPSでこの画面を開いてください";
+  }
+
+
+  return "カメラを起動できませんでした。ほかのアプリでカメラを使用していないか確認してください";
+}
+
+
+async function startPersonalToolQrReader() {
+
+  if (
+    personalToolQrScanning ||
+    personalToolQrProcessing
+  ) {
+
+    return;
+  }
+
+
+  if (
+    typeof Html5Qrcode ===
+    "undefined"
+  ) {
+
+    personalToolQrMessage.textContent =
+      "QR読取機能を読み込めませんでした";
+
+    return;
+  }
+
+
+  personalToolQrPanel.classList.remove(
+    "hidden"
+  );
+
+
+  personalToolQrStartButton.disabled =
+    true;
+
+
+  personalToolQrMessage.textContent =
+    "カメラを起動しています…";
+
+
+  const sessionId =
+    personalToolQrSessionId +
+    1;
+
+
+  personalToolQrSessionId =
+    sessionId;
+
+
+  let scanner =
+    null;
+
+
+  try {
+
+    scanner =
+      new Html5Qrcode(
+        "personalToolQrReader"
+      );
+
+
+    personalToolQrScanner =
+      scanner;
+
+
+    await scanner.start(
+      {
+        facingMode:
+          "environment"
+      },
+      {
+        fps:
+          10,
+
+        qrbox: {
+          width:
+            250,
+
+          height:
+            250
+        }
+      },
+      decodedText => {
+
+        handlePersonalToolQrResult(
+          decodedText
+        );
+      },
+      () => {}
+    );
+
+
+    if (
+      sessionId !==
+      personalToolQrSessionId
+    ) {
+
+      await scanner.stop();
+
+
+      scanner.clear();
+
+
+      if (
+        personalToolQrScanner ===
+        scanner
+      ) {
+
+        personalToolQrScanner =
+          null;
+      }
+
+
+      return;
+    }
+
+
+    personalToolQrScanning =
+      true;
+
+
+    personalToolQrMessage.textContent =
+      "QRコードを枠内に合わせてください";
+
+  } catch (error) {
+
+    if (
+      sessionId !==
+      personalToolQrSessionId
+    ) {
+
+      return;
+    }
+
+
+    console.error(
+      error
+    );
+
+
+    await stopPersonalToolQrReader();
+
+
+    if (scanner) {
+
+      try {
+
+        scanner.clear();
+
+      } catch (clearError) {
+
+        console.warn(
+          clearError
+        );
+      }
+    }
+
+
+    if (
+      personalToolQrScanner ===
+      scanner
+    ) {
+
+      personalToolQrScanner =
+        null;
+    }
+
+
+    personalToolQrPanel.classList.add(
+      "hidden"
+    );
+
+
+    personalToolQrMessage.textContent =
+      getCameraErrorMessage(
+        error
+      );
+
+
+    personalToolQrStartButton.disabled =
+      false;
+  }
+}
 
 
 /* =========================================
@@ -541,7 +1056,14 @@ function displayPersonalTools() {
 
 
   personalToolResultTitle.textContent =
-    `個人工具一覧（${filteredTools.length}件）`;
+    `検索結果（${filteredTools.length}件）`;
+
+
+  personalToolResultSection
+    .classList
+    .remove(
+      "hidden"
+    );
 
 
   personalToolList.innerHTML =
@@ -555,7 +1077,7 @@ function displayPersonalTools() {
     personalToolList.innerHTML =
       `
         <p class="schedule-empty-message">
-          該当する個人工具はありません
+          該当する工具はありません
         </p>
       `;
 
@@ -569,20 +1091,6 @@ function displayPersonalTools() {
       const card =
         document.createElement(
           "article"
-        );
-
-
-      const locationText =
-        getCompactLocationText(
-          tool
-        );
-
-
-      const statusText =
-        formatToolStatus(
-          getDisplayStatus(
-            tool
-          )
         );
 
 
@@ -647,55 +1155,6 @@ function displayPersonalTools() {
         "1.05rem";
 
 
-      const bottom =
-        document.createElement(
-          "div"
-        );
-
-
-      bottom.style.display =
-        "flex";
-
-      bottom.style.gap =
-        "22px";
-
-      bottom.style.marginTop =
-        "5px";
-
-      bottom.style.fontSize =
-        "0.95rem";
-
-
-      const location =
-        document.createElement(
-          "span"
-        );
-
-
-      location.textContent =
-        locationText;
-
-
-      const status =
-        document.createElement(
-          "span"
-        );
-
-
-      status.textContent =
-        statusText;
-
-
-      bottom.appendChild(
-        location
-      );
-
-
-      bottom.appendChild(
-        status
-      );
-
-
       const actions =
         document.createElement(
           "div"
@@ -734,11 +1193,6 @@ function displayPersonalTools() {
 
 
       card.appendChild(
-        bottom
-      );
-
-
-      card.appendChild(
         actions
       );
 
@@ -758,14 +1212,79 @@ function displayPersonalTools() {
 personalToolEmployee
   .addEventListener(
     "change",
-    displayPersonalTools
+    () => {
+
+      personalToolResultSection
+        .classList
+        .add(
+          "hidden"
+        );
+    }
   );
 
 
 personalToolSearch
   .addEventListener(
     "input",
+    () => {
+
+      personalToolResultSection
+        .classList
+        .add(
+          "hidden"
+        );
+    }
+  );
+
+
+personalToolSearchButton
+  .addEventListener(
+    "click",
     displayPersonalTools
+  );
+
+
+personalToolSearch
+  .addEventListener(
+    "keydown",
+    event => {
+
+      if (
+        event.key ===
+        "Enter"
+      ) {
+
+        displayPersonalTools();
+      }
+    }
+  );
+
+
+personalToolResultClose
+  .addEventListener(
+    "click",
+    () => {
+
+      personalToolResultSection
+        .classList
+        .add(
+          "hidden"
+        );
+    }
+  );
+
+
+personalToolQrStartButton
+  .addEventListener(
+    "click",
+    startPersonalToolQrReader
+  );
+
+
+personalToolQrCancelButton
+  .addEventListener(
+    "click",
+    cancelPersonalToolQrReader
   );
 
 
@@ -790,7 +1309,19 @@ async function initializePersonalTools() {
     selectLoginEmployee();
 
 
-    displayPersonalTools();
+    personalToolTotalCount.textContent =
+      personalToolRecords.length;
+
+
+    personalToolSearchButton.disabled =
+      false;
+
+
+    personalToolResultSection
+      .classList
+      .add(
+        "hidden"
+      );
 
 
   } catch (error) {
@@ -808,6 +1339,13 @@ async function initializePersonalTools() {
           )}
         </p>
       `;
+
+
+    personalToolResultSection
+      .classList
+      .remove(
+        "hidden"
+      );
   }
 }
 

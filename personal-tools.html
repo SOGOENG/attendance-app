@@ -15,7 +15,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=25"
+    href="style.css?v=29"
   >
 
   <link
@@ -74,6 +74,71 @@
 
 
     <!-- ==============================
+         登録件数
+    ============================== -->
+    <section class="admin-section-card">
+
+      <h2>
+        個人工具
+      </h2>
+
+      <p>
+        登録件数：
+        <strong id="personalToolTotalCount">
+          0
+        </strong>
+        件
+      </p>
+
+    </section>
+
+
+    <!-- ==============================
+         QRコード読取
+    ============================== -->
+    <section class="admin-section-card">
+
+      <h2>
+        工具QRコード
+      </h2>
+
+      <p class="tool-search-guide">
+        工具のQRコードを読み取り、詳細画面を開きます。
+      </p>
+
+      <button
+        id="personalToolQrStartButton"
+        type="button"
+        class="admin-primary-button"
+      >
+        QRコードを読み込む
+      </button>
+
+      <div
+        id="personalToolQrPanel"
+        class="personal-tool-qr-panel hidden"
+      >
+        <div id="personalToolQrReader"></div>
+
+        <button
+          id="personalToolQrCancelButton"
+          type="button"
+          class="admin-secondary-button"
+        >
+          読み取りをキャンセル
+        </button>
+      </div>
+
+      <p
+        id="personalToolQrMessage"
+        class="schedule-message"
+        aria-live="polite"
+      ></p>
+
+    </section>
+
+
+    <!-- ==============================
          絞り込み
     ============================== -->
     <section class="admin-section-card">
@@ -107,26 +172,47 @@
         >
       </label>
 
+
+      <button
+        id="personalToolSearchButton"
+        type="button"
+        class="admin-primary-button"
+        disabled
+      >
+        表示する
+      </button>
+
     </section>
 
 
     <!-- ==============================
          一覧
     ============================== -->
-    <section class="admin-section-card">
+    <section
+      id="personalToolResultSection"
+      class="admin-section-card hidden"
+    >
 
-      <h2 id="personalToolResultTitle">
-        個人工具一覧
-      </h2>
+      <div class="tool-result-header">
+
+        <h2 id="personalToolResultTitle">
+          検索結果
+        </h2>
+
+        <button
+          id="personalToolResultClose"
+          type="button"
+          class="admin-secondary-button"
+        >
+          閉じる
+        </button>
+
+      </div>
 
       <div
         id="personalToolList"
         class="tool-list"
-      >
-        <p class="schedule-empty-message">
-          工具情報を読み込み中...
-        </p>
-      </div>
+      ></div>
 
     </section>
 
@@ -168,7 +254,11 @@
   </script>
 
 
-  <script src="./personal-tools.js?v=3"></script>
+  <script
+    src="https://unpkg.com/html5-qrcode"
+  ></script>
+
+  <script src="./personal-tools.js?v=5"></script>
 
 </body>
 

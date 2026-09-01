@@ -2060,6 +2060,27 @@ html[data-portal-theme="dark"] textarea {
   text-decoration: none;
 }
 
+.shared-tool-qr-panel,
+.personal-tool-qr-panel {
+  margin-top: 16px;
+}
+
+#sharedToolQrReader,
+#personalToolQrReader {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 12px;
+  overflow: hidden;
+  background: #0f172a;
+  border-radius: 12px;
+}
+
+.shared-tool-qr-panel .admin-secondary-button,
+.personal-tool-qr-panel .admin-secondary-button {
+  width: 100%;
+  min-height: 44px;
+}
+
 /* 工具検索・絞り込みプルダウンを大きくする */
 #toolGroupSelect,
 #toolNameSelect,

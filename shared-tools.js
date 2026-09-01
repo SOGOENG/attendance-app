@@ -55,6 +55,26 @@ const sharedToolMessage =
 const sharedToolList =
   document.getElementById("sharedToolList");
 
+const sharedToolQrStartButton =
+  document.getElementById(
+    "sharedToolQrStartButton"
+  );
+
+const sharedToolQrPanel =
+  document.getElementById(
+    "sharedToolQrPanel"
+  );
+
+const sharedToolQrCancelButton =
+  document.getElementById(
+    "sharedToolQrCancelButton"
+  );
+
+const sharedToolQrMessage =
+  document.getElementById(
+    "sharedToolQrMessage"
+  );
+
 
 /* =========================================
    データ
@@ -69,6 +89,481 @@ const siteNameMap =
 
 const employeeNameMap =
   new Map();
+
+let sharedToolQrScanner =
+  null;
+
+let sharedToolQrScanning =
+  false;
+
+let sharedToolQrProcessing =
+  false;
+
+let sharedToolQrSessionId =
+  0;
+
+
+/* =========================================
+   QRコード読取
+========================================= */
+
+function getToolIdFromQrText(
+  decodedText
+) {
+
+  let url;
+
+
+  try {
+
+    url =
+      new URL(
+        decodedText,
+        window.location.href
+      );
+
+  } catch (error) {
+
+    return null;
+  }
+
+
+  if (
+    !url.pathname.endsWith(
+      "/tool-detail.html"
+    )
+  ) {
+
+    return null;
+  }
+
+
+  return url.searchParams.get(
+    "id"
+  );
+}
+
+
+async function stopSharedToolQrReader() {
+
+  if (
+    !sharedToolQrScanner ||
+    !sharedToolQrScanning
+  ) {
+
+    return;
+  }
+
+
+  try {
+
+    await sharedToolQrScanner.stop();
+
+  } catch (error) {
+
+    console.warn(
+      error
+    );
+  }
+
+
+  sharedToolQrScanning =
+    false;
+
+
+  try {
+
+    sharedToolQrScanner.clear();
+
+  } catch (error) {
+
+    console.warn(
+      error
+    );
+  }
+
+
+  sharedToolQrScanner =
+    null;
+}
+
+
+async function cancelSharedToolQrReader() {
+
+  sharedToolQrSessionId +=
+    1;
+
+
+  await stopSharedToolQrReader();
+
+
+  sharedToolQrProcessing =
+    false;
+
+
+  sharedToolQrPanel.classList.add(
+    "hidden"
+  );
+
+
+  sharedToolQrStartButton.disabled =
+    false;
+
+
+  sharedToolQrMessage.textContent =
+    "QRコードの読み取りをキャンセルしました";
+}
+
+
+async function loadQrTool(
+  toolId
+) {
+
+  const url =
+    `${SUPABASE_URL}/rest/v1/tools` +
+    `?id=eq.${encodeURIComponent(
+      toolId
+    )}` +
+    `&select=id,ownership_type`;
+
+
+  const response =
+    await portalFetch(
+      url
+    );
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      "工具情報を確認できませんでした"
+    );
+  }
+
+
+  const records =
+    await response.json();
+
+
+  return records[0] || null;
+}
+
+
+async function handleSharedToolQrResult(
+  decodedText
+) {
+
+  if (sharedToolQrProcessing) {
+    return;
+  }
+
+
+  const toolId =
+    getToolIdFromQrText(
+      decodedText
+    );
+
+
+  if (!toolId) {
+
+    sharedToolQrMessage.textContent =
+      "工具用QRコードではありません";
+
+    return;
+  }
+
+
+  sharedToolQrProcessing =
+    true;
+
+
+  await stopSharedToolQrReader();
+
+
+  sharedToolQrPanel.classList.add(
+    "hidden"
+  );
+
+
+  sharedToolQrMessage.textContent =
+    "工具情報を確認しています…";
+
+
+  try {
+
+    const tool =
+      await loadQrTool(
+        toolId
+      );
+
+
+    if (!tool) {
+
+      sharedToolQrMessage.textContent =
+        "工具が見つかりません";
+
+      return;
+    }
+
+
+    if (
+      tool.ownership_type !==
+      "shared"
+    ) {
+
+      sharedToolQrMessage.textContent =
+        "この工具は共有工具ではありません";
+
+      return;
+    }
+
+
+    window.location.href =
+      `tool-detail.html?id=${encodeURIComponent(
+        tool.id
+      )}`;
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    sharedToolQrMessage.textContent =
+      error.message;
+
+
+  } finally {
+
+    sharedToolQrProcessing =
+      false;
+
+
+    sharedToolQrStartButton.disabled =
+      false;
+  }
+}
+
+
+function getCameraErrorMessage(
+  error
+) {
+
+  const errorText =
+    String(
+      error?.name ||
+      error?.message ||
+      error ||
+      ""
+    ).toLowerCase();
+
+
+  if (
+    errorText.includes(
+      "notallowed"
+    ) ||
+    errorText.includes(
+      "permission"
+    ) ||
+    errorText.includes(
+      "denied"
+    )
+  ) {
+
+    return "カメラの使用が許可されていません。Safariの設定でカメラを許可してください";
+  }
+
+
+  if (!window.isSecureContext) {
+
+    return "カメラを使用するにはHTTPSでこの画面を開いてください";
+  }
+
+
+  return "カメラを起動できませんでした。ほかのアプリでカメラを使用していないか確認してください";
+}
+
+
+async function startSharedToolQrReader() {
+
+  if (
+    sharedToolQrScanning ||
+    sharedToolQrProcessing
+  ) {
+
+    return;
+  }
+
+
+  if (
+    typeof Html5Qrcode ===
+    "undefined"
+  ) {
+
+    sharedToolQrMessage.textContent =
+      "QR読取機能を読み込めませんでした";
+
+    return;
+  }
+
+
+  sharedToolQrPanel.classList.remove(
+    "hidden"
+  );
+
+
+  sharedToolQrStartButton.disabled =
+    true;
+
+
+  sharedToolQrMessage.textContent =
+    "カメラを起動しています…";
+
+
+  const sessionId =
+    sharedToolQrSessionId +
+    1;
+
+
+  sharedToolQrSessionId =
+    sessionId;
+
+
+  let scanner =
+    null;
+
+
+  try {
+
+    scanner =
+      new Html5Qrcode(
+        "sharedToolQrReader"
+      );
+
+
+    sharedToolQrScanner =
+      scanner;
+
+
+    await scanner.start(
+      {
+        facingMode:
+          "environment"
+      },
+      {
+        fps:
+          10,
+
+        qrbox: {
+          width:
+            250,
+
+          height:
+            250
+        }
+      },
+      decodedText => {
+
+        handleSharedToolQrResult(
+          decodedText
+        );
+      },
+      () => {}
+    );
+
+
+    if (
+      sessionId !==
+      sharedToolQrSessionId
+    ) {
+
+      await scanner.stop();
+
+
+      scanner.clear();
+
+
+      if (
+        sharedToolQrScanner ===
+        scanner
+      ) {
+
+        sharedToolQrScanner =
+          null;
+      }
+
+
+      return;
+    }
+
+
+    sharedToolQrScanning =
+      true;
+
+
+    sharedToolQrMessage.textContent =
+      "QRコードを枠内に合わせてください";
+
+  } catch (error) {
+
+    if (
+      sessionId !==
+      sharedToolQrSessionId
+    ) {
+
+      return;
+    }
+
+
+    console.error(
+      error
+    );
+
+
+    await stopSharedToolQrReader();
+
+
+    if (scanner) {
+
+      try {
+
+        scanner.clear();
+
+      } catch (clearError) {
+
+        console.warn(
+          clearError
+        );
+      }
+    }
+
+
+    if (
+      sharedToolQrScanner ===
+      scanner
+    ) {
+
+      sharedToolQrScanner =
+        null;
+    }
+
+
+    sharedToolQrPanel.classList.add(
+      "hidden"
+    );
+
+
+    sharedToolQrMessage.textContent =
+      getCameraErrorMessage(
+        error
+      );
+
+
+    sharedToolQrStartButton.disabled =
+      false;
+  }
+}
 
 
 /* =========================================
@@ -1602,6 +2097,20 @@ sharedToolResultClose
           "hidden"
         );
     }
+  );
+
+
+sharedToolQrStartButton
+  .addEventListener(
+    "click",
+    startSharedToolQrReader
+  );
+
+
+sharedToolQrCancelButton
+  .addEventListener(
+    "click",
+    cancelSharedToolQrReader
   );
 
 
