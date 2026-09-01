@@ -100,6 +100,31 @@ const inspectionListMessage =
     "inspectionListMessage"
   );
 
+const inspectionQrStartButton =
+  document.getElementById(
+    "inspectionQrStartButton"
+  );
+
+const inspectionQrPanel =
+  document.getElementById(
+    "inspectionQrPanel"
+  );
+
+const inspectionQrCancelButton =
+  document.getElementById(
+    "inspectionQrCancelButton"
+  );
+
+const inspectionQrMessage =
+  document.getElementById(
+    "inspectionQrMessage"
+  );
+
+const inspectionQrResultLink =
+  document.getElementById(
+    "inspectionQrResultLink"
+  );
+
 
 /* =========================================
    CSV出力
@@ -203,6 +228,498 @@ const employeeNameMap =
 
 const siteNameMap =
   new Map();
+
+let inspectionQrScanner =
+  null;
+
+let inspectionQrScanning =
+  false;
+
+let inspectionQrProcessing =
+  false;
+
+let inspectionQrSessionId =
+  0;
+
+
+/* =========================================
+   QRコード読取
+========================================= */
+
+function getToolIdFromQrText(
+  decodedText
+) {
+
+  let url;
+
+
+  try {
+
+    url =
+      new URL(
+        decodedText,
+        window.location.href
+      );
+
+  } catch (error) {
+
+    return null;
+  }
+
+
+  if (
+    !url.pathname.endsWith(
+      "/tool-detail.html"
+    )
+  ) {
+
+    return null;
+  }
+
+
+  return url.searchParams.get(
+    "id"
+  );
+}
+
+
+async function stopInspectionQrReader() {
+
+  if (!inspectionQrScanner) {
+    return;
+  }
+
+
+  if (!inspectionQrScanning) {
+    return;
+  }
+
+
+  if (inspectionQrScanning) {
+
+    try {
+
+      await inspectionQrScanner.stop();
+
+    } catch (error) {
+
+      console.warn(
+        error
+      );
+    }
+  }
+
+
+  inspectionQrScanning =
+    false;
+
+
+  try {
+
+    inspectionQrScanner.clear();
+
+  } catch (error) {
+
+    console.warn(
+      error
+    );
+  }
+
+
+  inspectionQrScanner =
+    null;
+}
+
+
+async function cancelInspectionQrReader() {
+
+  inspectionQrSessionId +=
+    1;
+
+
+  await stopInspectionQrReader();
+
+
+  inspectionQrProcessing =
+    false;
+
+
+  inspectionQrPanel.classList.add(
+    "hidden"
+  );
+
+
+  inspectionQrStartButton.disabled =
+    !currentCycle;
+
+
+  inspectionQrMessage.textContent =
+    "QRコードの読み取りをキャンセルしました";
+}
+
+
+async function loadScannedInspectionTool(
+  toolId
+) {
+
+  const url =
+    `${SUPABASE_URL}/rest/v1/tools` +
+    `?id=eq.${encodeURIComponent(
+      toolId
+    )}` +
+    `&select=id,inspection_required`;
+
+
+  const response =
+    await portalFetch(
+      url
+    );
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      "工具情報を確認できませんでした"
+    );
+  }
+
+
+  const records =
+    await response.json();
+
+
+  return records[0] || null;
+}
+
+
+async function handleInspectionQrResult(
+  decodedText
+) {
+
+  if (inspectionQrProcessing) {
+    return;
+  }
+
+
+  const toolId =
+    getToolIdFromQrText(
+      decodedText
+    );
+
+
+  if (!toolId) {
+
+    inspectionQrMessage.textContent =
+      "工具用QRコードではありません";
+
+    return;
+  }
+
+
+  inspectionQrProcessing =
+    true;
+
+
+  await stopInspectionQrReader();
+
+
+  inspectionQrPanel.classList.add(
+    "hidden"
+  );
+
+
+  inspectionQrMessage.textContent =
+    "工具情報を確認しています…";
+
+
+  try {
+
+    const tool =
+      await loadScannedInspectionTool(
+        toolId
+      );
+
+
+    if (!tool) {
+
+      inspectionQrMessage.textContent =
+        "工具が見つかりません";
+
+      return;
+    }
+
+
+    if (
+      tool.inspection_required !==
+      true
+    ) {
+
+      inspectionQrMessage.textContent =
+        "この工具は半年点検対象ではありません";
+
+      return;
+    }
+
+
+    const cycleId =
+      encodeURIComponent(
+        currentCycle.id
+      );
+
+    const encodedToolId =
+      encodeURIComponent(
+        tool.id
+      );
+
+
+    if (
+      inspectedToolIdSet.has(
+        Number(
+          tool.id
+        )
+      )
+    ) {
+
+      inspectionQrMessage.textContent =
+        "この工具は点検済みです";
+
+
+      inspectionQrResultLink.href =
+        `tool-inspection-result.html?cycle=${cycleId}&tool=${encodedToolId}`;
+
+
+      inspectionQrResultLink.classList.remove(
+        "hidden"
+      );
+
+
+      return;
+    }
+
+
+    window.location.href =
+      `tool-inspection-entry.html?cycle=${cycleId}&tool=${encodedToolId}`;
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    inspectionQrMessage.textContent =
+      error.message;
+
+
+  } finally {
+
+    inspectionQrProcessing =
+      false;
+
+
+    inspectionQrStartButton.disabled =
+      false;
+  }
+}
+
+
+function getInspectionCameraErrorMessage(
+  error
+) {
+
+  const errorText =
+    String(
+      error?.name ||
+      error?.message ||
+      error ||
+      ""
+    ).toLowerCase();
+
+
+  if (
+    errorText.includes(
+      "notallowed"
+    ) ||
+    errorText.includes(
+      "permission"
+    ) ||
+    errorText.includes(
+      "denied"
+    )
+  ) {
+
+    return "カメラの使用が許可されていません。Safariの設定でカメラを許可してください";
+  }
+
+
+  if (!window.isSecureContext) {
+
+    return "カメラを使用するにはHTTPSでこの画面を開いてください";
+  }
+
+
+  return "カメラを起動できませんでした。ほかのアプリでカメラを使用していないか確認してください";
+}
+
+
+async function startInspectionQrReader() {
+
+  if (
+    inspectionQrScanning ||
+    inspectionQrProcessing
+  ) {
+
+    return;
+  }
+
+
+  if (
+    typeof Html5Qrcode ===
+    "undefined"
+  ) {
+
+    inspectionQrMessage.textContent =
+      "QR読取機能を読み込めませんでした";
+
+    return;
+  }
+
+
+  inspectionQrResultLink.classList.add(
+    "hidden"
+  );
+
+
+  inspectionQrPanel.classList.remove(
+    "hidden"
+  );
+
+
+  inspectionQrStartButton.disabled =
+    true;
+
+
+  inspectionQrMessage.textContent =
+    "カメラを起動しています…";
+
+
+  const sessionId =
+    inspectionQrSessionId +
+    1;
+
+
+  inspectionQrSessionId =
+    sessionId;
+
+
+  let scanner =
+    null;
+
+
+  try {
+
+    scanner =
+      new Html5Qrcode(
+        "inspectionQrReader"
+      );
+
+
+    inspectionQrScanner =
+      scanner;
+
+
+    await scanner.start(
+      {
+        facingMode:
+          "environment"
+      },
+      {
+        fps:
+          10,
+
+        qrbox: {
+          width:
+            250,
+
+          height:
+            250
+        }
+      },
+      decodedText => {
+
+        handleInspectionQrResult(
+          decodedText
+        );
+      },
+      () => {}
+    );
+
+
+    if (
+      sessionId !==
+      inspectionQrSessionId
+    ) {
+
+      await scanner.stop();
+
+
+      scanner.clear();
+
+
+      if (
+        inspectionQrScanner ===
+        scanner
+      ) {
+
+        inspectionQrScanner =
+          null;
+      }
+
+
+      return;
+    }
+
+
+    inspectionQrScanning =
+      true;
+
+
+    inspectionQrMessage.textContent =
+      "QRコードを枠内に合わせてください";
+
+  } catch (error) {
+
+    if (
+      sessionId !==
+      inspectionQrSessionId
+    ) {
+
+      return;
+    }
+
+    console.error(
+      error
+    );
+
+
+    await stopInspectionQrReader();
+
+
+    inspectionQrPanel.classList.add(
+      "hidden"
+    );
+
+
+    inspectionQrMessage.textContent =
+      getInspectionCameraErrorMessage(
+        error
+      );
+
+
+    inspectionQrStartButton.disabled =
+      false;
+  }
+}
 
 
 /* =========================================
@@ -2680,6 +3197,20 @@ inspectionSearchButton
   );
 
 
+inspectionQrStartButton
+  .addEventListener(
+    "click",
+    startInspectionQrReader
+  );
+
+
+inspectionQrCancelButton
+  .addEventListener(
+    "click",
+    cancelInspectionQrReader
+  );
+
+
 inspectionToolResultClose
   .addEventListener(
     "click",
@@ -2803,6 +3334,10 @@ async function initialize() {
       loadEmployees(),
       loadSites()
     ]);
+
+
+    inspectionQrStartButton.disabled =
+      false;
 
 
     updateProgress();

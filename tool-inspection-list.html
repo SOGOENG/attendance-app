@@ -15,7 +15,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=25"
+    href="style.css?v=27"
   >
 
   <link
@@ -124,6 +124,134 @@
         </strong>
         件
       </p>
+
+    </section>
+
+
+    <!-- =====================================
+         QRコード読取
+    ====================================== -->
+
+    <section class="admin-section-card">
+
+      <h2>
+        工具QRコード
+      </h2>
+
+      <p>
+        工具のQRコードを読み取り、点検入力画面を開きます。
+      </p>
+
+      <button
+        id="inspectionQrStartButton"
+        type="button"
+        class="admin-primary-button"
+        disabled
+      >
+        QRコードを読み込む
+      </button>
+
+      <div
+        id="inspectionQrPanel"
+        class="inspection-qr-panel hidden"
+      >
+        <div id="inspectionQrReader"></div>
+
+        <button
+          id="inspectionQrCancelButton"
+          type="button"
+          class="admin-secondary-button"
+        >
+          読み取りをキャンセル
+        </button>
+      </div>
+
+      <p
+        id="inspectionQrMessage"
+        class="schedule-message"
+        aria-live="polite"
+      ></p>
+
+      <a
+        id="inspectionQrResultLink"
+        class="admin-primary-button inspection-qr-result-link hidden"
+        href="#"
+      >
+        点検結果を表示
+      </a>
+
+    </section>
+
+
+    <!-- =====================================
+         絞り込み
+    ====================================== -->
+
+    <section class="admin-section-card">
+
+      <h2>
+        点検工具を探す
+      </h2>
+
+
+      <label class="admin-form-label">
+        大分類
+
+        <select
+          id="inspectionGroupFilter"
+          class="admin-form-control"
+        >
+          <option value="">
+            ---- 大分類を選択 ----
+          </option>
+        </select>
+      </label>
+
+
+      <label class="admin-form-label">
+        工具名
+
+        <select
+          id="inspectionToolNameFilter"
+          class="admin-form-control"
+          disabled
+        >
+          <option value="">
+            ---- 工具名を選択 ----
+          </option>
+        </select>
+      </label>
+
+
+      <label class="admin-form-label">
+        点検状態
+
+        <select
+          id="inspectionStatusFilter"
+          class="admin-form-control"
+        >
+          <option value="">
+            すべて
+          </option>
+
+          <option value="pending">
+            未点検
+          </option>
+
+          <option value="completed">
+            点検済み
+          </option>
+        </select>
+      </label>
+
+
+      <button
+        id="inspectionSearchButton"
+        type="button"
+        class="admin-primary-button"
+      >
+        表示する
+      </button>
 
     </section>
 
@@ -349,79 +477,6 @@
 
 
     <!-- =====================================
-         絞り込み
-    ====================================== -->
-
-    <section class="admin-section-card">
-
-      <h2>
-        点検工具を探す
-      </h2>
-
-
-      <label class="admin-form-label">
-        大分類
-
-        <select
-          id="inspectionGroupFilter"
-          class="admin-form-control"
-        >
-          <option value="">
-            ---- 大分類を選択 ----
-          </option>
-        </select>
-      </label>
-
-
-      <label class="admin-form-label">
-        工具名
-
-        <select
-          id="inspectionToolNameFilter"
-          class="admin-form-control"
-          disabled
-        >
-          <option value="">
-            ---- 工具名を選択 ----
-          </option>
-        </select>
-      </label>
-
-
-      <label class="admin-form-label">
-        点検状態
-
-        <select
-          id="inspectionStatusFilter"
-          class="admin-form-control"
-        >
-          <option value="">
-            すべて
-          </option>
-
-          <option value="pending">
-            未点検
-          </option>
-
-          <option value="completed">
-            点検済み
-          </option>
-        </select>
-      </label>
-
-
-      <button
-        id="inspectionSearchButton"
-        type="button"
-        class="admin-primary-button"
-      >
-        表示する
-      </button>
-
-    </section>
-
-
-    <!-- =====================================
          点検工具結果
     ====================================== -->
 
@@ -472,7 +527,11 @@
   <script src="portal-auth.js"></script>
   <script src="side-menu.js?v=1"></script>
 
-  <script src="./tool-inspection-list.js?v=14"></script>
+  <script
+    src="https://unpkg.com/html5-qrcode"
+  ></script>
+
+  <script src="./tool-inspection-list.js?v=15"></script>
 
 </body>
 

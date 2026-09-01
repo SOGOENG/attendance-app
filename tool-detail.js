@@ -125,6 +125,26 @@ const toolDetailMessage =
     "toolDetailMessage"
   );
 
+const showToolQrButton =
+  document.getElementById(
+    "showToolQrButton"
+  );
+
+const toolQrDisplay =
+  document.getElementById(
+    "toolQrDisplay"
+  );
+
+const toolQrCode =
+  document.getElementById(
+    "toolQrCode"
+  );
+
+const toolQrUrl =
+  document.getElementById(
+    "toolQrUrl"
+  );
+
 
 /* =========================================
    バッテリー管理
@@ -196,6 +216,116 @@ const batteryHistoryList =
 ========================================= */
 
 let currentTool = null;
+
+
+/* =========================================
+   QRコード
+========================================= */
+
+function createToolDetailUrl(
+  toolId
+) {
+
+  const url =
+    new URL(
+      "tool-detail.html",
+      window.location.href
+    );
+
+
+  url.searchParams.set(
+    "id",
+    toolId
+  );
+
+
+  return url.href;
+}
+
+
+function createToolDetailQrCode(
+  container,
+  toolId,
+  size = 113
+) {
+
+  if (
+    typeof QRCode ===
+    "undefined"
+  ) {
+
+    throw new Error(
+      "QRコード生成機能を読み込めませんでした"
+    );
+  }
+
+
+  const detailUrl =
+    createToolDetailUrl(
+      toolId
+    );
+
+
+  container.innerHTML =
+    "";
+
+
+  new QRCode(
+    container,
+    {
+      text:
+        detailUrl,
+
+      width:
+        size,
+
+      height:
+        size,
+
+      correctLevel:
+        QRCode.CorrectLevel.M
+    }
+  );
+
+
+  return detailUrl;
+}
+
+
+function showToolQrCode() {
+
+  if (!currentTool) {
+    return;
+  }
+
+
+  try {
+
+    const detailUrl =
+      createToolDetailQrCode(
+        toolQrCode,
+        currentTool.id
+      );
+
+
+    toolQrUrl.textContent =
+      detailUrl;
+
+
+    toolQrDisplay.hidden =
+      false;
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    toolDetailMessage.textContent =
+      error.message;
+  }
+}
 
 let employeeRecords = [];
 
@@ -1747,6 +1877,13 @@ saveBatteryHistoryButton
   );
 
 
+showToolQrButton
+  .addEventListener(
+    "click",
+    showToolQrCode
+  );
+
+
 /* =========================================
    初期化
 ========================================= */
@@ -1766,6 +1903,10 @@ async function initialize() {
 
 
     await loadTool();
+
+
+    showToolQrButton.disabled =
+      false;
 
 
     displayTool();
