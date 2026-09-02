@@ -121,6 +121,17 @@
     .my-page-menu .home-menu-text p {
       color: #64748b;
     }
+
+    .my-page-category-title {
+      grid-column: 1 / -1;
+      margin: 14px 2px 0;
+      color: #0f172a;
+      font-size: 18px;
+    }
+
+    .my-page-category-title:first-child { margin-top: 0; }
+
+    html[data-portal-theme="dark"] .my-page-category-title { color: #e2e8f0; }
   </style>
 </head>
 
@@ -161,6 +172,8 @@
          マイページメニュー
     ============================== -->
     <section class="home-menu my-page-menu">
+
+      <h2 class="my-page-category-title">1. 提出物</h2>
 
       <!-- ==============================
            出勤簿
@@ -243,9 +256,19 @@
       </a>
 
 
-      <!-- ==============================
-           個人工具
-      ============================== -->
+      <h2 class="my-page-category-title">2. 各種申請</h2>
+
+      <a href="applications.html" class="home-menu-card">
+        <div class="home-menu-text">
+          <h2>各種申請</h2>
+          <p>有給・代休の申請、履歴・残日数</p>
+        </div>
+        <span class="home-menu-arrow">〉</span>
+      </a>
+
+      <h2 class="my-page-category-title">3. 個人工具</h2>
+
+      <!-- 個人工具 -->
       <a
         href="personal-tools.html?mine=1"
         class="home-menu-card"

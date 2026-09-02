@@ -102,6 +102,14 @@
       font-size: 24px;
       font-weight: 700;
     }
+
+    .schedule-card { order: 1; }
+    .home-menu { display: flex; flex-direction: column; }
+    #myPageMenu { order: 2; }
+    #deliveryCalendarLink { order: 3; }
+    #toolManagementMenu { order: 4; }
+    #settingsMenu { order: 5; }
+    #adminMenu { order: 6; }
   </style>
 
 </head>
@@ -211,6 +219,7 @@
       ============================== -->
       <a
         href="my-page.html"
+        id="myPageMenu"
         class="home-primary-link"
       >
 
@@ -234,7 +243,7 @@
           </span>
 
           <p>
-            出勤簿・提案・ヒヤリ・個人工具
+            出勤簿・提案・ヒヤリ・個人工具・各種申請
           </p>
 
         </div>
@@ -279,6 +288,7 @@
       ============================== -->
       <a
         href="settings.html?v=2"
+        id="settingsMenu"
         class="home-primary-link"
       >
 

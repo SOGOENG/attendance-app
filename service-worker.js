@@ -3,7 +3,7 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v32";
+  "staff-portal-v35";
 
 const CACHE_FILES = [
   "./",
@@ -12,6 +12,9 @@ const CACHE_FILES = [
   "./index.html",
   "./improvement.html",
   "./near-miss.html",
+  "./my-page.html",
+  "./applications.html",
+  "./applications-admin.html",
   "./settings.html?v=2",
   "./help.html",
   "./schedule.html",
@@ -20,6 +23,8 @@ const CACHE_FILES = [
   "./improvement-admin.html",
   "./near-miss-admin.html",
   "./style.css",
+  "./style.css?v=26",
+  "./applications.css?v=2",
   "./portal-auth.js",
   "./push-notifications.js",
   "./login.js",
@@ -27,6 +32,9 @@ const CACHE_FILES = [
   "./app.js",
   "./improvement.js",
   "./near-miss.js",
+  "./my-page.js?v=5",
+  "./applications.js?v=5",
+  "./applications-admin.js?v=1",
   "./settings.js",
   "./schedule.js",
   "./admin.js",
@@ -34,7 +42,9 @@ const CACHE_FILES = [
   "./improvement-admin.js",
   "./near-miss-admin.js",
   "./side-menu.css?v=1",
+  "./side-menu.css?v=2",
   "./side-menu.js?v=1",
+  "./side-menu.js?v=2",
   "./manifest.json",
   "./icons/se-icon-192.png",
   "./icons/se-icon-512.png",
