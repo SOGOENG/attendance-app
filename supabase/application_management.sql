@@ -1327,7 +1327,15 @@ on public.application_types for select to authenticated using (active = true);
 
 create policy applications_self_or_admin_select
 on public.applications for select to authenticated
-using (employee_id = public.current_employee_id() or public.is_application_admin());
+using (
+  employee_id = public.current_employee_id()
+  or public.is_application_admin()
+  or (
+    public.is_leave_manager()
+    and status = 'approved'
+    and application_type in ('paid_leave', 'comp_leave')
+  )
+);
 
 create policy applications_self_insert
 on public.applications for insert to authenticated
@@ -1355,7 +1363,11 @@ create policy paid_leave_details_self_or_admin_select
 on public.paid_leave_application_details for select to authenticated
 using (exists (
   select 1 from public.applications a where a.id = application_id
-    and (a.employee_id = public.current_employee_id() or public.is_application_admin())
+    and (
+      a.employee_id = public.current_employee_id()
+      or public.is_application_admin()
+      or (public.is_leave_manager() and a.status = 'approved')
+    )
 ));
 create policy paid_leave_details_self_draft_insert
 on public.paid_leave_application_details for insert to authenticated
@@ -1390,7 +1402,11 @@ with check (exists (select 1 from public.applications a where a.id = application
 create policy comp_leave_dates_self_or_admin_select
 on public.comp_leave_dates for select to authenticated
 using (exists (select 1 from public.applications a where a.id = application_id
-  and (a.employee_id = public.current_employee_id() or public.is_application_admin())));
+  and (
+    a.employee_id = public.current_employee_id()
+    or public.is_application_admin()
+    or (public.is_leave_manager() and a.status = 'approved')
+  )));
 create policy comp_leave_dates_self_draft_insert
 on public.comp_leave_dates for insert to authenticated
 with check (exists (select 1 from public.applications a where a.id = application_id
@@ -1430,7 +1446,11 @@ using (
 create policy comp_leave_allocations_self_or_admin_select
 on public.comp_leave_allocations for select to authenticated
 using (exists (select 1 from public.applications a where a.id = application_id
-  and (a.employee_id = public.current_employee_id() or public.is_application_admin())));
+  and (
+    a.employee_id = public.current_employee_id()
+    or public.is_application_admin()
+    or (public.is_leave_manager() and a.status = 'approved')
+  )));
 create policy comp_leave_allocations_self_draft_insert
 on public.comp_leave_allocations for insert to authenticated
 with check (
