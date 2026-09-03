@@ -511,10 +511,7 @@ as $$
     from public.employees e
     where e.auth_user_id = auth.uid()
       and e.active = true
-      and (
-        e.admin_scope = 'all'
-        or regexp_replace(e.name, '[ 　]', '', 'g') = '鈴木和弘'
-      )
+      and e.admin_scope = 'all'
   )
 $$;
 
@@ -530,7 +527,10 @@ as $$
     from public.employees e
     where e.auth_user_id = auth.uid()
       and e.active = true
-      and e.department = '工事部'
+      and (
+        e.admin_scope = 'all'
+        or e.id = 39
+      )
   )
 $$;
 
@@ -773,7 +773,7 @@ begin
 
   if not found then raise exception 'application_not_found'; end if;
   if v_app.employee_id <> public.current_employee_id() then raise exception 'forbidden'; end if;
-  if not public.can_use_application_features() then raise exception 'construction_department_required'; end if;
+  if not public.can_use_application_features() then raise exception 'application_features_unavailable'; end if;
   if v_app.status <> 'draft' then raise exception 'application_not_draft'; end if;
 
   if v_app.application_type = 'paid_leave' then

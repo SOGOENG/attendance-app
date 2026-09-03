@@ -300,8 +300,9 @@ Deno.serve(async (request: Request) => {
         return jsonResponse({ success: false, error: "Application not found" }, 404);
       }
 
-      const normalizedActorName = (actor.name || "").replace(/[ 　]/g, "");
-      const actorIsAdmin = actor.admin_scope === "all" || normalizedActorName === "鈴木和弘";
+      const actorCanUseApplicationFeatures =
+        actor.admin_scope === "all" || Number(actor.id) === 39;
+      const actorIsAdmin = actor.admin_scope === "all";
       const applicationType = application.application_type === "paid_leave"
         ? "有給休暇申請"
         : "代替休日申請";
@@ -309,7 +310,7 @@ Deno.serve(async (request: Request) => {
       if (eventType === "submitted") {
         if (
           Number(application.employee_id) !== Number(actor.id) ||
-          actor.department !== "工事部" ||
+          !actorCanUseApplicationFeatures ||
           application.status !== "submitted"
         ) {
           return jsonResponse({ success: false, error: "Forbidden" }, 403);
@@ -321,8 +322,7 @@ Deno.serve(async (request: Request) => {
           targetMonth: null,
           employeeIds: new Set(employees.filter((employee) =>
             employee.active === true &&
-            (employee.admin_scope === "all" ||
-              (employee.name || "").replace(/[ 　]/g, "") === "鈴木和弘")
+            employee.admin_scope === "all"
           ).map((employee) => Number(employee.id))),
           title: "各種申請が提出されました",
           body: `${actor.name || "社員"}さんから${applicationType}が提出されました。`,

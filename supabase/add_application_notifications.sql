@@ -1,4 +1,4 @@
--- 各種申請の工事部限定・Push通知対応差分
+-- 各種申請の第1段階公開・Push通知対応差分
 -- Supabase SQL Editorでファイル全体を実行してください。
 
 begin;
@@ -14,7 +14,10 @@ as $$
     select 1 from public.employees e
     where e.auth_user_id = auth.uid()
       and e.active = true
-      and e.department = '工事部'
+      and (
+        e.admin_scope = 'all'
+        or e.id = 39
+      )
   )
 $$;
 
@@ -29,10 +32,7 @@ as $$
     select 1 from public.employees e
     where e.auth_user_id = auth.uid()
       and e.active = true
-      and (
-        e.admin_scope = 'all'
-        or regexp_replace(e.name, '[ 　]', '', 'g') = '鈴木和弘'
-      )
+      and e.admin_scope = 'all'
   )
 $$;
 
@@ -45,14 +45,14 @@ with check (
   and status = 'draft'
 );
 
--- submit_applicationの既存検証処理は維持し、工事部判定を追加します。
+-- submit_applicationの既存検証処理は維持し、申請機能の公開対象判定を追加します。
 do $$
 declare
   v_function regprocedure := 'public.submit_application(bigint)'::regprocedure;
   v_definition text;
   v_marker constant text :=
     'if v_app.employee_id <> public.current_employee_id() then raise exception ''forbidden''; end if;';
-  v_replacement constant text := v_marker || E'\n  if not public.can_use_application_features() then raise exception ''construction_department_required''; end if;';
+  v_replacement constant text := v_marker || E'\n  if not public.can_use_application_features() then raise exception ''application_features_unavailable''; end if;';
 begin
   select pg_get_functiondef(v_function) into v_definition;
   if strpos(v_definition, 'public.can_use_application_features()') = 0 then
