@@ -30,6 +30,11 @@ const checkoutEmployee =
     "checkoutEmployee"
   );
 
+const checkoutDepartment =
+  document.getElementById(
+    "checkoutDepartment"
+  );
+
 const checkoutNote =
   document.getElementById(
     "checkoutNote"
@@ -198,39 +203,10 @@ async function loadSites() {
 ========================================= */
 
 async function loadEmployees() {
-  const url =
-    `${SUPABASE_URL}/rest/v1/employees` +
-    `?select=id,name,active` +
-    `&active=eq.true` +
-    `&order=name.asc`;
-
-  const response =
-    await portalFetch(url);
-
-  if (!response.ok) {
-    throw new Error(
-      "社員一覧を読み込めませんでした"
-    );
-  }
-
-  const employees =
-    await response.json();
-
-  employees.forEach(employee => {
-    const option =
-      document.createElement(
-        "option"
-      );
-
-    option.value =
-      employee.id;
-
-    option.textContent =
-      employee.name;
-
-    checkoutEmployee.appendChild(
-      option
-    );
+  await ToolEmployeeSelector.loadEmployees({
+    supabaseUrl: SUPABASE_URL,
+    departmentSelect: checkoutDepartment,
+    employeeSelect: checkoutEmployee
   });
 }
 
@@ -450,6 +426,23 @@ checkoutButton.addEventListener(
 
 async function initialize() {
   try {
+    ToolEmployeeSelector.initializeDepartmentSelect(
+      checkoutDepartment
+    );
+
+    checkoutDepartment.addEventListener(
+      "change",
+      async () => {
+        try {
+          await loadEmployees();
+        } catch (error) {
+          console.error(error);
+          checkoutMessage.textContent =
+            error.message;
+        }
+      }
+    );
+
     await loadTool();
 
     await Promise.all([
