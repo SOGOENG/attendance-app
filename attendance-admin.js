@@ -711,6 +711,13 @@ function hasAttendanceInput(item) {
   );
 }
 
+function applicationApprovalNote(item) {
+  if (item?.source_application_id == null) return item?.note || "";
+  if (item.leave_type === "有給") return "申請承認済み（有給）";
+  if (item.leave_type === "代休") return "申請承認済み（代休）";
+  return "申請承認済み";
+}
+
 
 /* =========================================
    社員詳細表示
@@ -777,6 +784,8 @@ function showEmployeeDetail(employee) {
     card.className =
       "attendance-detail-row";
 
+    const displayNote = applicationApprovalNote(item);
+
     card.innerHTML = `
       <div class="attendance-detail-date">
         ${escapeHtml(formatDate(item.work_date))}
@@ -795,11 +804,11 @@ function showEmployeeDetail(employee) {
         </div>
 
         ${
-          item.note
+          displayNote
             ? `
-              <div>
+              <div class="${item.source_application_id != null ? "attendance-application-note" : ""}">
                 <strong>備考：</strong>
-                ${escapeHtml(item.note)}
+                ${escapeHtml(displayNote)}
               </div>
             `
             : ""
@@ -1103,7 +1112,8 @@ async function resetAllAttendance() {
     const url =
       `${SUPABASE_URL}/rest/v1/attendance` +
       `?work_date=gte.${range.firstDay}` +
-      `&work_date=lt.${range.nextFirstDay}`;
+      `&work_date=lt.${range.nextFirstDay}` +
+      `&source_application_id=is.null`;
 
     const response =
       await portalFetch(

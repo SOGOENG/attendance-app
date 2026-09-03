@@ -1,16 +1,23 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import webpush from "npm:web-push@3.6.7";
 
-type InvocationType = "morning" | "tomorrow";
+type InvocationType = "morning" | "tomorrow" | "application";
 type NotificationType =
   | "overdue_submission"
   | "today_schedule"
-  | "tomorrow_schedule";
+  | "tomorrow_schedule"
+  | "application_submitted"
+  | "application_approved"
+  | "application_revision_required"
+  | "application_rejected";
 
 type Employee = {
   id: number;
   name: string | null;
   department: string | null;
+  active: boolean;
+  admin_scope: string | null;
+  auth_user_id: string | null;
 };
 
 type PushSubscriptionRow = {
@@ -28,6 +35,9 @@ type NotificationRequest = {
   employeeIds: Set<number>;
   body: string;
   url: string;
+  title?: string;
+  applicationId?: number;
+  eventType?: string;
 };
 
 type DeliverySummary = {
@@ -182,13 +192,6 @@ Deno.serve(async (request: Request) => {
   }
 
   try {
-    const cronSecret = getRequiredSecret("STAFF_PUSH_CRON_SECRET");
-    const suppliedSecret = request.headers.get("x-cron-secret")?.trim() || "";
-
-    if (!suppliedSecret || !(await secretsMatch(suppliedSecret, cronSecret))) {
-      return jsonResponse({ success: false, error: "Unauthorized" }, 401);
-    }
-
     let input: unknown;
 
     try {
@@ -202,11 +205,20 @@ Deno.serve(async (request: Request) => {
         ? (input as { type?: unknown }).type
         : null;
 
-    if (invocationType !== "morning" && invocationType !== "tomorrow") {
+    if (!["morning", "tomorrow", "application"].includes(String(invocationType))) {
       return jsonResponse({
         success: false,
-        error: "type must be morning or tomorrow",
+        error: "type must be morning, tomorrow or application",
       }, 400);
+    }
+
+    if (invocationType !== "application") {
+      const cronSecret = getRequiredSecret("STAFF_PUSH_CRON_SECRET");
+      const suppliedSecret = request.headers.get("x-cron-secret")?.trim() || "";
+
+      if (!suppliedSecret || !(await secretsMatch(suppliedSecret, cronSecret))) {
+        return jsonResponse({ success: false, error: "Unauthorized" }, 401);
+      }
     }
 
     const supabaseUrl = getRequiredSecret("SUPABASE_URL");
@@ -224,6 +236,20 @@ Deno.serve(async (request: Request) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
+
+    let authenticatedUserId: string | null = null;
+
+    if (invocationType === "application") {
+      const authorization = request.headers.get("authorization") || "";
+      const accessToken = authorization.replace(/^Bearer\s+/i, "").trim();
+      const { data, error } = await supabase.auth.getUser(accessToken);
+
+      if (error || !data.user) {
+        return jsonResponse({ success: false, error: "Unauthorized" }, 401);
+      }
+
+      authenticatedUserId = data.user.id;
+    }
     const todayParts = getJstDateParts();
     const today = formatDate(todayParts);
     const tomorrowParts = addDays(todayParts, 1);
@@ -231,7 +257,7 @@ Deno.serve(async (request: Request) => {
 
     const { data: employeeRows, error: employeeError } = await supabase
       .from("employees")
-      .select("id,name,department");
+      .select("id,name,department,active,admin_scope,auth_user_id");
 
     if (employeeError) {
       throw new Error(`Failed to load employees: ${employeeError.message}`);
@@ -242,6 +268,93 @@ Deno.serve(async (request: Request) => {
       employees.map((employee) => [Number(employee.id), employee]),
     );
     const notificationRequests: NotificationRequest[] = [];
+
+    if (invocationType === "application") {
+      const payload = input as {
+        application_id?: unknown;
+        event?: unknown;
+      };
+      const applicationId = Number(payload.application_id);
+      const eventType = String(payload.event || "");
+      const allowedEvents = [
+        "submitted",
+        "approved",
+        "revision_required",
+        "rejected",
+      ];
+
+      if (!Number.isInteger(applicationId) || !allowedEvents.includes(eventType)) {
+        return jsonResponse({ success: false, error: "Invalid application event" }, 400);
+      }
+
+      const actor = employees.find((employee) =>
+        employee.active === true && employee.auth_user_id === authenticatedUserId
+      );
+      const { data: application, error: applicationError } = await supabase
+        .from("applications")
+        .select("id,employee_id,application_type,status,reviewer_comment")
+        .eq("id", applicationId)
+        .single();
+
+      if (applicationError || !application || !actor) {
+        return jsonResponse({ success: false, error: "Application not found" }, 404);
+      }
+
+      const normalizedActorName = (actor.name || "").replace(/[ 　]/g, "");
+      const actorIsAdmin = actor.admin_scope === "all" || normalizedActorName === "鈴木和弘";
+      const applicationType = application.application_type === "paid_leave"
+        ? "有給休暇申請"
+        : "代替休日申請";
+
+      if (eventType === "submitted") {
+        if (
+          Number(application.employee_id) !== Number(actor.id) ||
+          actor.department !== "工事部" ||
+          application.status !== "submitted"
+        ) {
+          return jsonResponse({ success: false, error: "Forbidden" }, 403);
+        }
+
+        notificationRequests.push({
+          notificationType: "application_submitted",
+          notificationDate: today,
+          targetMonth: null,
+          employeeIds: new Set(employees.filter((employee) =>
+            employee.active === true &&
+            (employee.admin_scope === "all" ||
+              (employee.name || "").replace(/[ 　]/g, "") === "鈴木和弘")
+          ).map((employee) => Number(employee.id))),
+          title: "各種申請が提出されました",
+          body: `${actor.name || "社員"}さんから${applicationType}が提出されました。`,
+          url: `./applications-admin.html?panel=pending&application=${applicationId}`,
+          applicationId,
+          eventType,
+        });
+      } else {
+        if (!actorIsAdmin || application.status !== eventType) {
+          return jsonResponse({ success: false, error: "Forbidden" }, 403);
+        }
+
+        const resultText = eventType === "approved"
+          ? "承認されました"
+          : eventType === "revision_required"
+          ? "差し戻されました"
+          : "却下されました";
+        const comment = String(application.reviewer_comment || "").trim();
+
+        notificationRequests.push({
+          notificationType: `application_${eventType}` as NotificationType,
+          notificationDate: today,
+          targetMonth: null,
+          employeeIds: new Set([Number(application.employee_id)]),
+          title: `${applicationType}の結果`,
+          body: `${applicationType}が${resultText}。${comment ? ` 管理者コメント：${comment}` : ""}`.trim(),
+          url: `./applications.html?panel=history&application=${applicationId}`,
+          applicationId,
+          eventType,
+        });
+      }
+    }
 
     if (invocationType === "morning") {
       const overdueEmployeeIds = new Set<number>();
@@ -469,12 +582,19 @@ Deno.serve(async (request: Request) => {
       );
 
       for (const subscription of targetSubscriptions) {
-        const idempotencyKey = [
-          notification.notificationType,
-          notification.notificationDate,
-          subscription.employee_id,
-          subscription.id,
-        ].join(":");
+        const idempotencyKey = notification.applicationId
+          ? [
+            `application_${notification.eventType}`,
+            notification.applicationId,
+            subscription.employee_id,
+            subscription.id,
+          ].join(":")
+          : [
+            notification.notificationType,
+            notification.notificationDate,
+            subscription.employee_id,
+            subscription.id,
+          ].join(":");
         const { data: delivery, error: deliveryError } = await supabase
           .from("notification_deliveries")
           .insert({
@@ -483,6 +603,8 @@ Deno.serve(async (request: Request) => {
             push_subscription_id: subscription.id,
             notification_date: notification.notificationDate,
             target_month: notification.targetMonth,
+            application_id: notification.applicationId || null,
+            event_type: notification.eventType || null,
             idempotency_key: idempotencyKey,
             status: "pending",
             attempted_at: new Date().toISOString(),
@@ -513,7 +635,7 @@ Deno.serve(async (request: Request) => {
               },
             },
             JSON.stringify({
-              title: "工事部ポータル",
+              title: notification.title || "工事部ポータル",
               body: notification.body,
               url: notification.url,
             }),

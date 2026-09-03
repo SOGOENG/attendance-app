@@ -1,0 +1,22 @@
+.approval-row > div {
+  min-height: 23mm;
+}
+
+.responsible-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18mm;
+  align-items: center;
+  gap: 2mm;
+}
+
+.responsible-name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.seal-space {
+  display: block;
+  width: 18mm;
+  height: 18mm;
+  justify-self: end;
+}

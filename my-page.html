@@ -258,7 +258,7 @@
 
       <h2 class="my-page-category-title">2. 各種申請</h2>
 
-      <a href="applications.html" class="home-menu-card">
+      <a id="applicationsMenu" href="applications.html" class="home-menu-card hidden">
         <div class="home-menu-text">
           <h2>各種申請</h2>
           <p>有給・代休の申請、履歴・残日数</p>
@@ -373,9 +373,14 @@
 
     } else {
       try {
-        JSON.parse(
+        const loginUser = JSON.parse(
           savedUser
         );
+
+        if (loginUser.department === "工事部") {
+          document.getElementById("applicationsMenu")
+            ?.classList.remove("hidden");
+        }
 
       } catch (error) {
         console.error(

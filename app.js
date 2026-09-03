@@ -52,6 +52,7 @@ let holidays = {};
 */
 
 let currentStatus = "draft";
+let applicationManagedDates = new Set();
 /* =========================================
    締め日設定
 ========================================= */
@@ -1428,7 +1429,9 @@ function makeAttendanceRecords(status) {
   const employeeId =
     Number(employee.value);
 
-  return collectData().map(item => {
+  return collectData()
+    .filter(item => !applicationManagedDates.has(item.date))
+    .map(item => {
     return {
       employee_id:
         employeeId,
@@ -1492,7 +1495,8 @@ async function deleteExistingAttendance() {
     `${SUPABASE_URL}/rest/v1/attendance` +
     `?employee_id=eq.${employee.value}` +
     `&work_date=gte.${range.firstDay}` +
-    `&work_date=lt.${range.nextFirstDay}`;
+    `&work_date=lt.${range.nextFirstDay}` +
+    `&source_application_id=is.null`;
 
   const response =
     await portalFetch(
@@ -1516,6 +1520,31 @@ async function deleteExistingAttendance() {
     throw new Error(
       "既存データの削除に失敗しました"
     );
+  }
+}
+
+async function updateApplicationManagedAttendanceStatus(status) {
+  if (applicationManagedDates.size === 0) return;
+
+  const range = getAttendanceRange(month.value);
+  const url =
+    `${SUPABASE_URL}/rest/v1/attendance` +
+    `?employee_id=eq.${employee.value}` +
+    `&work_date=gte.${range.firstDay}` +
+    `&work_date=lt.${range.nextFirstDay}` +
+    `&source_application_id=not.is.null`;
+  const response = await portalFetch(url, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Prefer: "return=minimal"
+    },
+    body: JSON.stringify({ status })
+  });
+
+  if (!response.ok) {
+    console.error(await response.text());
+    throw new Error("申請反映済み日付の提出状態を更新できませんでした");
   }
 }
 
@@ -1636,6 +1665,8 @@ async function saveAttendanceWithStatus(
         "出勤簿の保存に失敗しました"
       );
     }
+
+    await updateApplicationManagedAttendanceStatus(status);
 
     currentStatus = status;
 
@@ -1912,6 +1943,13 @@ function normalizeTimeValue(timeValue) {
    1日分の保存データを画面へ反映
 ========================================= */
 
+function applicationApprovalNote(item) {
+  if (item?.source_application_id == null) return item?.note || "";
+  if (item.leave_type === "有給") return "申請承認済み（有給）";
+  if (item.leave_type === "代休") return "申請承認済み（代休）";
+  return "申請承認済み";
+}
+
 function restoreAttendanceRow(
   row,
   item
@@ -2029,10 +2067,12 @@ if (
 }
 
   /* 備考 */
-  row
-    .querySelector(".note")
-    .value =
-    item.note || "";
+  const noteInput = row.querySelector(".note");
+  noteInput.value = applicationApprovalNote(item);
+  noteInput.classList.toggle(
+    "application-managed-note",
+    item.source_application_id != null
+  );
 }
 
 /* =========================================
@@ -2092,6 +2132,11 @@ async function loadAttendance() {
   }
 
   const dataByDate = {};
+  applicationManagedDates = new Set(
+    attendanceData
+      .filter(item => item.source_application_id != null)
+      .map(item => item.work_date)
+  );
 
   attendanceData.forEach(
     item => {
@@ -2157,6 +2202,14 @@ document
       row.querySelector(".end").disabled = true;
     }
   });
+    document
+      .querySelectorAll(".day-row")
+      .forEach(row => {
+        if (!applicationManagedDates.has(row.dataset.date)) return;
+        row.querySelectorAll("select,input").forEach(element => {
+          element.disabled = true;
+        });
+      });
     saveButton.disabled = false;
     saveButton.textContent = "一時保存";
 
@@ -2261,6 +2314,7 @@ function updateSummary() {
 
 async function refreshAttendanceScreen() {
   currentStatus = "draft";
+  applicationManagedDates = new Set();
 
   renderRows();
 

@@ -3,7 +3,7 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v37";
+  "staff-portal-v51";
 
 const CACHE_FILES = [
   "./",
@@ -15,6 +15,7 @@ const CACHE_FILES = [
   "./my-page.html",
   "./applications.html",
   "./applications-admin.html",
+  "./application-print.html",
   "./settings.html?v=2",
   "./help.html",
   "./schedule.html",
@@ -24,21 +25,28 @@ const CACHE_FILES = [
   "./near-miss-admin.html",
   "./style.css",
   "./style.css?v=26",
+  "./attendance-application-sync.css?v=1",
   "./applications.css?v=2",
+  "./applications.css?v=3",
+  "./applications.css?v=4",
+  "./applications-comp.css?v=1",
+  "./application-print.css?v=4",
+  "./application-print-approval.css?v=1",
   "./portal-auth.js",
   "./push-notifications.js",
   "./login.js",
   "./home.js",
-  "./app.js",
+  "./app.js?v=12",
   "./improvement.js",
   "./near-miss.js",
   "./my-page.js?v=5",
-  "./applications.js?v=5",
-  "./applications-admin.js?v=2",
+  "./applications.js?v=7",
+  "./applications-admin.js?v=7",
+  "./application-print.js?v=3",
   "./settings.js",
   "./schedule.js",
   "./admin.js",
-  "./attendance-admin.js",
+  "./attendance-admin.js?v=4",
   "./improvement-admin.js",
   "./near-miss-admin.js",
   "./side-menu.css?v=1",

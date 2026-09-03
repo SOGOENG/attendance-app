@@ -7,12 +7,18 @@ create table if not exists public.notification_deliveries (
     check (notification_type in (
       'overdue_submission',
       'today_schedule',
-      'tomorrow_schedule'
+      'tomorrow_schedule',
+      'application_submitted',
+      'application_approved',
+      'application_revision_required',
+      'application_rejected'
     )),
   employee_id bigint not null references public.employees(id) on delete cascade,
   push_subscription_id bigint not null references public.push_subscriptions(id) on delete cascade,
   notification_date date not null,
   target_month date,
+  application_id bigint references public.applications(id) on delete set null,
+  event_type text,
   idempotency_key text not null,
   status text not null default 'pending'
     check (status in ('pending', 'sent', 'failed')),
@@ -22,13 +28,12 @@ create table if not exists public.notification_deliveries (
   created_at timestamptz not null default now(),
   constraint notification_deliveries_idempotency_key_key
     unique (idempotency_key),
-  constraint notification_deliveries_device_notification_key
-    unique (
-      notification_type,
-      employee_id,
-      push_subscription_id,
-      notification_date
+  constraint notification_deliveries_application_event_check check (
+    application_id is null
+    or event_type in (
+      'submitted', 'approved', 'revision_required', 'rejected'
     )
+  )
 );
 
 create index if not exists notification_deliveries_employee_date_idx

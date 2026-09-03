@@ -1,0 +1,16 @@
+.note.application-managed-note:disabled {
+  opacity: 1;
+  color: #1e3a8a;
+  background: #eff6ff;
+  font-weight: 700;
+  -webkit-text-fill-color: #1e3a8a;
+}
+
+.attendance-application-note {
+  margin-top: 4px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: #1e3a8a;
+  background: #eff6ff;
+  font-weight: 700;
+}

@@ -1,0 +1,49 @@
+.comp-date-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 8px;
+}
+
+.comp-date-heading h3 {
+  min-width: 0;
+  white-space: normal;
+}
+
+.comp-date-heading .secondary {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.comp-date-list,
+.comp-date-list .date-row {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.comp-date-list .date-row > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 520px) {
+  .comp-date-list .date-row {
+    grid-template-columns: minmax(0, 1fr) 42px;
+    gap: 6px;
+  }
+
+  .comp-date-list .comp-date {
+    grid-column: 1 / -1;
+  }
+
+  .comp-date-list .comp-date-days {
+    grid-column: 1;
+  }
+
+  .comp-date-list .date-row button {
+    grid-column: 2;
+    width: 42px;
+  }
+}

@@ -1,0 +1,99 @@
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #eef2f7;
+  color: #111;
+  font-family: "Yu Gothic", "Hiragino Kaku Gothic ProN", sans-serif;
+}
+
+.print-controls { display: flex; justify-content: center; gap: 12px; padding: 14px; }
+.print-controls button { min-width: 120px; min-height: 44px; padding: 8px 18px; border: 1px solid #94a3b8; border-radius: 8px; background: #fff; font: inherit; font-weight: 700; }
+.print-controls button:first-child { color: #fff; background: #2563eb; border-color: #2563eb; }
+.print-message { text-align: center; color: #475569; }
+
+.print-sheet {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 2mm;
+  width: 281mm;
+  min-height: 194mm;
+  margin: 0 auto 16px;
+  padding: 0;
+  background: #fff;
+}
+
+.print-sheet::after { position: absolute; top: 0; bottom: 0; left: 50%; border-left: 1px dashed #333; content: ""; }
+.print-copy { min-width: 0; padding: 6mm; background: #fff; }
+.form-title { margin: 0 0 4mm; text-align: center; font-size: 18pt; letter-spacing: .15em; }
+.form-meta { margin: 0 0 3mm; text-align: right; font-size: 10pt; }
+.form-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10.5pt; }
+.form-table th, .form-table td { height: 9mm; padding: 2mm; border: 1px solid #222; vertical-align: middle; overflow-wrap: anywhere; }
+.form-table th { width: 29%; background: #fff; text-align: center; font-weight: 700; }
+.form-table .multi-line { height: 18mm; vertical-align: middle; line-height: 1.55; }
+.form-table .company-use { height: 11mm; }
+.form-note { margin: 5mm 0 3mm; text-align: center; font-size: 10.5pt; }
+.approval-row { display: grid; grid-template-columns: 1fr 1fr; margin-top: 4mm; border: 1px solid #222; font-size: 10pt; }
+.approval-row > div { min-height: 16mm; padding: 2mm; }
+.approval-row > div + div { border-left: 1px solid #222; }
+.approval-label { display: block; margin-bottom: 2mm; font-weight: 700; }
+.blank-line { display: inline-block; min-width: 32mm; border-bottom: 1px solid #333; }
+.date-list { margin: 0; padding: 0; list-style: none; }
+.date-list li + li { margin-top: 1mm; }
+
+.comp-form .form-table .multi-line { height: 15mm; vertical-align: middle; }
+.comp-form .form-note { margin: 3mm 0 2.5mm; }
+.comp-form .approval-row { margin-top: 2.5mm; }
+
+@media (max-width: 900px) {
+  .print-sheet { grid-template-columns: 1fr; column-gap: 0; width: 100%; min-height: 0; }
+  .print-sheet::after { display: none; }
+  .print-copy + .print-copy { border-top: 1px dashed #333; }
+}
+
+@page {
+  size: A4 landscape;
+  margin: 8mm;
+}
+
+@media print {
+  html, body {
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background: #fff;
+  }
+
+  .print-controls, .print-message { display: none !important; }
+
+  .print-sheet {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 2mm;
+    width: 100%;
+    height: 193mm;
+    min-height: 0;
+    max-height: 193mm;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-copy {
+    min-width: 0;
+    height: 193mm;
+    max-height: 193mm;
+    padding: 5mm;
+    overflow: hidden;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .form-title { font-size: 17pt; }
+  .form-table { font-size: 10pt; }
+}
