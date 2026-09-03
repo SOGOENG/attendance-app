@@ -245,6 +245,22 @@ as $$
   )
 $$;
 
+create or replace function public.is_leave_manager()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select exists (
+    select 1
+    from public.employees e
+    where e.auth_user_id = auth.uid()
+      and e.active = true
+      and e.is_leave_manager = true
+  )
+$$;
+
 create or replace function public.set_application_updated_at()
 returns trigger
 language plpgsql
@@ -760,7 +776,7 @@ set search_path = public, pg_temp
 as $$
 declare v_admin bigint; v_balance_id bigint;
 begin
-  if not public.is_application_admin() then raise exception 'admin_required'; end if;
+  if not public.is_leave_manager() then raise exception 'leave_manager_required'; end if;
   if p_granted_days < 0 or p_carried_days < 0 or p_imported_used_days < 0 then
     raise exception 'invalid_balance';
   end if;
@@ -804,7 +820,7 @@ set search_path = public, pg_temp
 as $$
 declare v_admin bigint; v_id bigint;
 begin
-  if not public.is_application_admin() then raise exception 'admin_required'; end if;
+  if not public.is_leave_manager() then raise exception 'leave_manager_required'; end if;
   if p_earned_days <= 0 then raise exception 'invalid_earned_days'; end if;
   if p_source_type not in ('manual', 'attendance', 'import') then raise exception 'invalid_source_type'; end if;
   v_admin := public.current_employee_id();
@@ -839,7 +855,7 @@ declare
   v_approved_used numeric(6,2);
   v_committed_allocated numeric(6,2);
 begin
-  if not public.is_application_admin() then raise exception 'admin_required'; end if;
+  if not public.is_leave_manager() then raise exception 'leave_manager_required'; end if;
   if p_earned_days <= 0 then raise exception 'invalid_earned_days'; end if;
 
   select * into v_record from public.holiday_work_records
@@ -884,7 +900,7 @@ declare
   v_record public.holiday_work_records%rowtype;
   v_committed_allocated numeric(6,2);
 begin
-  if not public.is_application_admin() then raise exception 'admin_required'; end if;
+  if not public.is_leave_manager() then raise exception 'leave_manager_required'; end if;
 
   select * into v_record from public.holiday_work_records
   where id = p_record_id for update;
@@ -1070,7 +1086,11 @@ using (exists (select 1 from public.applications a where a.id = application_id
 
 create policy paid_leave_balances_self_or_admin_select
 on public.paid_leave_balances for select to authenticated
-using (employee_id = public.current_employee_id() or public.is_application_admin());
+using (
+  employee_id = public.current_employee_id()
+  or public.is_application_admin()
+  or public.is_leave_manager()
+);
 
 create policy paid_leave_transactions_admin_select
 on public.paid_leave_balance_transactions for select to authenticated
@@ -1078,7 +1098,11 @@ using (public.is_application_admin());
 
 create policy holiday_work_records_self_or_admin_select
 on public.holiday_work_records for select to authenticated
-using (employee_id = public.current_employee_id() or public.is_application_admin());
+using (
+  employee_id = public.current_employee_id()
+  or public.is_application_admin()
+  or public.is_leave_manager()
+);
 
 create policy comp_leave_allocations_self_or_admin_select
 on public.comp_leave_allocations for select to authenticated
@@ -1154,6 +1178,7 @@ grant usage, select on sequence public.comp_leave_allocations_id_seq to authenti
 revoke all on function public.current_employee_id() from public;
 revoke all on function public.is_application_admin() from public;
 revoke all on function public.recalculate_paid_leave_balance(bigint) from public;
+revoke all on function public.is_leave_manager() from public;
 revoke all on function public.recalculate_holiday_work_record(bigint) from public;
 revoke all on function public.validate_paid_leave_application(bigint) from public;
 revoke all on function public.submit_application(bigint) from public;
@@ -1174,6 +1199,7 @@ grant execute on function public.delete_draft_application(bigint) to authenticat
 grant execute on function public.review_application(bigint,text,text) to authenticated;
 grant execute on function public.cancel_application(bigint,text) to authenticated;
 grant execute on function public.set_paid_leave_opening_balance(bigint,integer,numeric,numeric,numeric,numeric,date) to authenticated;
+grant execute on function public.is_leave_manager() to authenticated;
 grant execute on function public.register_holiday_work(bigint,date,numeric,bigint,text,text,bigint) to authenticated;
 grant execute on function public.update_holiday_work(bigint,date,numeric,bigint,text) to authenticated;
 grant execute on function public.cancel_holiday_work(bigint,text) to authenticated;

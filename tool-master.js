@@ -118,6 +118,71 @@ let latheSizeSelect = null;
 
 
 /* =========================================
+   大分類プルダウン
+========================================= */
+
+function populateToolGroupSelects() {
+
+  window.TOOL_GROUPS.forEach(
+    group => {
+
+      [toolGroup, toolSearchGroup]
+        .forEach(
+          select => {
+
+            const option =
+              document.createElement(
+                "option"
+              );
+
+
+            option.value = group;
+            option.textContent = group;
+
+
+            select.appendChild(
+              option
+            );
+          }
+        );
+    }
+  );
+}
+
+
+function ensureToolGroupOption(
+  group
+) {
+
+  if (
+    !group ||
+    [...toolGroup.options].some(
+      option =>
+        option.value === group
+    )
+  ) {
+
+    return;
+  }
+
+
+  const option =
+    document.createElement(
+      "option"
+    );
+
+
+  option.value = group;
+  option.textContent = group;
+
+
+  toolGroup.appendChild(
+    option
+  );
+}
+
+
+/* =========================================
    大分類別 工具名候補
 ========================================= */
 
@@ -232,6 +297,12 @@ const TOOL_NAME_OPTIONS = {
     "充電パンチャー",
     "充電セーパーソー"
   ],
+
+  "作業台・固定具": [],
+
+  "揚重・吊り工具": [],
+
+  "安全・保護具": [],
 
   "その他": []
 };
@@ -1828,9 +1899,18 @@ function startToolEdit(
     "工具情報の修正";
 
 
-  toolGroup.value =
-    tool.tool_group ||
+  const savedToolGroup =
+    tool.tool_group?.trim() ||
     "";
+
+
+  ensureToolGroupOption(
+    savedToolGroup
+  );
+
+
+  toolGroup.value =
+    savedToolGroup;
 
 
   updateToolNameOptions(
@@ -2897,6 +2977,8 @@ toolMasterSearch
 async function initializeToolMaster() {
 
   try {
+
+    populateToolGroupSelects();
 
     createLatheSizeField();
 

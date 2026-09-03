@@ -74,7 +74,7 @@ async function loadEmployees() {
   const url =
     `${SUPABASE_URL}/rest/v1/employees` +
     `?select=` +
-    `id,name,department,active,admin_scope,auth_user_id` +
+    `id,name,department,active,admin_scope,is_leave_manager,auth_user_id` +
     `&active=eq.true` +
     `&order=department.asc,id.asc`;
 
@@ -277,6 +277,9 @@ function saveLoginInformation(
 
     adminScope:
       employee.admin_scope || "none",
+
+    isLeaveManager:
+      employee.is_leave_manager === true,
 
     authUserId:
       authData.user.id

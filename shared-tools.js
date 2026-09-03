@@ -570,20 +570,8 @@ async function startSharedToolQrReader() {
    大分類表示順
 ========================================= */
 
-const TOOL_GROUP_ORDER = [
-  "配管加工機",
-  "切断工具",
-  "研磨・仕上げ工具",
-  "穴あけ・斫り工具",
-  "締付・圧着工具",
-  "溶接機器",
-  "電源・配電機器",
-  "ポンプ・空圧機器",
-  "電動・汎用工具",
-  "集塵・吸引",
-  "測定・探査",
-  "その他"
-];
+const TOOL_GROUP_ORDER =
+  window.TOOL_GROUPS;
 
 
 /* =========================================
@@ -921,12 +909,15 @@ function buildGroupSelects() {
     sortToolGroups(
       [
         ...new Set(
-          sharedToolRecords.map(
-            tool =>
-              getToolGroup(
-                tool
-              )
-          )
+          [
+            ...TOOL_GROUP_ORDER,
+            ...sharedToolRecords.map(
+              tool =>
+                getToolGroup(
+                  tool
+                )
+            )
+          ]
         )
       ]
     );
