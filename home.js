@@ -25,6 +25,11 @@ const adminMenu =
     "adminMenu"
   );
 
+const adminPendingBadge =
+  document.getElementById(
+    "adminPendingBadge"
+  );
+
 const toolManagementMenu =
   document.getElementById(
     "toolManagementMenu"
@@ -39,6 +44,8 @@ const improvementThemeSummary =
   document.getElementById(
     "improvementThemeSummary"
   );
+
+let adminPendingRequestId = 0;
 
 
 /* =========================================
@@ -115,7 +122,12 @@ function showHomeScreen() {
         "hidden"
       );
     }
+
   }
+
+  loadAdminPendingApplicationCount(
+    loginUser
+  );
 
 
   /*
@@ -149,6 +161,124 @@ function showHomeScreen() {
 
 
   loadHomeSubmissionWarning();
+}
+
+
+/* =========================================
+   管理者カード 承認待ち件数
+========================================= */
+
+function hideAdminPendingBadge() {
+  if (!adminPendingBadge) {
+    return;
+  }
+
+  adminPendingBadge.textContent = "";
+  adminPendingBadge.setAttribute(
+    "aria-label",
+    "承認待ち0件"
+  );
+  adminPendingBadge.classList.add(
+    "hidden"
+  );
+}
+
+
+async function loadAdminPendingApplicationCount(
+  loginUser = getLoginUser()
+) {
+  const requestId =
+    ++adminPendingRequestId;
+
+  hideAdminPendingBadge();
+
+  if (
+    !adminPendingBadge ||
+    !loginUser ||
+    loginUser.adminScope !== "all"
+  ) {
+    return;
+  }
+
+  try {
+    const employeeUrl =
+      `${SUPABASE_URL}/rest/v1/employees` +
+      `?select=id` +
+      `&id=eq.${encodeURIComponent(loginUser.id)}` +
+      `&active=eq.true` +
+      `&admin_scope=eq.all` +
+      `&limit=1`;
+
+    const employeeResponse =
+      await portalFetch(
+        employeeUrl,
+        { cache: "no-store" }
+      );
+
+    if (!employeeResponse.ok) {
+      throw new Error(
+        "管理者権限を確認できませんでした"
+      );
+    }
+
+    const activeAdmins =
+      await employeeResponse.json();
+
+    if (
+      requestId !== adminPendingRequestId ||
+      activeAdmins.length === 0
+    ) {
+      return;
+    }
+
+    const applicationsUrl =
+      `${SUPABASE_URL}/rest/v1/applications` +
+      `?select=id` +
+      `&status=eq.submitted` +
+      `&application_type=in.(paid_leave,comp_leave)`;
+
+    const applicationsResponse =
+      await portalFetch(
+        applicationsUrl,
+        { cache: "no-store" }
+      );
+
+    if (!applicationsResponse.ok) {
+      throw new Error(
+        "承認待ち件数を取得できませんでした"
+      );
+    }
+
+    const applications =
+      await applicationsResponse.json();
+
+    if (requestId !== adminPendingRequestId) {
+      return;
+    }
+
+    const pendingCount =
+      applications.length;
+
+    if (pendingCount === 0) {
+      return;
+    }
+
+    adminPendingBadge.textContent =
+      String(pendingCount);
+    adminPendingBadge.setAttribute(
+      "aria-label",
+      `承認待ち${pendingCount}件`
+    );
+    adminPendingBadge.classList.remove(
+      "hidden"
+    );
+
+  } catch (error) {
+    console.error(
+      "承認待ち件数の取得エラー:",
+      error
+    );
+  }
 }
 
 
@@ -619,6 +749,33 @@ logoutButton.addEventListener(
 ========================================= */
 
 showHomeScreen();
+
+
+/*
+  ブラウザの戻る操作や、アプリを再表示した時にも
+  承認後の最新件数へ更新する。
+*/
+
+window.addEventListener(
+  "pageshow",
+  event => {
+    if (event.persisted) {
+      loadAdminPendingApplicationCount();
+    }
+  }
+);
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+    if (
+      document.visibilityState ===
+      "visible"
+    ) {
+      loadAdminPendingApplicationCount();
+    }
+  }
+);
 
 
 /* =========================================
