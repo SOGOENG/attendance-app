@@ -48,7 +48,15 @@ type DeliverySummary = {
   deactivated: number;
 };
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
 const jsonHeaders = {
+  ...corsHeaders,
   "Content-Type": "application/json; charset=utf-8",
 };
 
@@ -187,6 +195,13 @@ function getErrorMessage(error: unknown): string {
 }
 
 Deno.serve(async (request: Request) => {
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders,
+    });
+  }
+
   if (request.method !== "POST") {
     return jsonResponse({ success: false, error: "Method not allowed" }, 405);
   }
