@@ -52,6 +52,9 @@ const sharedToolResultClose =
 const sharedToolMessage =
   document.getElementById("sharedToolMessage");
 
+const sharedToolSummary =
+  document.getElementById("sharedToolSummary");
+
 const sharedToolList =
   document.getElementById("sharedToolList");
 
@@ -694,6 +697,34 @@ function getDisplayStatus(
   return tool.current_site_id
     ? "in_use"
     : "available";
+}
+
+
+function isToolAvailableForCheckout(
+  tool
+) {
+
+  return (
+    tool.ownership_type === "shared" &&
+    tool.active === true &&
+    tool.checkout_managed !== false &&
+    !tool.current_site_id &&
+    tool.status === "available" &&
+    getDisplayStatus(tool) === "available"
+  );
+}
+
+
+function isToolInUse(
+  tool
+) {
+
+  return (
+    tool.ownership_type === "shared" &&
+    tool.active === true &&
+    Boolean(tool.current_site_id) &&
+    getDisplayStatus(tool) === "in_use"
+  );
 }
 
 
@@ -1368,11 +1399,7 @@ function searchStock() {
   const filtered =
     sharedToolRecords.filter(
       tool =>
-        !tool.current_site_id &&
-        getDisplayStatus(
-          tool
-        ) ===
-          "available" &&
+        isToolAvailableForCheckout(tool) &&
         getToolGroup(
           tool
         ) ===
@@ -1474,8 +1501,54 @@ function showResult(
     title;
 
 
-  sharedToolMessage.textContent =
-    `${tools.length}件`;
+  const availableCount =
+    tools.filter(isToolAvailableForCheckout).length;
+
+
+  const inUseCount =
+    tools.filter(isToolInUse).length;
+
+
+  sharedToolSummary.innerHTML =
+    `
+      <div class="shared-tool-summary-item is-available">
+        <span>貸出可能</span>
+        <strong>${availableCount}件</strong>
+      </div>
+      <div class="shared-tool-summary-item is-in-use">
+        <span>使用中</span>
+        <strong>${inUseCount}件</strong>
+      </div>
+    `;
+
+
+  if (
+    availableCount === 0 &&
+    inUseCount === 0 &&
+    tools.length === 0
+  ) {
+
+    sharedToolMessage.textContent =
+      "該当する工具はありません";
+
+  } else if (
+    availableCount === 0 &&
+    inUseCount === 0
+  ) {
+
+    sharedToolMessage.textContent =
+      "貸出可能または使用中の工具はありません。";
+
+  } else if (availableCount === 0) {
+
+    sharedToolMessage.textContent =
+      "現在、倉庫に貸出可能な工具はありません。";
+
+  } else {
+
+    sharedToolMessage.textContent =
+      "";
+  }
 
 
   sharedToolResultSection
@@ -1509,27 +1582,74 @@ function renderToolCards(
   tools
 ) {
 
+  const availableTools =
+    tools.filter(isToolAvailableForCheckout);
+
+
+  const inUseTools =
+    tools.filter(isToolInUse);
+
+
+  const otherTools =
+    tools.filter(
+      tool =>
+        !isToolAvailableForCheckout(tool) &&
+        !isToolInUse(tool)
+    );
+
+
   sharedToolList.innerHTML =
-    "";
+    `
+      <section class="shared-tool-result-group">
+        <h3>貸出可能</h3>
+        <div id="sharedToolAvailableList" class="shared-tool-result-group-list"></div>
+      </section>
+      <section class="shared-tool-result-group">
+        <h3>使用中</h3>
+        <div id="sharedToolInUseList" class="shared-tool-result-group-list"></div>
+      </section>
+      ${otherTools.length ? `
+        <section class="shared-tool-result-group">
+          <h3>その他</h3>
+          <div id="sharedToolOtherList" class="shared-tool-result-group-list"></div>
+        </section>
+      ` : ""}
+    `;
 
 
-  if (
-    tools.length ===
-    0
-  ) {
+  const availableList =
+    document.getElementById("sharedToolAvailableList");
 
-    sharedToolList.innerHTML =
-      `
-        <p class="schedule-empty-message">
-          該当する工具はありません
-        </p>
-      `;
 
-    return;
+  const inUseList =
+    document.getElementById("sharedToolInUseList");
+
+
+  const otherList =
+    document.getElementById("sharedToolOtherList");
+
+
+  if (!availableTools.length) {
+    availableList.innerHTML =
+      '<p class="schedule-empty-message">現在、倉庫に貸出可能な工具はありません。</p>';
   }
 
 
-  tools.forEach(
+  if (!inUseTools.length) {
+    inUseList.innerHTML =
+      '<p class="schedule-empty-message">使用中の工具はありません。</p>';
+  }
+
+
+  const orderedTools =
+    [
+      ...availableTools,
+      ...inUseTools,
+      ...otherTools
+    ];
+
+
+  orderedTools.forEach(
     tool => {
 
       const card =
@@ -1540,12 +1660,6 @@ function renderToolCards(
 
       const displayStatus =
         getDisplayStatus(
-          tool
-        );
-
-
-      const locationText =
-        getCompactLocationText(
           tool
         );
 
@@ -1645,7 +1759,9 @@ function renderToolCards(
 
 
       location.textContent =
-        locationText;
+        displayStatus === "in_use"
+          ? `使用現場：${getSiteName(tool)}`
+          : `現在地：${getSiteName(tool)}`;
 
 
       const status =
@@ -1687,8 +1803,7 @@ function renderToolCards(
 
 
       if (
-        displayStatus ===
-        "available"
+        isToolAvailableForCheckout(tool)
       ) {
 
         actions.innerHTML =
@@ -1711,8 +1826,7 @@ function renderToolCards(
 
 
       if (
-        displayStatus ===
-        "in_use"
+        isToolInUse(tool)
       ) {
 
         actions.innerHTML =
@@ -1797,9 +1911,15 @@ function renderToolCards(
       );
 
 
-      sharedToolList.appendChild(
-        card
-      );
+      const targetList =
+        isToolAvailableForCheckout(tool)
+          ? availableList
+          : isToolInUse(tool)
+          ? inUseList
+          : otherList;
+
+
+      targetList.appendChild(card);
     }
   );
 }

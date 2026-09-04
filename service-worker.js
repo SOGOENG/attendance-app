@@ -3,7 +3,7 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v55";
+  "staff-portal-v59";
 
 const CACHE_FILES = [
   "./",
@@ -17,6 +17,8 @@ const CACHE_FILES = [
   "./applications-admin.html",
   "./application-print.html",
   "./tool-checkout.html",
+  "./tool-qr.html",
+  "./shared-tools.html",
   "./settings.html?v=2",
   "./help.html",
   "./schedule.html",
@@ -26,6 +28,7 @@ const CACHE_FILES = [
   "./near-miss-admin.html",
   "./style.css",
   "./style.css?v=26",
+  "./style.css?v=29",
   "./attendance-application-sync.css?v=1",
   "./applications.css?v=2",
   "./applications.css?v=3",
@@ -46,6 +49,8 @@ const CACHE_FILES = [
   "./application-print.js?v=3",
   "./tool-employees.js?v=1",
   "./tool-checkout.js?v=3",
+  "./tool-qr.js?v=16",
+  "./shared-tools.js?v=15",
   "./settings.js",
   "./schedule.js",
   "./admin.js",

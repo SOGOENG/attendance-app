@@ -2007,6 +2007,72 @@ html[data-portal-theme="dark"] textarea {
   text-decoration: none;
 }
 
+.shared-tool-result-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.shared-tool-summary-item {
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #f8fafc;
+}
+
+.shared-tool-summary-item span,
+.shared-tool-summary-item strong {
+  display: block;
+}
+
+.shared-tool-summary-item span {
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.shared-tool-summary-item strong {
+  margin-top: 3px;
+  color: #0f172a;
+  font-size: 1.25rem;
+}
+
+.shared-tool-summary-item.is-available {
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.shared-tool-summary-item.is-in-use {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
+.shared-tool-result-group + .shared-tool-result-group {
+  margin-top: 22px;
+}
+
+.shared-tool-result-group h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.shared-tool-result-group-list,
+.shared-tool-result-group-list article,
+.shared-tool-result-group-list article div,
+.shared-tool-result-group-list article span {
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 420px) {
+  .shared-tool-result-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
 .tool-detail-qr-display {
   margin-top: 16px;
   text-align: center;
