@@ -3,7 +3,7 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v60";
+  "staff-portal-v63";
 
 const CACHE_FILES = [
   "./",

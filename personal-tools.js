@@ -947,33 +947,10 @@ function selectLoginEmployee() {
 ========================================= */
 
 async function loadPersonalTools() {
-
-  const response =
-    await portalFetch(
-      `${SUPABASE_URL}/rest/v1/tools` +
-      `?select=*` +
-      `&ownership_type=eq.personal` +
-      `&order=tool_name.asc,management_code.asc`
-    );
-
-
-  if (!response.ok) {
-
-    console.error(
-      await response.text()
-    );
-
-
-    throw new Error(
-      "個人工具を読み込めませんでした"
-    );
-  }
-
-
-  personalToolRecords =
-    await response.json();
+  personalToolRecords = await ToolRegistration.loadTools(
+    "select=*&ownership_type=eq.personal&order=tool_name.asc,management_code.asc"
+  );
 }
-
 
 /* =========================================
    一覧表示
@@ -1307,10 +1284,23 @@ async function initializePersonalTools() {
 
 
     selectLoginEmployee();
+    if (isMineMode) {
+      personalToolEmployee.disabled = true;
+      initializePersonalToolRegistration(async employeeId => {
+        await loadPersonalTools();
+        populateEmployeeOptions();
+        personalToolEmployee.value = String(employeeId);
+        personalToolSearch.value = "";
+        personalToolTotalCount.textContent = personalToolRecords.filter(
+          tool => String(tool.assigned_employee_id) === String(employeeId)
+        ).length;
+        displayPersonalTools();
+      });
+    }
 
 
     personalToolTotalCount.textContent =
-      personalToolRecords.length;
+      isMineMode ? personalToolRecords.filter(tool => String(tool.assigned_employee_id) === personalToolEmployee.value).length : personalToolRecords.length;
 
 
     personalToolSearchButton.disabled =

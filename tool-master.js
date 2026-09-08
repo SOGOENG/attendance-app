@@ -1809,47 +1809,57 @@ async function saveTool() {
     }
 
 
-    const response =
-      await portalFetch(
-        url,
-        {
+    if (!isEditing && toolManagementCode.readOnly) {
+      const saved = await ToolRegistration.request("rpc/register_admin_tool", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ p_record: record, p_lathe_size: latheSizeSelect?.value || null })
+      });
+      record.management_code = (Array.isArray(saved) ? saved[0] : saved).management_code;
+    } else {
+      const response =
+        await portalFetch(
+          url,
+          {
 
-          method,
+            method,
 
-          headers: {
+            headers: {
 
-            "Content-Type":
-              "application/json",
+              "Content-Type":
+                "application/json",
 
-            Prefer:
-              "return=minimal"
-          },
+              Prefer:
+                "return=minimal"
+            },
 
-          body:
-            JSON.stringify(
-              record
-            )
-        }
-      );
-
-
-    if (
-      !response.ok
-    ) {
-
-      console.error(
-        await response.text()
-      );
+            body:
+              JSON.stringify(
+                record
+              )
+          }
+        );
 
 
-      throw new Error(
-        isEditing
-          ? "工具情報を保存できませんでした"
-          : "工具を登録できませんでした"
-      );
+      if (
+        !response.ok
+      ) {
+
+        console.error(
+          await response.text()
+        );
+
+
+        throw new Error(
+          isEditing
+            ? "工具情報を保存できませんでした"
+            : "工具を登録できませんでした"
+        );
+      }
+
+
+
     }
-
-
     await loadTools();
 
 
@@ -2542,25 +2552,7 @@ async function loadSites() {
 
 async function loadTools() {
 
-  const response =
-    await portalFetch(
-      `${SUPABASE_URL}/rest/v1/tools?select=*&order=tool_name.asc,management_code.asc`
-    );
-
-
-  if (
-    !response.ok
-  ) {
-
-    throw new Error(
-      "工具情報を読み込めませんでした"
-    );
-  }
-
-
-  toolRecords =
-    await response.json();
-
+  toolRecords = await ToolRegistration.loadTools();
 
   updateToolNameOptions();
 

@@ -72,6 +72,60 @@
 
     </header>
 
+    <section id="personalToolRegistration" class="admin-section-card hidden">
+      <button id="personalToolRegisterOpen" type="button" class="admin-primary-button"
+        aria-expanded="false" aria-controls="personalToolRegistrationForm">＋ 新規工具登録</button>
+      <form id="personalToolRegistrationForm" class="hidden">
+        <h2>個人工具の新規登録</h2>
+        <p>ログイン中の本人の個人工具として登録します。管理番号は自動採番されます。</p>
+        <label class="admin-form-label">大分類
+          <select name="group" class="admin-form-control" required></select>
+        </label>
+        <label class="admin-form-label">工具名
+          <select name="toolName" class="admin-form-control" required disabled></select>
+        </label>
+        <label class="admin-form-label hidden">旋盤サイズ
+          <select name="latheSize" class="admin-form-control">
+            <option value="">選択してください</option>
+            <option>1IN</option><option>2IN</option><option>3IN</option><option>4IN</option>
+          </select>
+        </label>
+        <label class="admin-form-label">規格
+          <input name="specification" class="admin-form-control" type="text">
+        </label>
+        <label class="admin-form-label">メーカー
+          <input name="manufacturer" class="admin-form-control" type="text">
+        </label>
+        <label class="admin-form-label">型式
+          <input name="modelNumber" class="admin-form-control" type="text">
+        </label>
+        <label class="admin-form-label">製造番号
+          <input name="serialNumber" class="admin-form-control" type="text">
+        </label>
+        <label class="admin-form-label">性能
+          <input name="performance" class="admin-form-control" type="text">
+        </label>
+        <label class="admin-form-label hidden">点検区分
+          <select name="inspectionCategory" class="admin-form-control" disabled>
+            <option value="">選択してください</option>
+            <option value="3p">3P工具</option>
+            <option value="double_insulated">二重絶縁工具</option>
+            <option value="cord_reel">コードリール</option>
+            <option value="ac_welder">交流式溶接機</option>
+            <option value="dc_welder">直流式溶接機</option>
+          </select>
+        </label>
+        <p id="personalToolInspectionHint" aria-live="polite"></p>
+        <label class="admin-form-label">備考
+          <textarea name="note" class="admin-form-control" rows="3"></textarea>
+        </label>
+        <button type="submit" class="admin-primary-button" disabled>登録する</button>
+        <button id="personalToolRegisterCancel" type="button" class="admin-secondary-button">キャンセル</button>
+      </form>
+      <p id="personalToolRegistrationMessage" class="schedule-message" role="status" aria-live="polite"></p>
+    </section>
+
+
 
     <!-- ==============================
          登録件数
@@ -258,7 +312,9 @@
     src="https://unpkg.com/html5-qrcode"
   ></script>
 
-  <script src="./personal-tools.js?v=5"></script>
+  <script src="./tool-registration.js?v=1"></script>
+  <script src="./personal-tool-registration.js?v=3"></script>
+  <script src="./personal-tools.js?v=6"></script>
 
 </body>
 
