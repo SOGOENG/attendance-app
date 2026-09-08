@@ -1,0 +1,125 @@
+/* 管理者の代休管理内にある休日出勤履歴だけに適用する。 */
+#workPanel #workList .work-history-summary {
+  margin-bottom: 10px;
+  padding: 14px;
+  border: 1px solid var(--ap-line);
+  border-radius: 10px;
+  background: var(--ap-bg);
+}
+
+#workPanel #workList .work-summary-balance {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+#workPanel #workList .work-summary-balance strong {
+  display: inline-block;
+  color: var(--ap-blue);
+  font-size: 30px;
+}
+
+#workPanel #workList .work-summary-balance small {
+  margin-left: 3px;
+  font-size: 16px;
+}
+
+#workPanel #workList .work-summary-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 8px;
+  margin: 5px 0 0;
+  color: var(--ap-muted);
+  font-size: 13px;
+}
+
+#workPanel #workList .work-summary-details span + span::before {
+  content: "/ ";
+}
+
+#workPanel #workList {
+  gap: 0;
+}
+
+#workPanel #workList .work-history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ap-line);
+  min-width: 0;
+}
+
+#workPanel #workList .work-history-row:last-child {
+  border-bottom: 0;
+}
+
+#workPanel #workList .work-history-heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#workPanel #workList h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+#workPanel #workList .work-history-row p {
+  margin: 0;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+#workPanel #workList .work-history-days {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+}
+
+#workPanel #workList .work-history-days span {
+  white-space: nowrap;
+}
+
+#workPanel #workList .work-history-days span + span::before {
+  content: "/ ";
+  color: var(--ap-muted);
+}
+
+#workPanel #workList .work-history-note {
+  color: var(--ap-muted);
+}
+
+#workPanel #workList .work-history-row > p {
+  grid-column: 1;
+}
+
+#workPanel #workList .record-actions {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  align-self: center;
+  flex-wrap: wrap;
+  margin: 0;
+  gap: 6px;
+}
+
+#workPanel #workList .record-actions button {
+  min-height: 44px;
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+@media (max-width: 520px) {
+  #workPanel #workList .work-history-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #workPanel #workList .record-actions {
+    grid-column: 1;
+    grid-row: auto;
+    justify-content: flex-end;
+  }
+}
