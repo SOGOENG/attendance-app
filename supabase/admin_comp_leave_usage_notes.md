@@ -1,17 +1,17 @@
 # 管理者による代休使用の直接登録
 
-SQL未適用。検証用DBで `add_admin_comp_leave_usage.sql` をレビュー・適用した後、検証SQLを実行する。
+既存の直接登録SQLは本番適用済み。予約競合の修正は `fix_comp_leave_reservations.sql` が差分SQL（未適用）。適用手順と検証は `comp_leave_reservations_notes.md` を参照。
 
 ## 既存処理との整合
 
 - 通常申請は本人が割当元を選択する。承認RPCは日数一致・本人の有効な休日出勤への割当を検証し、ID順でロックして既存再計算関数を呼ぶ。自動FIFOの既存RPCはない。
 - 直接登録は管理者用RPCで `work_date,id` の昇順にFIFO充当する。ロックは通常承認と同じID順。使用済み・残日数は既存 `recalculate_holiday_work_record()` に任せる。
-- 同関数および休日出勤の訂正・取消は「承認済みapplicationsへの割当」を参照するため、直接登録も承認済みの `applications` と `comp_leave_application_details` / `comp_leave_dates` / `comp_leave_allocations` に保存する。新しい残数管理テーブルは作らない。
+- 再計算関数は承認済み割当、休日出勤の訂正・取消は提出済み・承認済み割当を参照するため、直接登録も承認済みの `applications` と `comp_leave_application_details` / `comp_leave_dates` / `comp_leave_allocations` に保存する。新しい残数管理テーブルは作らない。
 - `applications.reviewer_comment` に `admin_comp_usage:要求UUID`、日付明細に `admin_direct=true` を保存する。備考はapplicant_noteと詳細note、登録者はcreated_by_employee_id、日時はcreated_at。通常の申請承認履歴でも承認済み記録として参照可能になる。
 - 直接登録専用履歴には社員・日付・日数・登録者（氏名が取得できない場合もID）・備考・登録日時を表示する。代休管理の通常申請履歴とは分けて表示する。
 - INSERT時の既存actorトリガーが対象社員を管理者に固定するため、権限検証済みRPC内で対象社員へ更新する。既存actorトリガーを変更・無効化しない。
 - 直接承認済みとしてINSERTするため、通常申請の承認への状態遷移と出勤簿同期は実行しない。今回は使用残数の登録のみで、出勤簿は変更しない。既存の通常承認・出勤簿同期関数は変更しない。
-- 提出済み申請は既存ロジックと同様まだ使用済みではない。直接登録で残数が減ると、その後の通常承認が残数不足で拒否される場合がある。
+- 提出済み申請は使用済みには含めず、予約済みとして保護する。直接登録と通常提出は共通関数で予約控除後の使用可能残数を検証する。
 
 ## DB変更
 

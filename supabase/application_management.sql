@@ -757,6 +757,44 @@ $$;
 -- 4. 申請状態遷移RPC
 -- --------------------------------------------------------------------------
 
+-- Shared definitions. Included in application_management.sql and the upgrade SQL.
+create or replace function public.comp_leave_availability_internal(
+  p_employee_id bigint, p_exclude_application_id bigint default null)
+returns table(id bigint, work_date date, site_id bigint, remaining_days numeric,
+  reserved_days numeric, available_days numeric)
+language sql volatile security definer set search_path = '' as $$
+  select h.id, h.work_date, h.site_id, h.remaining_days,
+    coalesce(r.days,0), greatest(h.remaining_days-coalesce(r.days,0),0)
+  from public.holiday_work_records h
+  left join lateral (
+    select sum(ca.allocated_days) as days
+    from public.comp_leave_allocations ca
+    join public.applications a on a.id=ca.application_id
+    where ca.holiday_work_record_id=h.id
+      and a.application_type='comp_leave' and a.status='submitted'
+      and a.id is distinct from p_exclude_application_id
+  ) r on true
+  where h.employee_id=p_employee_id and h.status='active';
+$$;
+
+create or replace function public.get_comp_leave_availability(p_employee_id bigint)
+returns table(id bigint, work_date date, site_id bigint, remaining_days numeric,
+  reserved_days numeric, available_days numeric)
+language plpgsql security definer set search_path = '' as $$
+begin
+  if public.current_employee_id() is null or not (
+    p_employee_id=public.current_employee_id()
+    or coalesce(public.is_leave_manager(),false)
+    or coalesce(public.is_application_admin(),false)
+  ) then raise exception 'forbidden'; end if;
+  return query select * from public.comp_leave_availability_internal(p_employee_id)
+    order by work_date,id;
+end;
+$$;
+revoke all on function public.comp_leave_availability_internal(bigint,bigint) from public,anon,authenticated;
+revoke all on function public.get_comp_leave_availability(bigint) from public,anon,authenticated;
+grant execute on function public.get_comp_leave_availability(bigint) to authenticated;
+
 create or replace function public.submit_application(p_application_id bigint)
 returns void
 language plpgsql
@@ -767,6 +805,7 @@ declare
   v_app public.applications%rowtype;
   v_leave_days numeric(6,2);
   v_allocated_days numeric(6,2);
+  v_record_id bigint;
 begin
   select * into v_app from public.applications
   where id = p_application_id for update;
@@ -791,6 +830,29 @@ begin
     if v_allocated_days <> v_leave_days then
       raise exception 'comp_leave_allocation_mismatch';
     end if;
+    -- Serialize with approval, direct usage and holiday-work correction/cancellation.
+    -- Check ownership/status AFTER acquiring locks, using a fresh statement snapshot.
+    perform h.id from public.holiday_work_records h
+    where h.id in (select ca.holiday_work_record_id from public.comp_leave_allocations ca
+      where ca.application_id=v_app.id)
+    order by h.id for update;
+    if exists (
+      select 1 from public.comp_leave_allocations ca
+      left join public.holiday_work_records h on h.id=ca.holiday_work_record_id
+        and h.employee_id=v_app.employee_id and h.status='active'
+      where ca.application_id=v_app.id and h.id is null
+    ) then raise exception 'invalid_or_cancelled_holiday_work_record'; end if;
+    for v_record_id in select holiday_work_record_id from public.comp_leave_allocations
+      where application_id=v_app.id order by holiday_work_record_id
+    loop
+      perform public.recalculate_holiday_work_record(v_record_id);
+    end loop;
+    if exists (
+      select 1 from public.comp_leave_allocations ca
+      join public.comp_leave_availability_internal(v_app.employee_id,v_app.id) b
+        on b.id=ca.holiday_work_record_id
+      where ca.application_id=v_app.id and ca.allocated_days>b.available_days
+    ) then raise exception 'insufficient_comp_leave_balance'; end if;
   else
     raise exception 'unsupported_application_type';
   end if;

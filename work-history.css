@@ -1,5 +1,54 @@
-/* 管理者の代休管理内にある休日出勤履歴だけに適用する。 */
-#workPanel #workList .work-history-summary {
+/* 代休・有給管理の共通折りたたみUI。履歴行のスタイルは代休のみ。 */
+.personal-employee-selector { margin: 16px 0; }
+.personal-employee-selector h2 { margin: 0 0 14px; font-size: 18px; }
+.personal-employee-selector p { margin: 0; color: var(--ap-muted); font-size: 14px; }
+.personal-controls { min-width: 0; margin: 0; padding: 0; border: 0; }
+.personal-controls:disabled input,
+.personal-controls:disabled select,
+.personal-controls:disabled textarea,
+.personal-controls:disabled button { opacity: .55; }
+:is(#workPanel, #balancePanel) .work-disclosure {
+  margin: 0 0 10px;
+  border: 1px solid var(--ap-line);
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+}
+
+:is(#workPanel, #balancePanel) .work-disclosure > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 54px;
+  padding: 14px;
+  color: var(--ap-ink);
+  background: var(--ap-bg);
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+  touch-action: manipulation;
+}
+
+:is(#workPanel, #balancePanel) .work-disclosure > summary::-webkit-details-marker { display: none; }
+:is(#workPanel, #balancePanel) .work-disclosure > summary::after {
+  content: "▼";
+  flex: 0 0 auto;
+  color: var(--ap-blue);
+  font-size: 12px;
+}
+:is(#workPanel, #balancePanel) .work-disclosure[open] > summary::after { content: "▲"; }
+:is(#workPanel, #balancePanel) .work-disclosure > summary:focus-visible {
+  outline: 3px solid var(--ap-blue);
+  outline-offset: -3px;
+}
+:is(#workPanel, #balancePanel) .work-disclosure-content { padding: 14px; }
+#workUsageSection .work-disclosure-content:has(#adminCompUsage:not([hidden])) > .empty {
+  display: none;
+}
+
+#workPanel #workSummary .work-history-summary {
   margin-bottom: 10px;
   padding: 14px;
   border: 1px solid var(--ap-line);
@@ -7,24 +56,24 @@
   background: var(--ap-bg);
 }
 
-#workPanel #workList .work-summary-balance {
+#workPanel #workSummary .work-summary-balance {
   margin: 0;
   font-size: 16px;
   font-weight: 700;
 }
 
-#workPanel #workList .work-summary-balance strong {
+#workPanel #workSummary .work-summary-balance strong {
   display: inline-block;
   color: var(--ap-blue);
   font-size: 30px;
 }
 
-#workPanel #workList .work-summary-balance small {
+#workPanel #workSummary .work-summary-balance small {
   margin-left: 3px;
   font-size: 16px;
 }
 
-#workPanel #workList .work-summary-details {
+#workPanel #workSummary .work-summary-details {
   display: flex;
   flex-wrap: wrap;
   gap: 3px 8px;
@@ -33,7 +82,7 @@
   font-size: 13px;
 }
 
-#workPanel #workList .work-summary-details span + span::before {
+#workPanel #workSummary .work-summary-details span + span::before {
   content: "/ ";
 }
 

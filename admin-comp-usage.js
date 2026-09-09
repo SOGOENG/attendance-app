@@ -57,15 +57,10 @@ window.createAdminCompUsage = function ({
       return;
     }
 
-    remaining = records
-      .filter(row => row.status === 'active')
-      .reduce(
-        (sum, row) => sum + Number(row.remaining_days),
-        0
-      );
+    remaining = 0; // Disable submission until authoritative availability arrives.
 
     const summary = document.querySelector(
-      '#workList .work-history-summary'
+      '#workSummary .work-history-summary, #workList .work-history-summary'
     );
 
     if (!summary) {
@@ -74,7 +69,9 @@ window.createAdminCompUsage = function ({
     }
 
     if (panel) {
-      summary.insertAdjacentElement('afterend', panel);
+      if (!panel.closest?.('.work-disclosure')) {
+        summary.insertAdjacentElement('afterend', panel);
+      }
       panel.hidden = false;
     }
 
@@ -92,17 +89,21 @@ window.createAdminCompUsage = function ({
     }
 
     try {
-      const historyRows = await rpc(
-        'admin_comp_leave_usage_history',
-        {
-          p_employee_id: employeeId
-        }
-      );
+      const [historyRows, balances] = await Promise.all([
+        rpc('admin_comp_leave_usage_history', { p_employee_id: employeeId }),
+        rpc('get_comp_leave_availability', { p_employee_id: employeeId })
+      ]);
 
       if (token !== generation) {
         return;
       }
 
+      remaining = balances.reduce((sum, row) => sum + Number(row.available_days), 0);
+      const daysInput = $('adminCompUsageDays');
+      if (daysInput) daysInput.max = String(remaining);
+      const balanceMessage = $('adminCompUsageMessage');
+      if (balanceMessage && !busy) balanceMessage.textContent = `使用可能 ${remaining}日（提出済みの予約分を除く）`;
+      if (button) button.disabled = busy || !allowed() || remaining <= 0;
       const currentHistory = $('adminCompUsageHistory');
 
       if (!currentHistory) {
@@ -310,7 +311,9 @@ window.createAdminCompUsage = function ({
               workList &&
               panel
             ) {
-              workList.appendChild(panel);
+              if (!panel.closest?.('.work-disclosure')) {
+                workList.appendChild(panel);
+              }
               panel.hidden = false;
             }
 

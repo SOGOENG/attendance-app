@@ -77,8 +77,8 @@ begin
   for v_record in select id from public.holiday_work_records
     where employee_id=p_employee_id and status='active' order by id for update
   loop perform public.recalculate_holiday_work_record(v_record.id); end loop;
-  select coalesce(sum(remaining_days),0) into v_remaining from public.holiday_work_records
-    where employee_id=p_employee_id and status='active';
+  select coalesce(sum(available_days),0) into v_remaining
+    from public.comp_leave_availability_internal(p_employee_id);
   if p_days>v_remaining then raise exception '現在の代休残日数を超えています'; end if;
   -- Insert approved directly: usage-ledger entry, not an attendance application transition.
   -- Existing INSERT actor trigger initially fixes employee to actor; trusted RPC then sets target.
@@ -91,11 +91,11 @@ begin
   insert into public.comp_leave_dates(application_id,leave_date,days,admin_direct)
     values(v_app,p_usage_date,p_days,true);
   v_remaining:=p_days;
-  for v_record in select id,remaining_days from public.holiday_work_records
-    where employee_id=p_employee_id and status='active' and remaining_days>0 order by work_date,id
+  for v_record in select id,available_days from public.comp_leave_availability_internal(p_employee_id)
+    where available_days>0 order by work_date,id
   loop
     exit when v_remaining=0;
-    v_take:=least(v_remaining,v_record.remaining_days);
+    v_take:=least(v_remaining,v_record.available_days);
     insert into public.comp_leave_allocations(application_id,holiday_work_record_id,allocated_days)
       values(v_app,v_record.id,v_take);
     perform public.recalculate_holiday_work_record(v_record.id);

@@ -3,7 +3,7 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v63";
+  "staff-portal-v68";
 
 const CACHE_FILES = [
   "./",
@@ -44,7 +44,7 @@ const CACHE_FILES = [
   "./improvement.js",
   "./near-miss.js",
   "./my-page.js?v=5",
-  "./applications.js?v=7",
+  "./applications.js?v=8",
   "./applications-admin.js?v=7",
   "./application-print.js?v=3",
   "./tool-employees.js?v=1",
