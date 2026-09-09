@@ -15,7 +15,7 @@
 
   <link
     rel="stylesheet"
-    href="style.css?v=29"
+    href="style.css?v=30"
   >
 
   <link
@@ -76,8 +76,10 @@
       <button id="personalToolRegisterOpen" type="button" class="admin-primary-button"
         aria-expanded="false" aria-controls="personalToolRegistrationForm">＋ 新規工具登録</button>
       <form id="personalToolRegistrationForm" class="hidden">
-        <h2>個人工具の新規登録</h2>
-        <p>ログイン中の本人の個人工具として登録します。管理番号は自動採番されます。</p>
+        <h2 id="personalToolFormTitle">個人工具の新規登録</h2>
+        <p id="personalToolFormGuide">ログイン中の本人の個人工具として登録します。管理番号は自動採番されます。</p>
+        <button id="personalToolCorrectIdentity" type="button" class="admin-secondary-button hidden">工具名を訂正する</button>
+        <p id="personalToolIdentityHint" role="status" aria-live="polite"></p>
         <label class="admin-form-label">大分類
           <select name="group" class="admin-form-control" required></select>
         </label>
@@ -132,17 +134,10 @@
     ============================== -->
     <section class="admin-section-card">
 
-      <h2>
-        個人工具
-      </h2>
-
-      <p>
-        登録件数：
-        <strong id="personalToolTotalCount">
-          0
-        </strong>
-        件
-      </p>
+      <details id="personalToolOwnDetails" class="personal-tool-own-details">
+        <summary>個人工具　<span id="personalToolTotalCount">0</span>件</summary>
+        <div id="personalToolOwnList" class="tool-list" aria-live="polite"></div>
+      </details>
 
     </section>
 
@@ -312,9 +307,9 @@
     src="https://unpkg.com/html5-qrcode"
   ></script>
 
-  <script src="./tool-registration.js?v=1"></script>
-  <script src="./personal-tool-registration.js?v=3"></script>
-  <script src="./personal-tools.js?v=6"></script>
+  <script src="./tool-registration.js?v=3"></script>
+  <script src="./personal-tool-registration.js?v=6"></script>
+  <script src="./personal-tools.js?v=7"></script>
 
 </body>
 

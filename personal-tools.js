@@ -1269,6 +1269,35 @@ personalToolQrCancelButton
    初期処理
 ========================================= */
 
+function renderOwnPersonalTools(employeeId, editor) {
+  const list = document.getElementById("personalToolOwnList");
+  const ownTools = personalToolRecords.filter(tool => tool.ownership_type === "personal" &&
+    String(tool.assigned_employee_id) === String(employeeId));
+  personalToolTotalCount.textContent = ownTools.length;
+  list.replaceChildren();
+  if (!ownTools.length) list.textContent = "登録済みの個人工具はありません。";
+  const categories = {"3p":"3P工具", double_insulated:"二重絶縁工具", cord_reel:"コードリール",
+    ac_welder:"交流式溶接機", dc_welder:"直流式溶接機"};
+  ownTools.forEach(tool => {
+    const card = document.createElement("article");
+    card.className = "personal-tool-own-card";
+    const fields = [["管理番号",tool.management_code],["大分類",tool.tool_group],["規格",tool.specification],
+      ["メーカー",tool.manufacturer],["型式",tool.model_number],["製造番号",tool.serial_number],
+      ["性能",tool.performance],["点検区分",tool.inspection_required === false ? "点検対象外" : categories[tool.inspection_category] || tool.inspection_category],
+      ["状態",formatToolStatus(getDisplayStatus(tool))],["備考",tool.note]];
+    card.innerHTML = `<h3>${escapeHtml(tool.tool_name || "名称なし")}</h3><dl>${fields
+      .filter(([,value]) => value !== null && value !== undefined && value !== "")
+      .map(([label,value]) => `<div><dt>${label}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl>`;
+    const edit = document.createElement("button");
+    edit.type = "button";
+    edit.className = "admin-secondary-button";
+    edit.textContent = "修正";
+    edit.addEventListener("click", () => editor.edit(tool));
+    card.appendChild(edit);
+    list.appendChild(card);
+  });
+}
+
 async function initializePersonalTools() {
 
   try {
@@ -1284,23 +1313,22 @@ async function initializePersonalTools() {
 
 
     selectLoginEmployee();
-    if (isMineMode) {
-      personalToolEmployee.disabled = true;
-      initializePersonalToolRegistration(async employeeId => {
+    if (isMineMode) personalToolEmployee.disabled = true;
+    const authUserId = getPortalAuthSession()?.user?.id;
+    const self = employeeRecords.find(employee => authUserId && employee.auth_user_id === authUserId && employee.active === true);
+    if (self) {
+      const editor = initializePersonalToolRegistration(async () => {
+        const selectedEmployee = personalToolEmployee.value;
         await loadPersonalTools();
         populateEmployeeOptions();
-        personalToolEmployee.value = String(employeeId);
-        personalToolSearch.value = "";
-        personalToolTotalCount.textContent = personalToolRecords.filter(
-          tool => String(tool.assigned_employee_id) === String(employeeId)
-        ).length;
-        displayPersonalTools();
-      });
+        personalToolEmployee.value = selectedEmployee;
+        renderOwnPersonalTools(self.id, editor);
+        if (!personalToolResultSection.classList.contains("hidden")) displayPersonalTools();
+      }, self.id);
+      renderOwnPersonalTools(self.id, editor);
+    } else {
+      document.getElementById("personalToolOwnList").textContent = "本人の社員情報を確認できませんでした。再ログインしてください。";
     }
-
-
-    personalToolTotalCount.textContent =
-      isMineMode ? personalToolRecords.filter(tool => String(tool.assigned_employee_id) === personalToolEmployee.value).length : personalToolRecords.length;
 
 
     personalToolSearchButton.disabled =

@@ -2609,3 +2609,11 @@ html[data-portal-theme="dark"] .day-row.company-holiday:not(.attendance-saturday
 html[data-portal-theme="dark"] .day-row.company-holiday:not(.attendance-saturday) .week {
   color: #fecaca;
 }
+.personal-tool-own-details > summary { cursor: pointer; min-height: 48px; padding: 12px 0; font-size: 1.2rem; font-weight: 700; }
+.personal-tool-own-details > summary:focus-visible { outline: 2px solid #2563eb; outline-offset: 4px; }
+.personal-tool-own-card { padding: 16px 0; border-bottom: 1px solid #d9e2ef; overflow-wrap: anywhere; }
+.personal-tool-own-card h3 { margin: 0 0 12px; }
+.personal-tool-own-card dl > div { display: flex; gap: 12px; margin: 8px 0; }
+.personal-tool-own-card dt { flex: 0 0 6em; font-weight: 700; }
+.personal-tool-own-card dd { margin: 0; white-space: pre-wrap; min-width: 0; }
+.personal-tool-own-card button { min-height: 44px; min-width: 88px; }

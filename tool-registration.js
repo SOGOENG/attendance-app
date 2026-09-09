@@ -16,6 +16,20 @@ window.ToolRegistration = Object.freeze({
       method: "POST", headers: { "Content-Type": "application/json" }, body: "{}"
     });
   },
+  async correctPersonalIdentity(values) {
+    const data = await this.request("rpc/correct_personal_tool_identity", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(values)
+    });
+    return Array.isArray(data) ? data[0] : data;
+  },
+  async updatePersonal(values) {
+    const data = await this.request("rpc/update_personal_tool", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(values)
+    });
+    return Array.isArray(data) ? data[0] : data;
+  },
   async registerPersonal(values) {
     const data = await this.request("rpc/register_personal_tool", {
       method: "POST", headers: { "Content-Type": "application/json" },
