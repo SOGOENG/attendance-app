@@ -1284,7 +1284,7 @@ function renderOwnPersonalTools(employeeId, editor) {
     const fields = [["管理番号",tool.management_code],["大分類",tool.tool_group],["規格",tool.specification],
       ["メーカー",tool.manufacturer],["型式",tool.model_number],["製造番号",tool.serial_number],
       ["性能",tool.performance],["点検区分",tool.inspection_required === false ? "点検対象外" : categories[tool.inspection_category] || tool.inspection_category],
-      ["状態",formatToolStatus(getDisplayStatus(tool))],["備考",tool.note]];
+      ["備考",tool.note]];
     card.innerHTML = `<h3>${escapeHtml(tool.tool_name || "名称なし")}</h3><dl>${fields
       .filter(([,value]) => value !== null && value !== undefined && value !== "")
       .map(([label,value]) => `<div><dt>${label}</dt><dd>${escapeHtml(value)}</dd></div>`).join("")}</dl>`;
