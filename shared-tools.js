@@ -84,6 +84,7 @@ const sharedToolQrMessage =
 ========================================= */
 
 let sharedToolRecords = [];
+let activeToolSearch = null;
 let siteRecords = [];
 let employeeRecords = [];
 
@@ -1289,8 +1290,7 @@ function searchByCategory() {
   }
 
 
-  const filtered =
-    sharedToolRecords.filter(
+  const matches = (
       tool =>
         getToolGroup(
           tool
@@ -1301,9 +1301,10 @@ function searchByCategory() {
     );
 
 
-  showResult(
+  setToolSearch(
+    "category",
     `${group} ＞ ${toolName}`,
-    filtered
+    matches
   );
 }
 
@@ -1339,8 +1340,7 @@ function searchBySite() {
     "";
 
 
-  const filtered =
-    sharedToolRecords.filter(
+  const matches = (
       tool =>
         String(
           tool.current_site_id
@@ -1351,9 +1351,10 @@ function searchBySite() {
     );
 
 
-  showResult(
+  setToolSearch(
+    "site",
     `現場：${siteName}`,
-    filtered
+    matches
   );
 }
 
@@ -1396,8 +1397,7 @@ function searchStock() {
   }
 
 
-  const filtered =
-    sharedToolRecords.filter(
+  const matches = (
       tool =>
         isToolAvailableForCheckout(tool) &&
         getToolGroup(
@@ -1409,9 +1409,10 @@ function searchStock() {
     );
 
 
-  showResult(
+  setToolSearch(
+    "stock",
     `在庫：${group} ＞ ${toolName}`,
-    filtered
+    matches
   );
 }
 
@@ -1444,8 +1445,7 @@ function searchTools() {
   }
 
 
-  const filtered =
-    sharedToolRecords.filter(
+  const matches = (
       tool => {
 
         const target =
@@ -1481,9 +1481,10 @@ function searchTools() {
     );
 
 
-  showResult(
+  setToolSearch(
+    "keyword",
     `検索結果：「${rawKeyword}」`,
-    filtered
+    matches
   );
 }
 
@@ -1492,9 +1493,25 @@ function searchTools() {
    結果表示
 ========================================= */
 
+function setToolSearch(type, title, matches) {
+  // Keep the submitted conditions, even if inputs are edited before the next search.
+  activeToolSearch = { type, title, matches };
+  renderCurrentToolSearch(true);
+}
+
+function renderCurrentToolSearch(scroll = false) {
+  if (!activeToolSearch) return;
+  showResult(
+    activeToolSearch.title,
+    sharedToolRecords.filter(activeToolSearch.matches),
+    scroll
+  );
+}
+
 function showResult(
   title,
-  tools
+  tools,
+  scroll = true
 ) {
 
   sharedToolResultTitle.textContent =
@@ -1563,7 +1580,7 @@ function showResult(
   );
 
 
-  sharedToolResultSection
+  if (scroll) sharedToolResultSection
     .scrollIntoView({
       behavior:
         "smooth",
@@ -2009,14 +2026,21 @@ async function returnTool(
     );
 
 
-    await initialize();
+    // The RPC has committed: reflect the return even if the subsequent GET fails.
+    Object.assign(tool, {
+      current_site_id: null,
+      assigned_employee_id: null,
+      status: "available"
+    });
+    renderCurrentToolSearch();
 
-
-    sharedToolResultSection
-      .classList
-      .add(
-        "hidden"
-      );
+    try {
+      await loadTools();
+      renderCurrentToolSearch();
+    } catch (error) {
+      console.error(error);
+      alert("返却は完了しましたが、最新の工具一覧を取得できませんでした");
+    }
 
 
   } catch (error) {
