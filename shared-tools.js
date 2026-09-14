@@ -1462,19 +1462,34 @@ function searchTools() {
 ========================================= */
 
 function setToolSearch(type, title, matches) {
-  // Keep the submitted conditions, even if inputs are edited before the next search.
-  activeToolSearch = { type, title, matches };
+  activeToolSearch = {
+    type,
+    title,
+    matches
+  };
+
   renderCurrentToolSearch(true);
 }
 
-function renderCurrentToolSearch(scroll = false) {
-  if (!activeToolSearch) return;
+
+function renderCurrentToolSearch(
+  scroll = false
+) {
+
+  if (!activeToolSearch) {
+    return;
+  }
+
+
   showResult(
     activeToolSearch.title,
-    sharedToolRecords.filter(activeToolSearch.matches),
+    sharedToolRecords.filter(
+      activeToolSearch.matches
+    ),
     scroll
   );
 }
+
 
 function showResult(
   title,
@@ -1487,11 +1502,15 @@ function showResult(
 
 
   const availableCount =
-    tools.filter(isToolAvailableForCheckout).length;
+    tools.filter(
+      isToolAvailableForCheckout
+    ).length;
 
 
   const inUseCount =
-    tools.filter(isToolInUse).length;
+    tools.filter(
+      isToolInUse
+    ).length;
 
 
   sharedToolSummary.innerHTML =
@@ -1524,7 +1543,9 @@ function showResult(
     sharedToolMessage.textContent =
       "貸出可能または使用中の工具はありません。";
 
-  } else if (availableCount === 0) {
+  } else if (
+    availableCount === 0
+  ) {
 
     sharedToolMessage.textContent =
       "現在、倉庫に貸出可能な工具はありません。";
@@ -1548,14 +1569,17 @@ function showResult(
   );
 
 
-  if (scroll) sharedToolResultSection
-    .scrollIntoView({
-      behavior:
-        "smooth",
+  if (scroll) {
 
-      block:
-        "start"
-    });
+    sharedToolResultSection
+      .scrollIntoView({
+        behavior:
+          "smooth",
+
+        block:
+          "start"
+      });
+  }
 }
 
 
@@ -1568,18 +1592,26 @@ function renderToolCards(
 ) {
 
   const availableTools =
-    tools.filter(isToolAvailableForCheckout);
+    tools.filter(
+      isToolAvailableForCheckout
+    );
 
 
   const inUseTools =
-    tools.filter(isToolInUse);
+    tools.filter(
+      isToolInUse
+    );
 
 
   const otherTools =
     tools.filter(
       tool =>
-        !isToolAvailableForCheckout(tool) &&
-        !isToolInUse(tool)
+        !isToolAvailableForCheckout(
+          tool
+        ) &&
+        !isToolInUse(
+          tool
+        )
     );
 
 
@@ -1587,40 +1619,63 @@ function renderToolCards(
     `
       <section class="shared-tool-result-group">
         <h3>貸出可能</h3>
-        <div id="sharedToolAvailableList" class="shared-tool-result-group-list"></div>
+        <div
+          id="sharedToolAvailableList"
+          class="shared-tool-result-group-list"
+        ></div>
       </section>
+
       <section class="shared-tool-result-group">
         <h3>使用中</h3>
-        <div id="sharedToolInUseList" class="shared-tool-result-group-list"></div>
+        <div
+          id="sharedToolInUseList"
+          class="shared-tool-result-group-list"
+        ></div>
       </section>
-      ${otherTools.length ? `
-        <section class="shared-tool-result-group">
-          <h3>その他</h3>
-          <div id="sharedToolOtherList" class="shared-tool-result-group-list"></div>
-        </section>
-      ` : ""}
+
+      ${
+        otherTools.length
+          ? `
+            <section class="shared-tool-result-group">
+              <h3>その他</h3>
+              <div
+                id="sharedToolOtherList"
+                class="shared-tool-result-group-list"
+              ></div>
+            </section>
+          `
+          : ""
+      }
     `;
 
 
   const availableList =
-    document.getElementById("sharedToolAvailableList");
+    document.getElementById(
+      "sharedToolAvailableList"
+    );
 
 
   const inUseList =
-    document.getElementById("sharedToolInUseList");
+    document.getElementById(
+      "sharedToolInUseList"
+    );
 
 
   const otherList =
-    document.getElementById("sharedToolOtherList");
+    document.getElementById(
+      "sharedToolOtherList"
+    );
 
 
   if (!availableTools.length) {
+
     availableList.innerHTML =
       '<p class="schedule-empty-message">現在、倉庫に貸出可能な工具はありません。</p>';
   }
 
 
   if (!inUseTools.length) {
+
     inUseList.innerHTML =
       '<p class="schedule-empty-message">使用中の工具はありません。</p>';
   }
@@ -1649,16 +1704,12 @@ function renderToolCards(
         );
 
 
-      /* 1工具ごとの区切り */
-
       card.style.padding =
         "12px 0";
 
       card.style.borderBottom =
         "1px solid #d9e2ef";
 
-
-      /* 管理番号 */
 
       const code =
         document.createElement(
@@ -1693,8 +1744,6 @@ function renderToolCards(
         "0.95rem";
 
 
-      /* 工具名 */
-
       const name =
         document.createElement(
           "div"
@@ -1715,8 +1764,6 @@ function renderToolCards(
       name.style.fontSize =
         "1.05rem";
 
-
-      /* 現在地・状態 */
 
       const bottom =
         document.createElement(
@@ -1744,9 +1791,14 @@ function renderToolCards(
 
 
       location.textContent =
-        displayStatus === "in_use"
-          ? `使用現場：${getSiteName(tool)}`
-          : `現在地：${getSiteName(tool)}`;
+        displayStatus ===
+        "in_use"
+          ? `使用現場：${getSiteName(
+              tool
+            )}`
+          : `現在地：${getSiteName(
+              tool
+            )}`;
 
 
       const status =
@@ -1771,8 +1823,6 @@ function renderToolCards(
       );
 
 
-      /* 操作ボタン */
-
       const actions =
         document.createElement(
           "div"
@@ -1788,7 +1838,9 @@ function renderToolCards(
 
 
       if (
-        isToolAvailableForCheckout(tool)
+        isToolAvailableForCheckout(
+          tool
+        )
       ) {
 
         actions.innerHTML =
@@ -1811,7 +1863,9 @@ function renderToolCards(
 
 
       if (
-        isToolInUse(tool)
+        isToolInUse(
+          tool
+        )
       ) {
 
         actions.innerHTML =
@@ -1897,14 +1951,20 @@ function renderToolCards(
 
 
       const targetList =
-        isToolAvailableForCheckout(tool)
+        isToolAvailableForCheckout(
+          tool
+        )
           ? availableList
-          : isToolInUse(tool)
+          : isToolInUse(
+              tool
+            )
           ? inUseList
           : otherList;
 
 
-      targetList.appendChild(card);
+      targetList.appendChild(
+        card
+      );
     }
   );
 }
@@ -1930,9 +1990,7 @@ async function returnTool(
     );
 
 
-  if (
-    !tool
-  ) {
+  if (!tool) {
 
     alert(
       "工具情報が見つかりません"
@@ -1942,11 +2000,32 @@ async function returnTool(
   }
 
 
-  if (returningToolIds.has(String(tool.id))) return;
-  if (!window.SharedToolState.canMoveOrReturn(tool)) {
-    alert("この工具は現在返却できません");
+  if (
+    returningToolIds.has(
+      String(
+        tool.id
+      )
+    )
+  ) {
+
     return;
   }
+
+
+  if (
+    !window.SharedToolState
+      .canMoveOrReturn(
+        tool
+      )
+  ) {
+
+    alert(
+      "この工具は現在返却できません"
+    );
+
+    return;
+  }
+
 
   const confirmed =
     window.confirm(
@@ -1960,38 +2039,67 @@ async function returnTool(
     );
 
 
-  if (
-    !confirmed
-  ) {
-
+  if (!confirmed) {
     return;
   }
 
 
   try {
 
-    returningToolIds.add(String(tool.id));
-    await window.SharedToolState.returnSharedTool(tool.id, SUPABASE_URL);
+    returningToolIds.add(
+      String(
+        tool.id
+      )
+    );
+
+
+    await window.SharedToolState
+      .returnSharedTool(
+        tool.id,
+        SUPABASE_URL
+      );
+
 
     alert(
       "工具を返却しました"
     );
 
 
-    // The RPC has committed: reflect the return even if the subsequent GET fails.
-    Object.assign(tool, {
-      current_site_id: null,
-      assigned_employee_id: null,
-      status: "available"
-    });
+    Object.assign(
+      tool,
+      {
+        current_site_id:
+          null,
+
+        assigned_employee_id:
+          null,
+
+        status:
+          "available"
+      }
+    );
+
+
     renderCurrentToolSearch();
 
+
     try {
+
       await loadTools();
+
+
       renderCurrentToolSearch();
+
     } catch (error) {
-      console.error(error);
-      alert("返却は完了しましたが、最新の工具一覧を取得できませんでした");
+
+      console.error(
+        error
+      );
+
+
+      alert(
+        "返却は完了しましたが、最新の工具一覧を取得できませんでした"
+      );
     }
 
 
@@ -2005,8 +2113,14 @@ async function returnTool(
     alert(
       error.message
     );
+
   } finally {
-    returningToolIds.delete(String(tool.id));
+
+    returningToolIds.delete(
+      String(
+        tool.id
+      )
+    );
   }
 }
 
@@ -2116,8 +2230,26 @@ async function initialize() {
     ]);
 
 
-    try { searchToolCatalog = await ToolRegistration.loadMasterCatalog() || []; }
-    catch (error) { console.warn("工具名マスタを取得できないため既存工具から検索候補を表示します", error); }
+    try {
+
+      searchToolCatalog =
+        await ToolRegistration
+          .loadCatalog() ||
+        [];
+
+    } catch (error) {
+
+      console.warn(
+        "工具名マスタを取得できないため既存工具から検索候補を表示します",
+        error
+      );
+
+
+      searchToolCatalog =
+        [];
+    }
+
+
     buildGroupSelects();
 
 
