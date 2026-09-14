@@ -107,6 +107,12 @@
         <label class="admin-form-label">性能
           <input name="performance" class="admin-form-control" type="text">
         </label>
+        <label class="admin-form-label hidden">点検対象（この工具の設定）
+          <select name="inspectionRequired" class="admin-form-control">
+            <option value="true">対象</option>
+            <option value="false">対象外</option>
+          </select>
+        </label>
         <label class="admin-form-label hidden">点検区分
           <select name="inspectionCategory" class="admin-form-control" disabled>
             <option value="">選択してください</option>

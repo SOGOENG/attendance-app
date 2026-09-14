@@ -23,7 +23,7 @@ class Element {
 const elements = new Map();
 const get = id => { if (!elements.has(id)) elements.set(id, new Element()); return elements.get(id); };
 const form = get('personalToolRegistrationForm');
-form.elements = Object.fromEntries(['group','toolName','latheSize','inspectionCategory','specification','note','manufacturer','modelNumber','serialNumber','performance'].map(n => [n,new Element()]));
+form.elements = Object.fromEntries(['group','toolName','latheSize','inspectionRequired','inspectionCategory','specification','note','manufacturer','modelNumber','serialNumber','performance'].map(n => [n,new Element()]));
 const save = new Element();
 form.querySelector = () => save;
 const calls = [];
@@ -132,6 +132,16 @@ assert.equal(get('personalToolFormTitle').textContent,'個人工具の新規登�
 assert.equal(form.elements.group.disabled,false);
 assert.equal(form.elements.group.closest('label').classList.contains('hidden'),false);
 console.log('PASS: owner/shared guards, edit prefill, immutable payload, lathe without renumbering, retry, duplicate submit, battery rule, refresh and return to registration');
+const previousCatalog = context.ToolRegistration.loadCatalog;
+context.ToolRegistration.loadCatalog = async () => [];
+await editor.edit({...own,tool_name:'無効化済み工具',inspection_required:false});
+assert.equal(form.elements.toolName.value,'無効化済み工具');
+assert.equal(form.elements.inspectionCategory.required,false);
+assert.equal(save.disabled,false);
+await form.events.submit({preventDefault(){}});
+assert.equal(updateCalls.at(-1).p_name,'無効化済み工具');
+context.ToolRegistration.loadCatalog = previousCatalog;
+console.log('PASS: inactive or renamed historical tool remains editable without registration candidates');
 const html=await source('personal-tools.html');
 assert.match(html,/<details id="personalToolOwnDetails" class="personal-tool-own-details">/);
 const page=await source('personal-tools.js');
@@ -142,7 +152,8 @@ const cardContext=vm.createContext({personalToolRecords:[own,{...own,id:43,assig
 document:{getElementById:()=>list,createElement:()=>({children:[],appendChild(child){this.children.push(child);},addEventListener(name,fn){this[name]=fn;}})},escapeHtml:x=>String(x).replaceAll('<','&lt;'),formatToolStatus:x=>x,getDisplayStatus:()=> 'available'});
 vm.runInContext(render,cardContext);cardContext.renderOwnPersonalTools(7,{edit:t=>edited.push(t.id)});
 assert.equal(count.textContent,1);assert.equal(list.children.length,1);
-for(const label of ['管理番号','規格','メーカー','型式','製造番号','性能','点検区分','状態','備考'])assert.ok(list.children[0].innerHTML.includes(label));
+for(const label of ['管理番号','規格','メーカー','型式','製造番号','性能','点検区分','備考'])assert.ok(list.children[0].innerHTML.includes(label));
+assert.ok(!list.children[0].innerHTML.includes('状態'), 'personal cards keep status hidden');
 list.children[0].children[0].click();assert.deepEqual(edited,[42]);
 cardContext.renderOwnPersonalTools(99,{});assert.equal(count.textContent,0);assert.match(list.textContent,/ありません/);
 console.log('PASS: own cards only, all card fields, edit target and empty state');
@@ -178,3 +189,12 @@ form.elements.toolName.value='充電インパクト';form.elements.toolName.even
 assert.equal(form.elements.group.value,'充電工具');
 assert.equal(save.disabled,false);
 console.log('PASS: name-only selection sets group, ambiguous names fail closed, correction copy, legacy error normalization, contractor denial, registration group restored');
+
+for (const legacyCategory of ['3P','二重絶縁','要確認']) {
+  await editor.edit({...own,inspection_category:legacyCategory});
+  assert.equal(form.elements.inspectionCategory.value,legacyCategory);
+  assert.equal(save.disabled,false);
+  await form.events.submit({preventDefault(){}});
+  assert.equal(updateCalls.at(-1).p_inspection_category,legacyCategory);
+}
+console.log('PASS: existing tool category spellings remain unchanged on normal edit');

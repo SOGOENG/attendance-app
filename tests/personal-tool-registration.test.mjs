@@ -33,7 +33,7 @@ class Element {
 const elements = new Map();
 const get = id => { if (!elements.has(id)) elements.set(id, new Element()); return elements.get(id); };
 const form = get('personalToolRegistrationForm');
-form.elements = Object.fromEntries(['group','toolName','latheSize','inspectionCategory','specification','note','manufacturer','modelNumber','serialNumber','performance'].map(n => [n,new Element()]));
+form.elements = Object.fromEntries(['group','toolName','latheSize','inspectionRequired','inspectionCategory','specification','note','manufacturer','modelNumber','serialNumber','performance'].map(n => [n,new Element()]));
 const save = new Element();
 form.querySelector = () => save;
 const calls = [];
@@ -45,7 +45,9 @@ const context = vm.createContext({
     loadCatalog: async () => [
       {tool_group:'充電工具',tool_name:'充電インパクト',},
       {tool_group:'配管加工機',tool_name:'旋盤',},
-      {tool_group:'その他',tool_name:'複数区分の工具'}
+      {tool_group:'その他',tool_name:'複数区分の工具'},
+      {tool_group:'その他',tool_name:'点検不要工具',inspection_required:false},
+      {tool_group:'その他',tool_name:'初期区分工具',inspection_required:true,inspection_category:'double_insulated'}
     ],
     registerPersonal: async values => {
       calls.push(values);
@@ -128,7 +130,7 @@ const saveFunction = adminSource.slice(adminSource.indexOf('async function saveT
 for (const scenario of ['automatic','manual','edit']) {
   const requests = []; let loads = 0;
   const admin = vm.createContext({
-    clearToolMessage(){}, validateTool(){}, showToolMessage(message){throw new Error(message);},
+    toolCatalog:null, clearToolMessage(){}, validateTool(){}, showToolMessage(message){throw new Error(message);},
     editingToolId:{value:scenario === 'edit' ? '10' : ''},
     toolManagementCode:{readOnly:scenario === 'automatic'},latheSizeSelect:{value:''},
     createToolData:()=>({management_code:'BI-001',tool_name:'充電インパクト'}),
@@ -171,3 +173,34 @@ const incrementalSql = await source('supabase/add_personal_tool_registration_det
 const extractRpc = sql => sql.slice(sql.indexOf('create or replace function public.register_personal_tool('),sql.indexOf('end;\n$;',sql.indexOf('create or replace function public.register_personal_tool('))+8);
 assert.equal(extractRpc(fullSql),extractRpc(incrementalSql));
 console.log('PASS: full and incremental RPC definitions match; optional details payload and empty NULL');
+
+await open.events.click();
+form.elements.group.value='その他'; form.elements.group.events.change();
+form.elements.toolName.value='点検不要工具'; form.elements.toolName.events.change();
+assert.equal(form.elements.inspectionCategory.required,false);
+assert.equal(save.disabled,false);
+form.elements.toolName.value='初期区分工具'; form.elements.toolName.events.change();
+assert.equal(form.elements.inspectionCategory.value,'double_insulated');
+assert.equal(form.elements.inspectionCategory.required,true);
+form.elements.inspectionCategory.value='3p'; form.elements.inspectionCategory.events.change();
+assert.equal(form.elements.inspectionCategory.value,'3p');
+console.log('PASS: catalog inspection defaults, non-inspection new names, user category override');
+
+failRefresh=false;
+form.elements.inspectionRequired.value='false'; form.elements.inspectionRequired.events.change();
+form.elements.inspectionCategory.value=''; form.elements.inspectionCategory.events.change();
+assert.equal(form.elements.inspectionCategory.required,false);
+await form.events.submit({preventDefault(){}});
+assert.equal(calls.at(-1).p_inspection_required,false);
+assert.equal(calls.at(-1).p_inspection_category,null);
+await open.events.click();
+form.elements.group.value='その他'; form.elements.group.events.change();
+form.elements.toolName.value='点検不要工具'; form.elements.toolName.events.change();
+form.elements.inspectionRequired.value='true'; form.elements.inspectionRequired.events.change();
+assert.equal(form.elements.inspectionCategory.required,true);
+assert.equal(save.disabled,true);
+form.elements.inspectionCategory.value='3p'; form.elements.inspectionCategory.events.change();
+await form.events.submit({preventDefault(){}});
+assert.equal(calls.at(-1).p_inspection_required,true);
+assert.equal(calls.at(-1).p_inspection_category,'3p');
+console.log('PASS: individual required/category overrides persist, including explicit false and null');

@@ -57,6 +57,29 @@
     </header>
 
 
+
+    <section id="toolCatalogAdmin" class="admin-section-card" hidden>
+      <h2>工具名マスタ管理</h2>
+      <p>新しい工具名はこちらで追加してください。無効化は新規登録候補から外す操作です。既存工具は変更されません。点検設定は新規登録時の初期値で、実機に合わせて変更できます。</p>
+      <p>旋盤は従来どおり SB-サイズ で採番します。接頭辞の変更は旋盤の採番には反映されません。</p>
+      <label class="admin-form-label">大分類<select id="catalogGroup" class="admin-form-control"></select></label>
+      <div id="catalogList" class="admin-action-buttons"></div>
+      <button id="catalogAdd" type="button" class="admin-primary-button">新規工具名追加</button>
+      <form id="catalogForm" hidden>
+        <label class="admin-form-label">工具名<input name="toolName" class="admin-form-control" required></label>
+        <label class="admin-form-label">管理番号接頭辞<input name="codePrefix" class="admin-form-control" pattern="[A-Za-z0-9]+(-[A-Za-z0-9]+)*" placeholder="AC" required></label>
+        <label class="admin-form-label"><input name="inspectionRequired" type="checkbox" checked> 点検対象の初期値</label>
+        <label class="admin-form-label">点検区分の初期値<select name="inspectionCategory" class="admin-form-control">
+          <option value="">なし／登録時に選択</option><option value="3p">3P工具</option><option value="double_insulated">二重絶縁工具</option><option value="battery">充電式工具</option><option value="cord_reel">コードリール</option><option value="ac_welder">交流式溶接機</option><option value="dc_welder">直流式溶接機</option>
+        </select></label>
+        <label class="admin-form-label">並び順<input name="sortOrder" type="number" min="-2147483648" max="2147483647" step="1" value="0" class="admin-form-control" required></label>
+        <label class="admin-form-label"><input name="active" type="checkbox" checked> 有効</label>
+        <button type="submit" class="admin-primary-button">工具名マスタを保存</button>
+        <button id="catalogCancel" type="button" class="admin-secondary-button">閉じる</button>
+      </form>
+      <p id="catalogMessage" class="schedule-message" role="status"></p>
+    </section>
+
     <!-- 新規工具登録ボタン -->
     <section class="admin-section-card">
 
@@ -496,6 +519,7 @@
   <script src="./tool-groups.js?v=1"></script>
   <script src="./tool-registration.js?v=1"></script>
   <script src="./tool-master.js?v=23"></script>
+  <script src="./tool-catalog-admin.js?v=1"></script>
 
 </body>
 

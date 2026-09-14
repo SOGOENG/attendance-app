@@ -4,14 +4,26 @@ window.ToolRegistration = Object.freeze({
     const response = await portalFetch(`${PORTAL_SUPABASE_URL}/rest/v1/${path}`, options);
     const data = await response.json().catch(() => null);
     if (!response.ok) {
-      throw new Error(data?.message || "工具情報を取得・保存できませんでした");
+      const error = new Error(data?.message || "工具情報を取得・保存できませんでした");
+      error.code = data?.code;
+      throw error;
     }
     return data;
   },
   loadTools(query = "select=*&order=tool_name.asc,management_code.asc") {
     return this.request(`tools?${query}`);
   },
-  loadCatalog() {
+  async loadMasterCatalog() {
+    try {
+      return await this.request("tool_catalog?select=*&order=sort_order.asc,tool_name.asc,id.asc");
+    } catch (error) {
+      if (["42P01", "PGRST205"].includes(error.code)) return null;
+      throw error;
+    }
+  },
+  async loadCatalog() {
+    const catalog = await this.loadMasterCatalog();
+    if (catalog !== null) return catalog.filter(item => item.active);
     return this.request("rpc/personal_tool_catalog", {
       method: "POST", headers: { "Content-Type": "application/json" }, body: "{}"
     });

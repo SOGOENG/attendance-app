@@ -84,6 +84,7 @@ const sharedToolQrMessage =
 ========================================= */
 
 let sharedToolRecords = [];
+let searchToolCatalog = [];
 let activeToolSearch = null;
 const returningToolIds = new Set();
 let siteRecords = [];
@@ -909,6 +910,7 @@ function buildGroupSelects() {
         ...new Set(
           [
             ...TOOL_GROUP_ORDER,
+            ...searchToolCatalog.map(item => item.tool_group),
             ...sharedToolRecords.map(
               tool =>
                 getToolGroup(
@@ -1013,7 +1015,7 @@ function updateToolNameSelect() {
   const toolNames =
     [
       ...new Set(
-        sharedToolRecords
+        [...sharedToolRecords, ...searchToolCatalog]
           .filter(
             tool =>
               getToolGroup(
@@ -2114,6 +2116,8 @@ async function initialize() {
     ]);
 
 
+    try { searchToolCatalog = await ToolRegistration.loadMasterCatalog() || []; }
+    catch (error) { console.warn("工具名マスタを取得できないため既存工具から検索候補を表示します", error); }
     buildGroupSelects();
 
 

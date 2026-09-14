@@ -108,6 +108,7 @@ const toolSearchResultTitle =
 ========================================= */
 
 let toolRecords = [];
+let toolCatalog = null;
 let employeeRecords = [];
 let siteRecords = [];
 
@@ -564,7 +565,7 @@ function updateInspectionFields() {
 
   const isBatteryTool =
     toolGroup.value ===
-    "充電工具";
+    "充電工具" && (toolCatalog === null || Boolean(editingToolId.value));
 
 
   if (isBatteryTool) {
@@ -1043,10 +1044,8 @@ function updateAutomaticManagementCode() {
   }
 
 
-  let prefix =
-    findExistingPrefix(
-      currentToolName
-    );
+  let prefix = toolCatalog?.find(item => item.tool_group === toolGroup.value && item.tool_name === currentToolName)?.code_prefix;
+  if (toolCatalog === null) prefix = findExistingPrefix(currentToolName);
 
 
   if (
@@ -1143,6 +1142,8 @@ function handleToolGroupChange() {
 function getToolNamesForGroup(
   group
 ) {
+
+  if (toolCatalog !== null) return toolCatalog.filter(item => item.active && item.tool_group === group).map(item => item.tool_name);
 
   const fixedNames =
     TOOL_NAME_OPTIONS[group] ||
@@ -1276,7 +1277,7 @@ function updateToolNameOptions(
   }
 
 
-  if (group) {
+  if (group && toolCatalog === null) {
 
     const newOption =
       document.createElement(
@@ -1319,13 +1320,13 @@ function updateSearchToolNameOptions() {
 
 
   let targetTools =
-    toolRecords;
+    [...toolRecords, ...(toolCatalog || [])];
 
 
   if (group) {
 
     targetTools =
-      toolRecords.filter(
+      targetTools.filter(
         tool =>
           tool.tool_group ===
           group
@@ -1561,7 +1562,7 @@ function createToolData() {
 
   const isBatteryTool =
     toolGroup.value ===
-    "充電工具";
+    "充電工具" && (toolCatalog === null || Boolean(editingToolId.value));
 
 
   return {
@@ -1748,6 +1749,9 @@ async function saveTool() {
   try {
 
     validateTool();
+    if (!editingToolId.value && toolCatalog !== null && !toolCatalog.some(item => item.active && item.tool_group === toolGroup.value && item.tool_name === getToolNameValue())) {
+      throw new Error("有効な工具名マスタを選択してください。新しい工具名は工具名マスタ管理から追加してください。");
+    }
 
   } catch (error) {
 
@@ -2553,6 +2557,12 @@ async function loadSites() {
 async function loadTools() {
 
   toolRecords = await ToolRegistration.loadTools();
+  toolCatalog = await ToolRegistration.loadMasterCatalog();
+  for (const item of [...toolRecords, ...(toolCatalog || [])]) {
+    for (const select of [toolGroup, toolSearchGroup]) {
+      if (item.tool_group && !Array.from(select.options).some(option => option.value === item.tool_group)) select.add(new Option(item.tool_group, item.tool_group));
+    }
+  }
 
   updateToolNameOptions();
 
@@ -2888,6 +2898,12 @@ toolName
       }
 
 
+      const master = toolCatalog?.find(item => item.tool_group === toolGroup.value && item.tool_name === toolName.value);
+      if (master && !editingToolId.value) {
+        toolInspectionRequired.value = String(master.inspection_required);
+        toolInspectionCategory.value = master.inspection_category || "";
+        updateInspectionFields();
+      }
       updateLatheSizeField();
 
 

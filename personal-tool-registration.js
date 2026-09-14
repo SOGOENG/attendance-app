@@ -11,7 +11,8 @@ window.initializePersonalToolRegistration = function (refreshList, employeeId) {
   const name = form.elements.toolName;
   const size = form.elements.latheSize;
   const category = form.elements.inspectionCategory;
-  const allowedCategories = ["3p", "double_insulated", "cord_reel", "ac_welder", "dc_welder"];
+  const required = form.elements.inspectionRequired;
+  const allowedCategories = ["3p", "double_insulated", "battery", "cord_reel", "ac_welder", "dc_welder"];
   const save = form.querySelector('[type="submit"]');
   let catalog = [];
   let busy = false;
@@ -46,14 +47,19 @@ window.initializePersonalToolRegistration = function (refreshList, employeeId) {
     size.closest("label").classList.toggle("hidden", !isLathe);
     size.required = isLathe;
     if (!isLathe) size.value = "";
-    const needsCategory = Boolean(group.value) && group.value !== "充電工具";
-    category.closest("label").classList.toggle("hidden", !needsCategory);
+    const usesDefaults = !editingTool && typeof item?.inspection_required === "boolean";
+    required.closest("label").classList.toggle("hidden", !usesDefaults);
+    required.disabled = !usesDefaults || busy;
+    const needsCategory = usesDefaults ? required.value === "true" :
+      Boolean(group.value) && group.value !== "充電工具" && (correctingIdentity ? true : editingTool ? editingTool.inspection_required !== false : true);
+    const showCategory = usesDefaults || needsCategory;
+    category.closest("label").classList.toggle("hidden", !showCategory);
     category.required = needsCategory;
-    category.disabled = !needsCategory;
-    if (!needsCategory) category.value = "";
+    category.disabled = !showCategory;
+    if (!showCategory && !editingTool) category.value = "";
     document.getElementById("personalToolInspectionHint").textContent = !item ? "" :
       needsCategory ? "点検対象として登録されます。工具本体を確認して点検区分を選択してください。" : "点検対象外として登録されます";
-    save.disabled = busy || !item || (needsCategory && !allowedCategories.includes(category.value)) ||
+    save.disabled = busy || !item || (needsCategory && !allowedCategories.includes(category.value) && !(editingTool && !correctingIdentity && category.value === editingTool.inspection_category)) ||
       (correctingIdentity && !identityChanged);
     if (editingTool) {
       group.disabled = true;
@@ -72,9 +78,15 @@ window.initializePersonalToolRegistration = function (refreshList, employeeId) {
       category.value = "";
       selectCorrectionTool();
     }
+    if (!editingTool) {
+      const master = catalog.find(item => item.tool_group === group.value && item.tool_name === name.value);
+      required.value = String(master?.inspection_required ?? group.value !== "充電工具");
+      category.value = master?.inspection_category || "";
+    }
     updateName();
   });
   category.addEventListener("change", updateName);
+  required.addEventListener("change", updateName);
   section.classList.remove("hidden");
   async function openForm(tool = null) {
     if (busy || loading) return;
@@ -85,6 +97,9 @@ window.initializePersonalToolRegistration = function (refreshList, employeeId) {
     message.textContent = "工具マスタを読み込んでいます…";
     try {
       catalog = await ToolRegistration.loadCatalog();
+      if ((tool?.inspection_category === "battery" || catalog.some(item => item.inspection_category === "battery")) && !Array.from(category.options).some(option => option.value === "battery")) category.add(new Option("充電式工具", "battery"));
+      if (tool && !catalog.some(item => item.tool_group === tool.tool_group && item.tool_name === tool.tool_name)) catalog.push({...tool, active: false});
+      if (tool?.inspection_category && !Array.from(category.options).some(option => option.value === tool.inspection_category)) category.add(new Option(`${tool.inspection_category}（現在値）`, tool.inspection_category));
       editingTool = tool;
       correctingIdentity = false;
       form.reset();
@@ -132,7 +147,7 @@ window.initializePersonalToolRegistration = function (refreshList, employeeId) {
     correctIdentity.textContent = correctingIdentity ? "工具名の訂正をやめる" : "工具名を訂正する";
     identityHint.textContent = correctionGuide;
     if (correctingIdentity) {
-      options(name, [...new Set(catalog.map(item => item.tool_name))]);
+      options(name, [...new Set(catalog.filter(item => item.active !== false).map(item => item.tool_name))]);
       name.value = editingTool.tool_name;
       selectCorrectionTool();
     } else {
@@ -164,7 +179,7 @@ window.initializePersonalToolRegistration = function (refreshList, employeeId) {
         return;
       }
     }
-    if (group.value !== "充電工具" && !allowedCategories.includes(category.value)) {
+    if (category.required && !allowedCategories.includes(category.value) && !(editingTool && !correctingIdentity && category.value === editingTool.inspection_category)) {
       message.textContent = "点検区分を選択してください";
       return;
     }
@@ -177,7 +192,7 @@ window.initializePersonalToolRegistration = function (refreshList, employeeId) {
         p_group: group.value, p_name: name.value,
         p_specification: form.elements.specification.value.trim(),
         p_note: form.elements.note.value.trim(), p_lathe_size: size.value || null,
-        p_inspection_category: group.value === "充電工具" ? null : category.value,
+        p_inspection_category: (!isEditing && !required.disabled) || (isEditing && !correctingIdentity) ? category.value || null : group.value === "充電工具" ? null : category.value || null,
         p_manufacturer: form.elements.manufacturer.value.trim() || null,
         p_model_number: form.elements.modelNumber.value.trim() || null,
         p_serial_number: form.elements.serialNumber.value.trim() || null,
@@ -190,6 +205,8 @@ window.initializePersonalToolRegistration = function (refreshList, employeeId) {
         delete values.p_lathe_size;
         tool = await ToolRegistration.updatePersonal({p_tool_id: editingTool.id, ...values});
       } else {
+        const master = catalog.find(item => item.tool_group === group.value && item.tool_name === name.value);
+        if (typeof master?.inspection_required === "boolean") values.p_inspection_required = required.value === "true";
         tool = await ToolRegistration.registerPersonal(values);
       }
       editingTool = null;
