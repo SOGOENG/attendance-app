@@ -151,7 +151,8 @@
         <!-- 半年点検 -->
         <a
           href="tool-inspection.html"
-          class="admin-menu-card"
+          id="toolInspectionMenu"
+          class="admin-menu-card hidden"
         >
 
           <div class="admin-menu-card-text">
@@ -267,6 +268,7 @@
         }).then(canManageTools => {
           if (canManageTools === true) {
             document.getElementById("personalToolsMenu").classList.remove("hidden");
+            document.getElementById("toolInspectionMenu").classList.remove("hidden");
           }
         }).catch(error => console.error(error));
 
