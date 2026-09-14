@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 
+const commonSource = await readFile(new URL('../shared-tool-state.js', import.meta.url), 'utf8');
 const source = await readFile(new URL('../shared-tools.js', import.meta.url), 'utf8');
 new vm.Script(source);
 const start = source.indexOf('async function returnTool(');
@@ -12,8 +13,9 @@ for (const scenario of ['success', 'rpc-error', 'non-json-error', 'network-error
   const calls = [], alerts = [];
   let refreshed = 0, hidden = 0, rendered = 0;
   const context = vm.createContext({
+    returningToolIds: new Set(),
     SUPABASE_URL: 'https://example.invalid',
-    sharedToolRecords: scenario === 'missing' ? [] : [{ id: 42, tool_name: '工具' }],
+    sharedToolRecords: scenario === 'missing' ? [] : [{ id: 42, tool_name: '工具', ownership_type: 'shared', active: true, checkout_managed: true, current_site_id: 10 }],
     window: { confirm: () => scenario !== 'cancel' },
     alert: message => alerts.push(message),
     console: { error() {} },
@@ -33,6 +35,7 @@ for (const scenario of ['success', 'rpc-error', 'non-json-error', 'network-error
       };
     }
   });
+  vm.runInContext(commonSource, context);
   vm.runInContext(returnSource, context);
   await context.returnTool(42);
   assert.equal(calls.length, ['cancel', 'missing'].includes(scenario) ? 0 : 1);
@@ -98,6 +101,7 @@ for (const mode of ['site', 'category', 'keyword', 'stock', 'refresh-error']) {
       return { ok: true, json: async () => records.map(t => ({ ...t })) };
     }
   });
+  vm.runInContext(commonSource, context);
   vm.runInContext(source.replace(/initialize\(\);\s*$/, ''), context);
   context.renderToolCards = tools => { displayed = Array.from(tools); };
   context.fixture = records.map(t => ({ ...t }));

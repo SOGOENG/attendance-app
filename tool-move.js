@@ -263,6 +263,9 @@ async function loadTool() {
   currentTool =
     tools[0];
 
+  moveButton.hidden = currentTool.ownership_type === "shared" && !window.SharedToolState.canMoveOrReturn(currentTool);
+  if (moveButton.hidden) moveMessage.textContent = "現在操作できません";
+
   moveToolName.textContent =
     `${currentTool.tool_name}` +
     `${
@@ -334,6 +337,11 @@ async function moveTool() {
     moveMessage.textContent =
       "工具情報がありません";
 
+    return;
+  }
+
+  if (currentTool.ownership_type === "shared" && !window.SharedToolState.canMoveOrReturn(currentTool)) {
+    moveMessage.textContent = "現在操作できません";
     return;
   }
 

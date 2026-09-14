@@ -85,6 +85,7 @@ const sharedToolQrMessage =
 
 let sharedToolRecords = [];
 let activeToolSearch = null;
+const returningToolIds = new Set();
 let siteRecords = [];
 let employeeRecords = [];
 
@@ -681,51 +682,16 @@ function getCompactLocationText(
 }
 
 
-function getDisplayStatus(
-  tool
-) {
-
-  if (
-    tool.status === "repair" ||
-    tool.status === "stopped" ||
-    tool.status === "disposed"
-  ) {
-
-    return tool.status;
-  }
-
-
-  return tool.current_site_id
-    ? "in_use"
-    : "available";
+function getDisplayStatus(tool) {
+  return window.SharedToolState.getDisplayToolStatus(tool);
 }
 
-
-function isToolAvailableForCheckout(
-  tool
-) {
-
-  return (
-    tool.ownership_type === "shared" &&
-    tool.active === true &&
-    tool.checkout_managed !== false &&
-    !tool.current_site_id &&
-    tool.status === "available" &&
-    getDisplayStatus(tool) === "available"
-  );
+function isToolAvailableForCheckout(tool) {
+  return window.SharedToolState.canCheckout(tool);
 }
 
-
-function isToolInUse(
-  tool
-) {
-
-  return (
-    tool.ownership_type === "shared" &&
-    tool.active === true &&
-    Boolean(tool.current_site_id) &&
-    getDisplayStatus(tool) === "in_use"
-  );
+function isToolInUse(tool) {
+  return window.SharedToolState.canMoveOrReturn(tool);
 }
 
 
@@ -1974,6 +1940,12 @@ async function returnTool(
   }
 
 
+  if (returningToolIds.has(String(tool.id))) return;
+  if (!window.SharedToolState.canMoveOrReturn(tool)) {
+    alert("この工具は現在返却できません");
+    return;
+  }
+
   const confirmed =
     window.confirm(
       `${tool.tool_name}` +
@@ -1996,30 +1968,8 @@ async function returnTool(
 
   try {
 
-    const response =
-      await portalFetch(
-        `${SUPABASE_URL}/rest/v1/rpc/return_shared_tool`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            p_tool_id: tool.id
-          })
-        }
-      );
-
-    if (!response.ok) {
-      let message = "工具の返却に失敗しました";
-      try {
-        const error = await response.json();
-        if (error?.message) message = error.message;
-      } catch {
-        // JSON以外のエラー応答では既定メッセージを表示する。
-      }
-      throw new Error(message);
-    }
+    returningToolIds.add(String(tool.id));
+    await window.SharedToolState.returnSharedTool(tool.id, SUPABASE_URL);
 
     alert(
       "工具を返却しました"
@@ -2053,6 +2003,8 @@ async function returnTool(
     alert(
       error.message
     );
+  } finally {
+    returningToolIds.delete(String(tool.id));
   }
 }
 

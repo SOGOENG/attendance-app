@@ -3,9 +3,10 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v76";
+  "staff-portal-v77";
 
 const CACHE_FILES = [
+  "./shared-tool-state.js?v=1",
   "./",
   "./login.html",
   "./home.html",

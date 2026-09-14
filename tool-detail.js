@@ -568,15 +568,11 @@ function getEmployeeDisplayName(
 ========================================= */
 
 function getDisplayToolStatus(tool) {
-  if (["repair", "stopped", "disposed"].includes(tool.status)) {
-    return tool.status;
+  if (tool.ownership_type === "shared") {
+    return window.SharedToolState.getDisplayToolStatus(tool);
   }
-
-  if (tool.ownership_type === "shared" && tool.current_site_id) {
-    return "in_use";
-  }
-
-  return "available";
+  // Preserve the existing display for personal and contractor tools.
+  return ["repair", "stopped", "disposed"].includes(tool.status) ? tool.status : "available";
 }
 
 
@@ -1138,6 +1134,7 @@ function displayTool() {
 
 function displayActionButtons() {
 
+  const isShared = currentTool.ownership_type === "shared";
   const displayStatus =
     getDisplayToolStatus(currentTool);
 
@@ -1172,8 +1169,7 @@ function displayActionButtons() {
 
 
   if (
-    displayStatus ===
-    "available"
+    isShared ? window.SharedToolState.canCheckout(currentTool) : displayStatus === "available"
   ) {
 
     detailActionButtons.innerHTML =
@@ -1191,8 +1187,7 @@ function displayActionButtons() {
 
 
   if (
-    displayStatus ===
-    "in_use"
+    isShared ? window.SharedToolState.canMoveOrReturn(currentTool) : displayStatus === "in_use"
   ) {
 
     detailActionButtons.innerHTML =
@@ -1202,13 +1197,6 @@ function displayActionButtons() {
           class="admin-secondary-button"
         >
           移動
-        </a>
-
-        <a
-          href="shared-tools.html"
-          class="admin-primary-button"
-        >
-          共有工具画面へ戻る
         </a>
       `;
 
@@ -1236,34 +1224,14 @@ function displayActionButtons() {
 
 
 async function returnSharedTool(button) {
-  if (returningSharedTool || !currentTool ||
-      currentTool.ownership_type !== "shared" ||
-      currentTool.checkout_managed === false ||
-      getDisplayToolStatus(currentTool) !== "in_use") return;
+  if (returningSharedTool || !window.SharedToolState.canMoveOrReturn(currentTool)) return;
 
   if (!window.confirm(`${currentTool.tool_name}\n\nこの工具を返却しますか？`)) return;
 
   returningSharedTool = true;
   button.disabled = true;
   try {
-    const response = await portalFetch(
-      `${SUPABASE_URL}/rest/v1/rpc/return_shared_tool`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ p_tool_id: currentTool.id })
-      }
-    );
-    if (!response.ok) {
-      let message = "工具の返却に失敗しました";
-      try {
-        const error = await response.json();
-        if (error?.message) message = error.message;
-      } catch {
-        // Use the fallback for non-JSON error responses.
-      }
-      throw new Error(message);
-    }
+    await window.SharedToolState.returnSharedTool(currentTool.id, SUPABASE_URL);
 
     Object.assign(currentTool, {
       current_site_id: null,

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 
+const commonSource = await readFile(new URL('../shared-tool-state.js', import.meta.url), 'utf8');
 const source = await readFile(new URL('../tool-detail.js', import.meta.url), 'utf8');
 new vm.Script(source);
 function functionSource(name) {
@@ -14,12 +15,14 @@ function functionSource(name) {
   return source.slice(start, Math.min(...[next, comment].filter(n => n >= 0)));
 }
 const context = vm.createContext({
+  window: {},
   returningSharedTool: false,
   document: { createElement: () => ({ addEventListener(name, fn) { this[name] = fn; } }) },
   siteNameMap: new Map([['10', '桑名プール']]),
   getEmployeeDisplayName: () => '社員',
   formatInspectionCategory: () => '-'
 });
+vm.runInContext(commonSource, context);
 for (const name of new Set(source.match(/\bdetail\w+/g))) {
   context[name] = { style: {}, textContent: '', children: [],
     set innerHTML(value) { this.html = value; this.children = []; },
@@ -30,7 +33,7 @@ for (const name of ['getDisplayToolStatus', 'formatToolStatus',
   'updateDetailByOwnership', 'displayTool', 'displayActionButtons', 'returnSharedTool']) {
   vm.runInContext(functionSource(name), context);
 }
-const base = { id: 1, ownership_type: 'shared', status: 'available',
+const base = { id: 1, active: true, ownership_type: 'shared', status: 'available',
   current_site_id: 10, checkout_managed: true };
 function render(overrides = {}) {
   context.currentTool = { ...base, ...overrides };
@@ -41,7 +44,7 @@ function render(overrides = {}) {
 let buttons = render();
 assert.equal(context.detailStatus.textContent, '使用中');
 assert.match(buttons, /tool-move.html/);
-assert.doesNotMatch(buttons, /tool-checkout.html/);
+assert.doesNotMatch(buttons, /tool-checkout.html|共有工具画面へ戻る/);
 assert.equal(context.detailActionButtons.children[0].textContent, '返却');
 render({ status: 'in_use' });
 assert.equal(context.detailActionButtons.children[0].textContent, '返却');
@@ -78,15 +81,15 @@ console.log('PASS: unmanaged tools have no action buttons');
 
 const worker = await readFile(new URL('../service-worker.js', import.meta.url), 'utf8');
 new vm.Script(worker);
-assert.match(worker, /const CACHE_NAME\s*=\s*"staff-portal-v76"/);
-console.log('PASS: service worker cache version is v76; JavaScript syntax checks passed');
+assert.match(worker, /const CACHE_NAME\s*=\s*"staff-portal-v77"/);
+console.log('PASS: service worker cache version is v77; JavaScript syntax checks passed');
 
 for (const scenario of ['success', 'rpc-error', 'non-json', 'network', 'cancel', 'refresh-error']) {
   render();
   const alerts = [], calls = [];
   let histories = 0;
   context.SUPABASE_URL = 'https://example.invalid';
-  context.window = { confirm: () => scenario !== 'cancel' };
+  context.window.confirm = () => scenario !== 'cancel';
   context.alert = message => alerts.push(message);
   context.console = { error() {} };
   context.loadTool = async () => { if (scenario === 'refresh-error') throw new Error('refresh'); };

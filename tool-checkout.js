@@ -138,6 +138,9 @@ async function loadTool() {
   currentTool =
     tools[0];
 
+  checkoutButton.hidden = currentTool.ownership_type === "shared" && !window.SharedToolState.canCheckout(currentTool);
+  if (checkoutButton.hidden) checkoutMessage.textContent = "現在操作できません";
+
   checkoutToolName.textContent =
     `${currentTool.tool_name}` +
     `${
@@ -223,6 +226,11 @@ async function checkoutTool() {
     checkoutMessage.textContent =
       "工具情報がありません";
 
+    return;
+  }
+
+  if (currentTool.ownership_type === "shared" && !window.SharedToolState.canCheckout(currentTool)) {
+    checkoutMessage.textContent = "現在操作できません";
     return;
   }
 
