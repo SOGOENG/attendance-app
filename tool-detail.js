@@ -216,6 +216,7 @@ const batteryHistoryList =
 ========================================= */
 
 let currentTool = null;
+let returningSharedTool = false;
 
 
 /* =========================================
@@ -565,6 +566,19 @@ function getEmployeeDisplayName(
 /* =========================================
    状態
 ========================================= */
+
+function getDisplayToolStatus(tool) {
+  if (["repair", "stopped", "disposed"].includes(tool.status)) {
+    return tool.status;
+  }
+
+  if (tool.ownership_type === "shared" && tool.current_site_id) {
+    return "in_use";
+  }
+
+  return "available";
+}
+
 
 function formatToolStatus(
   status
@@ -1091,7 +1105,7 @@ function displayTool() {
 
   detailStatus.textContent =
     formatToolStatus(
-      currentTool.status
+      getDisplayToolStatus(currentTool)
     );
 
 
@@ -1124,6 +1138,9 @@ function displayTool() {
 
 function displayActionButtons() {
 
+  const displayStatus =
+    getDisplayToolStatus(currentTool);
+
   detailActionButtons.innerHTML =
     "";
 
@@ -1155,7 +1172,7 @@ function displayActionButtons() {
 
 
   if (
-    currentTool.status ===
+    displayStatus ===
     "available"
   ) {
 
@@ -1174,7 +1191,7 @@ function displayActionButtons() {
 
 
   if (
-    currentTool.status ===
+    displayStatus ===
     "in_use"
   ) {
 
@@ -1195,6 +1212,16 @@ function displayActionButtons() {
         </a>
       `;
 
+    if (currentTool.ownership_type === "shared") {
+      const returnButton = document.createElement("button");
+      returnButton.type = "button";
+      returnButton.className = "admin-primary-button";
+      returnButton.textContent = "返却";
+      returnButton.disabled = returningSharedTool;
+      returnButton.addEventListener("click", () => returnSharedTool(returnButton));
+      detailActionButtons.appendChild(returnButton);
+    }
+
     return;
   }
 
@@ -1205,6 +1232,65 @@ function displayActionButtons() {
         現在操作できません
       </p>
     `;
+}
+
+
+async function returnSharedTool(button) {
+  if (returningSharedTool || !currentTool ||
+      currentTool.ownership_type !== "shared" ||
+      currentTool.checkout_managed === false ||
+      getDisplayToolStatus(currentTool) !== "in_use") return;
+
+  if (!window.confirm(`${currentTool.tool_name}\n\nこの工具を返却しますか？`)) return;
+
+  returningSharedTool = true;
+  button.disabled = true;
+  try {
+    const response = await portalFetch(
+      `${SUPABASE_URL}/rest/v1/rpc/return_shared_tool`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ p_tool_id: currentTool.id })
+      }
+    );
+    if (!response.ok) {
+      let message = "工具の返却に失敗しました";
+      try {
+        const error = await response.json();
+        if (error?.message) message = error.message;
+      } catch {
+        // Use the fallback for non-JSON error responses.
+      }
+      throw new Error(message);
+    }
+
+    Object.assign(currentTool, {
+      current_site_id: null,
+      assigned_employee_id: null,
+      status: "available"
+    });
+    displayTool();
+    displayActionButtons();
+    alert("工具を返却しました");
+
+    try {
+      await loadTool();
+      displayTool();
+      displayActionButtons();
+      await loadHistory();
+    } catch (error) {
+      console.error(error);
+      alert("返却は完了しましたが、最新の工具情報・履歴を取得できませんでした");
+    }
+  } catch (error) {
+    console.error(error);
+    alert(error.message);
+  } finally {
+    returningSharedTool = false;
+    button.disabled = false;
+    displayActionButtons();
+  }
 }
 
 
