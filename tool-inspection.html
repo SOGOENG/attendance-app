@@ -61,14 +61,31 @@
          新しい点検を開始
     ====================================== -->
 
-    <section
+    <details open class="admin-section-card">
+
+      <summary>点検中</summary>
+
+      <div
+        id="inspectionCycleList"
+        class="tool-list"
+      >
+        <p class="schedule-empty-message">
+          点検情報を読み込み中...
+        </p>
+      </div>
+
+    </details>
+<details class="admin-section-card" id="inspectionHistorySection">
+      <summary>履歴</summary>
+      <label class="admin-form-label">年（暦年）<select id="inspectionHistoryYear" class="admin-form-control"></select></label>
+      <div id="inspectionHistoryList" class="tool-list"></div>
+    </details>
+<details
       id="startInspectionSection"
       class="admin-section-card hidden"
     >
 
-      <h2>
-        新しい半年点検を開始
-      </h2>
+      <summary>新しい半年点検を開始</summary>
 
       <label class="admin-form-label">
         点検サイクル名
@@ -109,36 +126,16 @@
         class="schedule-message"
       ></p>
 
-    </section>
-
-
-    <!-- =====================================
-         点検サイクル一覧
-    ====================================== -->
-
-    <section class="admin-section-card">
-
-      <h2>
-        点検サイクル一覧
-      </h2>
-
-      <div
-        id="inspectionCycleList"
-        class="tool-list"
-      >
-        <p class="schedule-empty-message">
-          点検情報を読み込み中...
-        </p>
-      </div>
-
-    </section>
+    </details>
 
   </main>
 
 
   <script src="portal-auth.js"></script>
   <script src="side-menu.js?v=1"></script>
-  <script src="./tool-inspection.js?v=3"></script>
+  <script src="./tool-registration.js?v=1"></script>
+  <script src="./tool-inspection-workflow.js?v=1"></script>
+  <script src="./tool-inspection.js?v=4"></script>
 
 </body>
 

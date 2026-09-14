@@ -58,47 +58,12 @@ function escapeHtml(value) {
 }
 
 
-function getLoginUser() {
-  const savedUser =
-    localStorage.getItem(
-      "portalLoginUser"
-    );
-
-  if (!savedUser) {
-    return null;
-  }
-
-  try {
-    return JSON.parse(
-      savedUser
-    );
-
-  } catch (error) {
-    console.error(error);
-
-    return null;
-  }
-}
-
-
-function canStartInspectionCycle(
-  loginUser
-) {
-  return Boolean(
-    loginUser &&
-    (
-      loginUser.adminScope === "all" ||
-      loginUser.adminScope === "tool_admin"
-    )
-  );
-}
-
-
 /* =========================================
    点検開始
 ========================================= */
 
 async function startInspectionCycle() {
+  if (startInspectionButton.disabled) return;
   inspectionMessage.textContent =
     "";
 
@@ -282,9 +247,26 @@ async function loadInspectionCycles() {
    サイクル一覧表示
 ========================================= */
 
-function displayInspectionCycles(
-  cycles
-) {
+let loadedCycles = [];
+const historyYear = document.getElementById("inspectionHistoryYear");
+const historyList = document.getElementById("inspectionHistoryList");
+function displayInspectionCycles(cycles) {
+  loadedCycles = cycles;
+  const selected = historyYear.value || String(new Date().getFullYear());
+  const years = new Set([new Date().getFullYear(), ...cycles.filter(c => c.status === "completed").map(c => ToolInspectionWorkflow.calendarYear(c)).filter(Boolean)]);
+  historyYear.replaceChildren();
+  [...years].sort((a,b) => b-a).forEach(year => historyYear.add(new Option(String(year), String(year))));
+  if (cycles.some(c => c.status === "completed" && ToolInspectionWorkflow.calendarYear(c) === null)) historyYear.add(new Option("年不明（過去データ）", "unknown"));
+  historyYear.value = selected;
+  renderCycleCards(cycles.filter(c => c.status !== "completed"), inspectionCycleList);
+  displayCycleHistory();
+}
+function displayCycleHistory() {
+  renderCycleCards(loadedCycles.filter(c => c.status === "completed" && (historyYear.value === "unknown" ? ToolInspectionWorkflow.calendarYear(c) === null : ToolInspectionWorkflow.calendarYear(c) === Number(historyYear.value))), historyList);
+}
+historyYear.addEventListener("change", displayCycleHistory);
+
+function renderCycleCards(cycles, inspectionCycleList) {
   inspectionCycleList.innerHTML =
     "";
 
@@ -388,31 +370,14 @@ function displayInspectionCycles(
 }
 
 
-/* =========================================
-   イベント
-========================================= */
-
-const loginUser =
-  getLoginUser();
-
-if (
-  canStartInspectionCycle(
-    loginUser
-  )
-) {
-  startInspectionSection.classList.remove(
-    "hidden"
-  );
-
-  startInspectionButton.addEventListener(
-    "click",
-    startInspectionCycle
-  );
+async function initializeInspectionHome() {
+  try {
+    await ToolInspectionWorkflow.requireAdmin();
+    startInspectionSection.classList.remove("hidden");
+    startInspectionButton.addEventListener("click", startInspectionCycle);
+    await loadInspectionCycles();
+  } catch (error) {
+    inspectionCycleList.textContent = error.message;
+  }
 }
-
-
-/* =========================================
-   初期表示
-========================================= */
-
-loadInspectionCycles();
+initializeInspectionHome();

@@ -572,6 +572,8 @@ function getChecklistResults() {
 ========================================= */
 
 function validateInspection() {
+  if (!CATEGORY_CONFIG[currentTool?.inspection_category]) throw new Error("点検区分を確認してください");
+  if (!Number.isSafeInteger(Number(inspectionStickerNumber.value)) || Number(inspectionStickerNumber.value) < 1) throw new Error("シール番号は正の整数で入力してください");
   if (!inspectionDate.value) {
     throw new Error(
       "点検日を入力してください"
@@ -644,7 +646,30 @@ function validateInspection() {
    保存
 ========================================= */
 
+let savingInspection = false;
+let inspectionEntryReady = false;
+let entryAdditions = [];
+
+async function checkEntryEligibility() {
+  await ToolInspectionWorkflow.refreshLatestCompleted();
+  entryAdditions = await ToolInspectionWorkflow.additions(currentCycle.id, true);
+  const records = await ToolRegistration.request(`tool_inspections?select=*&tool_id=eq.${encodeURIComponent(currentTool.id)}&inspection_cycle=eq.${encodeURIComponent(currentCycle.cycle_code)}`);
+  if (records.length) {
+    inspectionEntryMessage.textContent = "この工具は点検済みです。結果画面で確認してください。";
+    const link = document.createElement("a");
+    link.href = `tool-inspection-result.html?cycle=${encodeURIComponent(currentCycle.id)}&tool=${encodeURIComponent(currentTool.id)}`;
+    link.textContent = "点検結果を見る";
+    inspectionEntryMessage.appendChild(link);
+    return false;
+  }
+  if (!ToolInspectionWorkflow.canInspect(currentCycle, currentTool, entryAdditions, records)) {
+    throw new Error("このサイクルに追加できる工具ではありません。完了済みサイクルは新規購入工具の初回点検のみ追加できます。");
+  }
+  return true;
+}
+
 async function saveInspection() {
+  if (savingInspection || !inspectionEntryReady) return;
   inspectionEntryMessage.textContent =
     "";
 
@@ -679,6 +704,7 @@ async function saveInspection() {
     return;
   }
 
+  savingInspection = true;
   saveInspectionButton.disabled =
     true;
 
@@ -686,6 +712,7 @@ async function saveInspection() {
     "保存中...";
 
   try {
+    if (!await checkEntryEligibility()) { inspectionEntryReady = false; return; }
     const loginUser =
       getLoginUser();
 
@@ -755,61 +782,13 @@ async function saveInspection() {
       );
 
     if (!inspectionResponse.ok) {
-      console.error(
-        await inspectionResponse.text()
-      );
-
-      throw new Error(
-        "点検結果を保存できませんでした"
-      );
+      const detail = await inspectionResponse.json().catch(() => null);
+      throw new Error(detail?.message || "点検結果を保存できませんでした");
     }
 
 
-    const currentSticker =
-      Number(
-        inspectionStickerNumber.value
-      );
-
-    const cycleUrl =
-      `${SUPABASE_URL}/rest/v1/tool_inspection_cycles` +
-      `?id=eq.${currentCycle.id}`;
-
-    const cycleResponse =
-      await portalFetch(
-        cycleUrl,
-        {
-          method: "PATCH",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Prefer:
-              "return=minimal"
-          },
-
-          body:
-            JSON.stringify({
-              next_sticker_number:
-                currentSticker + 1,
-
-              updated_at:
-                new Date()
-                  .toISOString()
-            })
-        }
-      );
-
-    if (!cycleResponse.ok) {
-      console.error(
-        await cycleResponse.text()
-      );
-
-      throw new Error(
-        "次回シール番号を更新できませんでした"
-      );
-    }
-
+    // The existing INSERT now advances the cycle sticker counter in the same DB transaction.
+    inspectionEntryReady = false;
     alert(
       "点検結果を保存しました"
     );
@@ -824,8 +803,8 @@ async function saveInspection() {
       error.message;
 
   } finally {
-    saveInspectionButton.disabled =
-      false;
+    savingInspection = false;
+    saveInspectionButton.disabled = !inspectionEntryReady;
 
     saveInspectionButton.textContent =
       "点検結果を保存";
@@ -852,6 +831,8 @@ async function initialize() {
     "";
 
   try {
+    saveInspectionButton.disabled = true;
+    await ToolInspectionWorkflow.requireAdmin();
     setToday();
 
     await Promise.all([
@@ -862,6 +843,8 @@ async function initialize() {
     displayTool();
 
     displayChecklist();
+    inspectionEntryReady = await checkEntryEligibility();
+    saveInspectionButton.disabled = !inspectionEntryReady;
 
   } catch (error) {
     console.error(error);

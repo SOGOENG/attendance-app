@@ -61,45 +61,9 @@
          点検サイクル情報
     ====================================== -->
 
-    <section class="admin-section-card">
+    <details class="admin-section-card" id="inspectionProgressSection" open>
 
-      <h2 id="inspectionListCycleName">
-        点検情報を読み込み中...
-      </h2>
-
-      <p>
-        状態：
-        <strong id="inspectionListCycleStatus">
-          -
-        </strong>
-      </p>
-
-      <p>
-        開始シール番号：
-        <strong id="inspectionListStartSticker">
-          -
-        </strong>
-      </p>
-
-      <p>
-        次回シール番号：
-        <strong id="inspectionListNextSticker">
-          -
-        </strong>
-      </p>
-
-    </section>
-
-
-    <!-- =====================================
-         点検進捗
-    ====================================== -->
-
-    <section class="admin-section-card">
-
-      <h2>
-        点検進捗
-      </h2>
+      <summary>点検進捗</summary>
 
       <p>
         対象工具：
@@ -125,18 +89,10 @@
         件
       </p>
 
-    </section>
+    <button id="refreshInspectionButton" type="button" class="admin-secondary-button">最新の状態に更新</button></details>
+<details class="admin-section-card" id="inspectionQrSection">
 
-
-    <!-- =====================================
-         QRコード読取
-    ====================================== -->
-
-    <section class="admin-section-card">
-
-      <h2>
-        工具QRコード
-      </h2>
+      <summary>QRコードで点検</summary>
 
       <p>
         工具のQRコードを読み取り、点検入力画面を開きます。
@@ -180,18 +136,14 @@
         点検結果を表示
       </a>
 
-    </section>
+    </details>
+<details class="admin-section-card" id="inspectionCodeSection"><summary>管理番号から探す</summary>
+<form id="inspectionCodeForm"><label class="admin-form-label">管理番号<input id="inspectionCodeInput" class="admin-form-control" placeholder="HT-010" required></label><button class="admin-primary-button" type="submit">検索</button></form>
+<p id="inspectionCodeMessage" class="schedule-message" role="status"></p>
+</details>
+<details class="admin-section-card" id="inspectionConditionSection">
 
-
-    <!-- =====================================
-         絞り込み
-    ====================================== -->
-
-    <section class="admin-section-card">
-
-      <h2>
-        点検工具を探す
-      </h2>
+      <summary>条件から探す</summary>
 
 
       <label class="admin-form-label">
@@ -253,18 +205,42 @@
         表示する
       </button>
 
-    </section>
+    </details>
+<details class="admin-section-card" id="inspectionAddSection"><summary>新しい工具を追加</summary>
+<p id="inspectionAddGuide">見つからない工具を登録し、このサイクルで点検します。完了済みサイクルには新規購入工具の初回点検のみ追加できます。</p>
+<div id="inspectionRegistration"></div>
+</details>
+<details class="admin-section-card"><summary>点検サイクル情報</summary>
 
-
-    <!-- =====================================
-         CSV出力
-    ====================================== -->
-
-    <section class="admin-section-card">
-
-      <h2>
-        CSV出力
+      <h2 id="inspectionListCycleName">
+        点検情報を読み込み中...
       </h2>
+
+      <p>
+        状態：
+        <strong id="inspectionListCycleStatus">
+          -
+        </strong>
+      </p>
+
+      <p>
+        開始シール番号：
+        <strong id="inspectionListStartSticker">
+          -
+        </strong>
+      </p>
+
+      <p>
+        次回シール番号：
+        <strong id="inspectionListNextSticker">
+          -
+        </strong>
+      </p>
+
+    </details>
+<details class="admin-section-card" id="inspectionCsvSection">
+
+      <summary>CSV出力</summary>
 
       <p class="tool-search-guide">
         点検済み工具を条件で絞り込み、
@@ -473,14 +449,8 @@
 
       </div>
 
-    </section>
-
-
-    <!-- =====================================
-         点検工具結果
-    ====================================== -->
-
-    <section
+    </details>
+<section
       id="inspectionToolResultSection"
       class="admin-section-card hidden"
     >
@@ -532,7 +502,10 @@
   ></script>
 
   <script src="./tool-groups.js?v=1"></script>
-  <script src="./tool-inspection-list.js?v=16"></script>
+  <script src="./tool-registration.js?v=1"></script>
+  <script src="./tool-inspection-workflow.js?v=1"></script>
+  <script src="./tool-inspection-list.js?v=17"></script>
+  <script src="./tool-inspection-registration.js?v=1"></script>
 
 </body>
 

@@ -213,6 +213,9 @@ let inspectionTools =
 
 let inspectionRecords =
   [];
+let inspectionAdditions = [];
+let activeInspectionSearch = null;
+let inspectionRefreshPromise = null;
 
 let employees =
   [];
@@ -367,7 +370,7 @@ async function loadScannedInspectionTool(
     `?id=eq.${encodeURIComponent(
       toolId
     )}` +
-    `&select=id,inspection_required`;
+    `&select=*`;
 
 
   const response =
@@ -434,6 +437,7 @@ async function handleInspectionQrResult(
 
   try {
 
+    await refreshInspectionData();
     const tool =
       await loadScannedInspectionTool(
         toolId
@@ -497,6 +501,10 @@ async function handleInspectionQrResult(
     }
 
 
+    if (!ToolInspectionWorkflow.canInspect(currentCycle, tool, inspectionAdditions, inspectionRecords)) {
+      inspectionQrMessage.textContent = "このサイクルでは点検を追加できません。完了済みサイクルでは新規購入工具を登録してから初回点検してください。";
+      return;
+    }
     window.location.href =
       `tool-inspection-entry.html?cycle=${cycleId}&tool=${encodedToolId}`;
 
@@ -1102,38 +1110,18 @@ async function loadCycle() {
 ========================================= */
 
 async function loadInspectionTools() {
-
-  const url =
-    `${SUPABASE_URL}/rest/v1/tools` +
-    `?select=*` +
-    `&inspection_required=eq.true` +
-    `&status=neq.disposed` +
-    `&order=tool_group.asc,tool_name.asc,management_code.asc`;
-
-
-  const response =
-    await portalFetch(
-      url
-    );
-
-
-  if (!response.ok) {
-
-    console.error(
-      await response.text()
-    );
-
-
-    throw new Error(
-      "点検対象工具を読み込めませんでした"
-    );
+  await ToolInspectionWorkflow.refreshLatestCompleted();
+  inspectionAdditions = await ToolInspectionWorkflow.additions(currentCycle.id);
+  if (currentCycle.status === "completed") {
+    const ids = [...new Set([...inspectionRecords, ...inspectionAdditions].map(row => row.tool_id))];
+    inspectionTools = [];
+    for (let offset=0; offset<ids.length; offset+=100) {
+      inspectionTools.push(...await ToolInspectionWorkflow.rows('tools?select=*&id=in.(' + ids.slice(offset,offset+100).map(encodeURIComponent).join(',') + ')&order=id.asc'));
+    }
+  } else {
+    inspectionTools = await ToolInspectionWorkflow.rows('tools?select=*&inspection_required=eq.true&status=neq.disposed&order=tool_group.asc,tool_name.asc,management_code.asc,id.asc');
   }
-
-
-  inspectionTools =
-    await response.json();
 }
-
 
 /* =========================================
    点検結果
@@ -1141,36 +1129,9 @@ async function loadInspectionTools() {
 
 async function loadInspectionRecords() {
 
-  const url =
-    `${SUPABASE_URL}/rest/v1/tool_inspections` +
-    `?inspection_cycle=eq.${encodeURIComponent(
-      currentCycle.cycle_code
-    )}` +
-    `&select=*`;
-
-
-  const response =
-    await portalFetch(
-      url
-    );
-
-
-  if (!response.ok) {
-
-    console.error(
-      await response.text()
-    );
-
-
-    throw new Error(
-      "点検履歴を読み込めませんでした"
-    );
-  }
-
-
-  inspectionRecords =
-    await response.json();
-
+  inspectionRecords = await ToolInspectionWorkflow.rows(
+    'tool_inspections?inspection_cycle=eq.' + encodeURIComponent(currentCycle.cycle_code) + '&select=*&order=id.asc'
+  );
 
   inspectedToolIdSet.clear();
 
@@ -1479,7 +1440,48 @@ function updateToolNameFilter() {
    点検工具検索
 ========================================= */
 
-function searchInspectionTools() {
+async function refreshInspectionData() {
+  return inspectionRefreshPromise ||= (async () => {
+    await loadCycle();
+    await loadInspectionRecords();
+    await loadInspectionTools();
+    updateProgress();
+    updateCsvTargetCount();
+  })().finally(() => { inspectionRefreshPromise = null; });
+}
+async function searchInspectionTools() {
+  try {
+    await refreshInspectionData();
+    activeInspectionSearch = "conditions";
+    renderInspectionSearch();
+  } catch (error) { inspectionListMessage.textContent = error.message; }
+}
+async function searchInspectionCode(event) {
+  event?.preventDefault();
+  const code = document.getElementById("inspectionCodeInput").value.trim();
+  if (!code) return;
+  const message = document.getElementById("inspectionCodeMessage");
+  try {
+    await refreshInspectionData();
+    const matches = await ToolRegistration.loadTools('select=*&management_code=eq.' + encodeURIComponent(code));
+    activeInspectionSearch = "code";
+    inspectionToolResultTitle.textContent = '管理番号：' + code;
+    inspectionToolResultCount.textContent = matches.length + '件';
+    inspectionToolResultSection.classList.remove("hidden");
+    displayInspectionTools(matches);
+    message.textContent = matches.length ? "" : "一致する工具がありません。条件検索で確認するか「新しい工具を追加」から登録してください。";
+    inspectionToolResultSection.scrollIntoView({behavior:"smooth",block:"start"});
+  } catch (error) { message.textContent = error.message; }
+}
+async function refreshVisibleInspection() {
+  try {
+    await refreshInspectionData();
+    if (activeInspectionSearch === "conditions") renderInspectionSearch();
+    if (activeInspectionSearch === "code") await searchInspectionCode();
+  } catch (error) { inspectionListMessage.textContent = error.message; }
+}
+
+function renderInspectionSearch() {
 
   const selectedGroup =
     inspectionGroupFilter.value;
@@ -1789,14 +1791,14 @@ function displayInspectionTools(
                     結果を見る
                   </a>
                 `
-                : `
+                : ToolInspectionWorkflow.canInspect(currentCycle, tool, inspectionAdditions, inspectionRecords) ? `
                   <a
                     href="tool-inspection-entry.html?cycle=${currentCycle.id}&tool=${tool.id}"
                     class="admin-primary-button"
                   >
                     点検する
                   </a>
-                `
+                ` : `<p>このサイクルへの点検追加対象ではありません</p>`
             }
 
           </div>
@@ -2871,6 +2873,8 @@ function downloadCsv(
 ========================================= */
 
 async function exportInspectionCsv() {
+  try { await refreshInspectionData(); }
+  catch (error) { inspectionCsvMessage.textContent = error.message; return; }
 
   inspectionCsvMessage.textContent =
     "";
@@ -3318,12 +3322,12 @@ async function initialize() {
 
   try {
 
+    await ToolInspectionWorkflow.requireAdmin();
     await loadCycle();
-
+    await loadInspectionRecords();
 
     await Promise.all([
       loadInspectionTools(),
-      loadInspectionRecords(),
       loadEmployees(),
       loadSites()
     ]);
@@ -3361,4 +3365,13 @@ async function initialize() {
 }
 
 
-initialize();
+document.getElementById("inspectionCodeForm").addEventListener("submit", searchInspectionCode);
+document.getElementById("refreshInspectionButton").addEventListener("click", refreshVisibleInspection);
+document.getElementById("inspectionQrSection").addEventListener("toggle", event => {
+  if (!event.target.open) cancelInspectionQrReader();
+});
+window.addEventListener("pageshow", () => { if (currentCycle) refreshVisibleInspection(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && currentCycle) refreshVisibleInspection();
+});
+window.inspectionListReady = initialize();
