@@ -1979,132 +1979,30 @@ async function returnTool(
 
   try {
 
-    const loginUser =
-      JSON.parse(
-        localStorage.getItem(
-          "portalLoginUser"
-        ) ||
-        "null"
-      );
-
-
-    const toolUrl =
-      `${SUPABASE_URL}/rest/v1/tools` +
-      `?id=eq.${tool.id}`;
-
-
-    const toolResponse =
+    const response =
       await portalFetch(
-        toolUrl,
+        `${SUPABASE_URL}/rest/v1/rpc/return_shared_tool`,
         {
-
-          method:
-            "PATCH",
-
+          method: "POST",
           headers: {
-
-            "Content-Type":
-              "application/json",
-
-            Prefer:
-              "return=minimal"
+            "Content-Type": "application/json"
           },
-
-          body:
-            JSON.stringify({
-
-              current_site_id:
-                null,
-
-              assigned_employee_id:
-                null,
-
-              status:
-                "available",
-
-              updated_at:
-                new Date()
-                  .toISOString()
-            })
+          body: JSON.stringify({
+            p_tool_id: tool.id
+          })
         }
       );
 
-
-    if (
-      !toolResponse.ok
-    ) {
-
-      throw new Error(
-        "工具の返却に失敗しました"
-      );
+    if (!response.ok) {
+      let message = "工具の返却に失敗しました";
+      try {
+        const error = await response.json();
+        if (error?.message) message = error.message;
+      } catch {
+        // JSON以外のエラー応答では既定メッセージを表示する。
+      }
+      throw new Error(message);
     }
-
-
-    const historyUrl =
-      `${SUPABASE_URL}/rest/v1/tool_history`;
-
-
-    const historyResponse =
-      await portalFetch(
-        historyUrl,
-        {
-
-          method:
-            "POST",
-
-          headers: {
-
-            "Content-Type":
-              "application/json",
-
-            Prefer:
-              "return=minimal"
-          },
-
-          body:
-            JSON.stringify({
-
-              tool_id:
-                tool.id,
-
-              action_type:
-                "return",
-
-              from_site_id:
-                tool.current_site_id ||
-                null,
-
-              to_site_id:
-                null,
-
-              from_employee_id:
-                tool.assigned_employee_id ||
-                null,
-
-              to_employee_id:
-                null,
-
-              operated_by_employee_id:
-                loginUser
-                  ? loginUser.id
-                  : null,
-
-              note:
-                null
-            })
-        }
-      );
-
-
-    if (
-      !historyResponse.ok
-    ) {
-
-      throw new Error(
-        "返却履歴の保存に失敗しました"
-      );
-    }
-
 
     alert(
       "工具を返却しました"
