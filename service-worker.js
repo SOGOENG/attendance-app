@@ -3,7 +3,7 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v80";
+  "staff-portal-v81";
 
 const CACHE_FILES = [
   "./tool-catalog-admin.js?v=1",
