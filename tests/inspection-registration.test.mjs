@@ -32,6 +32,21 @@ const context=vm.createContext({document:{getElementById:get,createElement:()=>n
       return stored.get(request);
     }},refreshInspectionData:async()=>{}});
 await vm.runInContext(code,context);
+assert.equal(get('inspectionInitialPurchaseLabel').hidden,false);
+assert.equal(f.initialPurchase.required,true);
+for (const ownership of ['shared','personal','contractor','shared']) {
+ f.ownership.value=ownership; f.ownership.events.change();
+ assert.equal(get('inspectionOwnerEmployee').hidden,ownership!=='personal');
+ assert.equal(get('inspectionOwnerCompany').hidden,ownership!=='contractor');
+ assert.equal(f.employee.required,ownership==='personal');
+ assert.equal(f.company.required,ownership==='contractor');
+}
+f.toolName.value='旋盤'; f.toolName.events.change();
+assert.equal(get('inspectionLatheLabel').hidden,false);
+assert.equal(f.latheSize.required,true);
+f.toolName.value='既存工具'; f.toolName.events.change();
+assert.equal(get('inspectionLatheLabel').hidden,true);
+assert.equal(f.latheSize.required,false);
 f.ownership.value='personal';f.employee.value='9';f.group.value='その他';f.group.events.change();
 f.toolName.value='既存工具';f.toolName.events.change();
 assert.equal(f.category.value,'3p');assert.equal(f.inspectionRequired.checked,true);
@@ -66,3 +81,18 @@ await vm.runInContext(code,context);
 assert.match(get('inspectionRegistration').textContent,/直近/);
 assert.equal(registrations.length,2,'old completed cycle cannot register');
 console.log('PASS: old completed cycle has no registration form');
+
+context.currentCycle={id:1,status:'active'};
+f.initialPurchase.checked=true;
+await vm.runInContext(code,context);
+assert.equal(get('inspectionInitialPurchaseLabel').hidden,true);
+assert.equal(f.initialPurchase.required,false);
+assert.equal(f.initialPurchase.checked,false);
+f.ownership.value='shared'; f.group.value='その他'; f.toolName.value='既存工具'; f.toolName.events.change();
+await form.events.submit({preventDefault(){}});
+assert.equal(registrations.at(-1).purchase,false,'active uses ordinary registration');
+assert.equal(registrations.at(-1).record.assigned_employee_id,null);
+assert.equal(registrations.at(-1).record.owner_company_name,null);
+const html=await readFile(new URL('../tool-inspection-list.html',import.meta.url),'utf8');
+assert.match(html,/#inspectionOwnerEmployee\[hidden\],[\s\S]*#inspectionInitialPurchaseLabel\[hidden\]\s*\{ display: none !important; \}/);
+console.log('PASS: ownership, lathe and cycle-based visibility, required fields, active payload and scoped hidden CSS');

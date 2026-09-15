@@ -32,7 +32,7 @@
           <label class="admin-form-label">点検区分<select name="category" class="admin-form-control" required></select></label>
           <p>管理番号：登録時に自動採番します。旋盤は従来のサイズ別採番です。</p>
           <label class="admin-form-label">備考<textarea name="note" class="admin-form-control"></textarea></label>
-          <label><input name="initialPurchase" type="checkbox"> 新規購入した工具の初回点検です（完了済みサイクルへの追加時は必須）</label>
+          <label id="inspectionInitialPurchaseLabel" hidden><input name="initialPurchase" type="checkbox"> 新規購入した工具の初回点検です（完了済みサイクルへの追加時は必須）</label>
         </fieldset>
         <button id="inspectionNewToolSave" type="submit" class="admin-primary-button">工具を登録して点検へ進む</button>
       </form>
@@ -70,12 +70,18 @@
     }
     f.group.addEventListener("change", () => { names(); selectName(); });
     f.toolName.addEventListener("change", selectName);
-    f.ownership.addEventListener("change", () => {
+    function updateOwnershipVisibility() {
       document.getElementById("inspectionOwnerEmployee").hidden = f.ownership.value !== "personal";
       document.getElementById("inspectionOwnerCompany").hidden = f.ownership.value !== "contractor";
       f.employee.required = f.ownership.value === "personal";
       f.company.required = f.ownership.value === "contractor";
-    });
+    }
+    f.ownership.addEventListener("change", updateOwnershipVisibility);
+    updateOwnershipVisibility();
+    const initialPurchaseVisible = currentCycle.status === "completed" && ToolInspectionWorkflow.canAddToCycle(currentCycle);
+    document.getElementById("inspectionInitialPurchaseLabel").hidden = !initialPurchaseVisible;
+    f.initialPurchase.required = initialPurchaseVisible;
+    if (!initialPurchaseVisible) f.initialPurchase.checked = false;
     document.getElementById("inspectionMasterOpen").addEventListener("click", () => { masterFields.hidden = !masterFields.hidden; });
     document.getElementById("inspectionMasterSave").addEventListener("click", async () => {
       if (busy) return;
@@ -136,6 +142,7 @@
       } finally { busy=false; fields.disabled=Boolean(pending); save.disabled=false; }
     });
     await loadCatalog();
+    selectName();
     const owners=await ToolInspectionWorkflow.rows("employees?select=id,name&active=eq.true&order=name.asc,id.asc");
     options(f.employee,owners,x=>x.id,x=>x.name);
     pending=JSON.parse(sessionStorage.getItem(retryKey) || "null");
