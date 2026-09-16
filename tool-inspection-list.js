@@ -1208,9 +1208,9 @@ async function loadEmployees() {
 async function loadSites() {
 
   const url =
-    `${SUPABASE_URL}/rest/v1/sites` +
+    `${SUPABASE_URL}/rest/v1/site_master_order` +
     `?select=id,display_name` +
-    `&order=display_name.asc`;
+    `&order=client_display_order.asc.nullslast,client_site_order.asc.nullslast,display_order.asc.nullslast,id.asc`;
 
 
   const response =

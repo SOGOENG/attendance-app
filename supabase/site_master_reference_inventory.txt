@@ -1,0 +1,226 @@
+HEAD:app.js:43:let sites = [];
+HEAD:app.js:120:    `${SUPABASE_URL}/rest/v1/sites` +
+HEAD:app.js:122:    `id,display_order,display_name,input_code,` +
+HEAD:app.js:123:    `construction_no,client_code,client_name,` +
+HEAD:app.js:126:    `&order=display_order.asc`;
+HEAD:app.js:142:  sites =
+HEAD:app.js:561:    sites.filter(
+HEAD:app.js:580:      site.input_code || "";
+HEAD:app.js:594:    site.input_code,
+HEAD:app.js:595:    site.client_name,
+HEAD:app.js:613:    sites.filter(
+HEAD:app.js:1044:          ? matchedSite.input_code || ""
+HEAD:app.js:1449:      site_id:
+HEAD:app.js:1985:      item.site_id
+HEAD:app.js:1986:        ? String(item.site_id)
+HEAD:application-print.js:70:      const details = await request(`paid_leave_application_details?select=start_date,end_date,days,site_id,reason&application_id=eq.${applicationId}`);
+HEAD:application-print.js:74:      const [sites, balances] = await Promise.all([
+HEAD:application-print.js:75:        detail.site_id ? request(`sites?select=id,display_name&id=eq.${detail.site_id}`) : [],
+HEAD:application-print.js:78:      copyHtml = paidHtml(application, detail, applicant, sites[0]?.display_name || "", balances[0] || null, employeeMap);
+HEAD:application-print.js:81:        request(`comp_leave_dates?select=leave_date,days,display_order&application_id=eq.${applicationId}&order=display_order.asc`),
+HEAD:applications-admin.js:1:(function(){"use strict";const API=`${PORTAL_SUPABASE_URL}/rest/v1`;const $=id=>document.getElementById(id);let user,employees=[],sites=[],types=[],pending=[],work=[],selected=null,applicationAdmin=false,leaveManager=false;function readUser(){try{return JSON.parse(localStorage.getItem("portalLoginUser")||"null")}catch{return null}}function isAdmin(){return applicationAdmin}function isLeaveManager(){return leaveManager}function esc(v){const d=document.createElement("div");d.textContent=v??"";return d.innerHTML}function dt(v){return v?String(v).slice(0,10).replaceAll("-","/"):"-"}function emp(id){return employees.find(x=>Number(x.id)===Number(id))?.name||"-"}function site(id){return sites.find(x=>Number(x.id)===Number(id))?.display_name||"-"}async function req(path,opt={}){const r=await portalFetch(`${API}/${path}`,opt);const text=await r.text();let data=null;if(text){try{data=JSON.parse(text)}catch(error){if(r.ok)throw new Error("サーバーから不正な応答が返されました。");data=text}}if(!r.ok){const detail=typeof data==="object"&&data?(data.message||data.details||data.hint||JSON.stringify(data)):data;throw new Error(detail||`HTTP ${r.status}`)}return data}async function rpc(name,body){return req(`rpc/${name}`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})}function msg(id,text,ok=false){$(id).textContent=text;$(id).classList.toggle("ok",ok)}
+HEAD:applications-admin.js:2:async function init(){user=readUser();if(!user){location.href="home.html";return}[applicationAdmin,leaveManager]=await Promise.all([rpc("is_application_admin",{}),rpc("is_leave_manager",{})]);applicationAdmin=applicationAdmin===true;leaveManager=leaveManager===true;if(!isAdmin()&&!isLeaveManager()){location.href="home.html";return}document.querySelectorAll("[data-application-admin-only]").forEach(x=>x.hidden=!isAdmin());document.querySelectorAll("[data-leave-manager-only]").forEach(x=>x.hidden=!isLeaveManager());bind();[employees,sites,types]=await Promise.all([req("employees?select=id,name,department,active&active=eq.true&order=department.asc,id.asc"),req("sites?select=id,display_name&visible=eq.true&order=display_order.asc"),req("application_types?select=code,display_name")]);fillOptions();initializePersonalEmployee();$("fiscalYear").value=new Date().getFullYear()-(new Date().getMonth()<3?1:0);const firstPanel=document.querySelector("[data-admin-panel]:not([hidden])");if(firstPanel)show(firstPanel);await Promise.all([isAdmin()?loadPending():Promise.resolve()])}
+HEAD:applications-admin.js:5:function fillOptions(){const departments=[...new Set(employees.map(e=>String(e.department||"").trim()).filter(Boolean))],departmentOptions=departments.map(department=>`<option value="${esc(department)}">${esc(department)}</option>`).join("");$("workDepartment").insertAdjacentHTML("beforeend",departmentOptions);$("balanceDepartment").insertAdjacentHTML("beforeend",departmentOptions);filterEmployeeOptions("work");filterEmployeeOptions("balance");$("workSite").insertAdjacentHTML("beforeend",sites.map(s=>`<option value="${s.id}">${esc(s.display_name)}</option>`).join(""))}function filterEmployeeOptions(prefix){const department=$(prefix+"Department").value,employeeSelect=$(prefix+"Employee");employeeSelect.innerHTML='<option value="">選択してください</option>';if(!department)return;employeeSelect.insertAdjacentHTML("beforeend",employees.filter(employee=>employee.active===true&&employee.department===department).map(employee=>`<option value="${employee.id}">${esc(employee.department?`${employee.department} / ${employee.name}`:employee.name)}</option>`).join(""))}
+HEAD:applications-admin.js:7:async function loadApproved(){if(!isAdmin())return;const apps=await req("applications?select=id,employee_id,application_type,submitted_at,approved_at,approved_by_employee_id,reviewer_comment&status=eq.approved&order=approved_at.desc");if(!apps.length){$("approvedList").innerHTML='<p class="empty">承認済み申請はありません。</p>';return}const ids=apps.map(x=>x.id).join(","),[paidDetails,compDetails,compDates,allocations]=await Promise.all([req(`paid_leave_application_details?select=application_id,start_date,end_date,days,site_id,reason&application_id=in.(${ids})`),req(`comp_leave_application_details?select=application_id,note&application_id=in.(${ids})`),req(`comp_leave_dates?select=application_id,leave_date,days,display_order&application_id=in.(${ids})&order=display_order.asc`),req(`comp_leave_allocations?select=application_id,holiday_work_record_id,allocated_days&application_id=in.(${ids})`)]);const employeeIds=[...new Set(apps.flatMap(x=>[x.employee_id,x.approved_by_employee_id]).filter(Boolean))],siteIds=[...new Set(paidDetails.map(x=>x.site_id).filter(Boolean))],workIds=[...new Set(allocations.map(x=>x.holiday_work_record_id).filter(Boolean))];const [employeeRows,siteRows,workRows]=await Promise.all([employeeIds.length?req(`employees?select=id,name&id=in.(${employeeIds.join(",")})`):[],siteIds.length?req(`sites?select=id,display_name&id=in.(${siteIds.join(",")})`):[],workIds.length?req(`holiday_work_records?select=id,work_date&id=in.(${workIds.join(",")})`):[]]);const employeeMap=new Map(employeeRows.map(x=>[Number(x.id),x.name])),siteMap=new Map(siteRows.map(x=>[Number(x.id),x.display_name])),workMap=new Map(workRows.map(x=>[Number(x.id),x.work_date])),typeMap=new Map(types.map(x=>[x.code,x.display_name]));$("approvedList").innerHTML=apps.map(app=>{const paid=paidDetails.find(x=>Number(x.application_id)===Number(app.id)),detail=compDetails.find(x=>Number(x.application_id)===Number(app.id)),dates=compDates.filter(x=>Number(x.application_id)===Number(app.id)),applicationAllocations=allocations.filter(x=>Number(x.application_id)===Number(app.id)),days=paid?.days??dates.reduce((sum,x)=>sum+Number(x.days),0),acquired=paid?`${dt(paid.start_date)}${paid.end_date!==paid.start_date?`～${dt(paid.end_date)}`:""}`:dates.map(x=>`${dt(x.leave_date)}（${x.days}日）`).join("、"),extra=paid?`<p>現場：${esc(siteMap.get(Number(paid.site_id))||"-")}<br>事由：${esc(paid.reason||"-")}</p>`:`<p>対応する休日出勤日：${esc(applicationAllocations.map(x=>dt(workMap.get(Number(x.holiday_work_record_id)))).join("、")||"-")}${detail?.note?`<br>備考：${esc(detail.note)}`:""}</p>`;return`<article class="application-item" data-approved-application-id="${app.id}"><div class="application-item-head"><h3>${esc(employeeMap.get(Number(app.employee_id))||emp(app.employee_id))}／${esc(typeMap.get(app.application_type)||app.application_type)}</h3><span class="status approved">承認済み</span></div><p>申請日：${dt(app.submitted_at)}<br>取得日：${acquired||"-"}<br>取得日数：${days}日<br>承認日：${dt(app.approved_at)}<br>承認者：${esc(employeeMap.get(Number(app.approved_by_employee_id))||"-")}</p>${extra}${app.reviewer_comment?`<p>管理者コメント：${esc(app.reviewer_comment)}</p>`:""}<div class="admin-actions"><button type="button" class="secondary print-approved-button" data-id="${app.id}">印刷</button></div></article>`}).join("");document.querySelectorAll(".print-approved-button").forEach(button=>button.onclick=()=>window.alert("帳票印刷は次工程で実装します。"));const targetId=new URLSearchParams(window.location.search).get("application");if(targetId)document.querySelector(`[data-approved-application-id="${CSS.escape(targetId)}"]`)?.scrollIntoView({block:"center"})}
+HEAD:applications-admin.js:8:async function openReview(id){selected=pending.find(x=>x.id===id);if(!selected)return;let detail="";if(selected.application_type==="paid_leave"){const r=(await req(`paid_leave_application_details?select=site_id,start_date,end_date,days,day_part,reason&application_id=eq.${id}`))[0];detail=`取得日 ${dt(r?.start_date)}～${dt(r?.end_date)}／${r?.days||0}日<br>区分 ${esc(r?.day_part||"")}／現場 ${esc(site(r?.site_id))}<br>事由 ${esc(r?.reason||"-")}`}else{const [d,dates,alloc]=await Promise.all([req(`comp_leave_application_details?select=note&application_id=eq.${id}`),req(`comp_leave_dates?select=leave_date,days&application_id=eq.${id}&order=display_order.asc`),req(`comp_leave_allocations?select=holiday_work_record_id,allocated_days&application_id=eq.${id}`)]);detail=`代休日 ${dates.map(x=>`${dt(x.leave_date)}（${x.days}日）`).join("、")}<br>休日出勤割当 ${alloc.map(x=>`${dt(work.find(w=>w.id===x.holiday_work_record_id)?.work_date)}（${x.allocated_days}日）`).join("、")}<br>備考 ${esc(d[0]?.note||"-")}`}$("reviewDetail").innerHTML=`<h2>${esc(emp(selected.employee_id))}</h2><p>${detail}</p>`;$("reviewComment").value="";$("reviewDialog").showModal()}
+HEAD:applications-admin.js:20:async function loadWork(){const employeeId=Number($("workEmployee").value);if(!employeeId){clearWorkHistory();return}$("workSummary").innerHTML='<p class="empty">読み込み中...</p>';$("workList").innerHTML='<p class="empty">読み込み中...</p>';$("compUsageList").innerHTML='<p class="empty">読み込み中...</p>';const [workRows,apps]=await Promise.all([req(`holiday_work_records?select=id,employee_id,work_date,earned_days,used_days,expired_days,remaining_days,site_id,note,status&employee_id=eq.${employeeId}&order=work_date.desc`),req(`applications?select=id,employee_id,submitted_at,approved_at,reviewer_comment&employee_id=eq.${employeeId}&application_type=eq.comp_leave&status=eq.approved&order=approved_at.desc`)]);if(Number($("workEmployee").value)!==employeeId)return;work=workRows;const visibleWork=work.filter(w=>!(Number(w.expired_days)>0&&Number(w.remaining_days)===0));$("workSummary").innerHTML=renderWorkSummary(work);$("workList").innerHTML=(visibleWork.length?visibleWork.map(w=>`<article class="work-history-row"><div class="work-history-heading"><h3>${dt(w.work_date)}</h3><span class="status ${w.status}">${w.status==="active"?"有効":"取消"}</span></div><p class="work-history-site">現場：${esc(site(w.site_id))}<span class="work-history-note"> ／ 備考：${esc(w.note||"-")}</span></p><p class="work-history-days"><span>発生${w.earned_days}日</span><span>使用済み${w.used_days}日</span><span>残${w.remaining_days}日</span></p>${w.status==="active"?`<div class="record-actions"><button class="secondary edit-work" data-id="${w.id}">訂正</button><button class="danger cancel-work" data-id="${w.id}">取消</button></div>`:""}</article>`).join(""):'<p class="empty">休日出勤履歴はありません</p>');document.querySelectorAll(".edit-work").forEach(b=>b.onclick=()=>editWork(Number(b.dataset.id)));document.querySelectorAll(".cancel-work").forEach(b=>b.onclick=()=>cancelWork(Number(b.dataset.id)));await compUsage.refresh(employeeId,work);if(Number($("workEmployee").value)!==employeeId)return;await renderCompUsageHistory(employeeId,apps.filter(app=>!String(app.reviewer_comment||"").startsWith("admin_comp_usage:")))}
+HEAD:applications-admin.js:21:async function renderCompUsageHistory(employeeId,apps){if(!apps.length){$("compUsageList").innerHTML='<p class="empty">代休使用履歴はありません</p>';return}const ids=apps.map(app=>app.id),idList=ids.join(","),[dates,allocations]=await Promise.all([req(`comp_leave_dates?select=application_id,leave_date,days,display_order&application_id=in.(${idList})&order=application_id,display_order.asc`),req(`comp_leave_allocations?select=application_id,holiday_work_record_id,allocated_days&application_id=in.(${idList})&order=application_id,id.asc`)]),recordIds=[...new Set(allocations.map(row=>Number(row.holiday_work_record_id)))],sourceRecords=recordIds.length?await req(`holiday_work_records?select=id,work_date&id=in.(${recordIds.join(",")})`):[];if(Number($("workEmployee").value)!==employeeId)return;const sourceMap=new Map(sourceRecords.map(row=>[Number(row.id),row.work_date]));$("compUsageList").innerHTML=apps.map(app=>{const appDates=dates.filter(row=>Number(row.application_id)===Number(app.id)),appAllocations=allocations.filter(row=>Number(row.application_id)===Number(app.id)),usedDays=appDates.reduce((sum,row)=>sum+Number(row.days),0),usedDates=appDates.map(row=>`${dt(row.leave_date)}（${row.days}日）`).join("、")||"-",sources=appAllocations.map(row=>`${dt(sourceMap.get(Number(row.holiday_work_record_id)))}（${row.allocated_days}日）`).join("、")||"-";return`<article class="application-item history-card"><div class="application-item-head"><h3>${usedDates}</h3><span class="status approved">${usedDays}日使用</span></div><p>元の休日出勤日：${esc(sources)}<br>申請日：${dt(app.submitted_at)}<br>承認日：${dt(app.approved_at)}</p></article>`}).join("")}
+HEAD:applications-admin.js:22:function editWork(id){const w=work.find(x=>x.id===id),employee=employees.find(x=>Number(x.id)===Number(w?.employee_id));if(!w||!employee)return;$("workRecordId").value=w.id;$("workDepartment").value=employee.department||"";filterEmployeeOptions("work");$("workEmployee").value=w.employee_id;$("workDepartment").disabled=true;$("workEmployee").disabled=true;$("workDate").value=w.work_date;$("workDays").value=w.earned_days;$("workSite").value=w.site_id||"";$("workNote").value=w.note||"";window.scrollTo({top:0,behavior:"smooth"})}function resetWork(){$("workForm").reset();$("workDepartment").value=$("personalDepartment").value;$("workRecordId").value="";$("workDepartment").disabled=false;$("workEmployee").disabled=false;filterEmployeeOptions("work");$("workEmployee").value=$("personalEmployee").value;$("workDays").value="1"}
+HEAD:applications-admin.js:23:async function saveWork(e){e.preventDefault();if(!isLeaveManager()){msg("workMessage","残数管理権限がありません。");return}const id=Number($("workRecordId").value),body=id?{p_record_id:id,p_work_date:$("workDate").value,p_earned_days:Number($("workDays").value),p_site_id:Number($("workSite").value)||null,p_note:$("workNote").value}:{p_employee_id:Number($("workEmployee").value),p_work_date:$("workDate").value,p_earned_days:Number($("workDays").value),p_site_id:Number($("workSite").value)||null,p_note:$("workNote").value,p_source_type:"manual",p_source_attendance_id:null};try{await rpc(id?"update_holiday_work":"register_holiday_work",body);msg("workMessage","保存しました。",true);resetWork();await loadWork()}catch(err){console.error(err);msg("workMessage","保存できませんでした。申請への割当状況または権限を確認してください。")}}
+HEAD:applications-admin.js:45:    const rows = await req(`comp_leave_expirations?select=id,employee_id,work_date,valid_until_date,expiration_date,earned_days,used_days_at_expiration,expired_days,site_id,note&employee_id=eq.${employeeId}&order=expiration_date.desc,id.desc`);
+HEAD:applications-admin.js:47:    const siteMap = new Map(sites.map(row => [Number(row.id), row.display_name]));
+HEAD:applications-admin.js:48:    const missingIds = [...new Set(rows.map(row => row.site_id).filter(id => id != null && !siteMap.has(Number(id))))];
+HEAD:applications-admin.js:50:      const missingSites = await req(`sites?select=id,display_name&id=in.(${missingIds.join(",")})`);
+HEAD:applications-admin.js:56:      const siteName = row.site_id == null ? "現場未設定" : siteMap.get(Number(row.site_id)) || "現場未設定";
+HEAD:applications.js:9:async function loadTypes(){types=await request("application_types?select=code,display_name,detail_kind,display_order&active=eq.true&order=display_order.asc")}
+HEAD:applications.js:10:async function loadSites(){const rows=await request("sites?select=id,display_name&visible=eq.true&order=display_order.asc");siteNames=new Map(rows.map(x=>[String(x.id),x.display_name]));$("paidSite").insertAdjacentHTML("beforeend",rows.map(x=>`<option value="${x.id}">${esc(x.display_name)}</option>`).join(""));renderAllocations()}
+HEAD:applications.js:16:function renderAllocations(){$("workAllocations").innerHTML=workRecords.length?workRecords.map(r=>`<div class="allocation-row"><div class="allocation-info"><strong>${dateText(r.work_date)}</strong><span>使用可能 ${r.available_days}日（予約 ${r.reserved_days}日）</span><small>${esc(siteNames.get(String(r.site_id))||"現場未設定")}</small></div><label class="allocation-control"><span>割当日数</span><select class="allocation-days" data-record="${r.id}" data-max="${r.available_days}"><option value="0">使用しない</option>${Number(r.available_days)>=.5?'<option value="0.5">0.5日</option>':""}${Number(r.available_days)>=1?'<option value="1">1日</option>':""}</select></label></div>`).join(""):'<p class="empty">未消化の休日出勤はありません。</p>';document.querySelectorAll(".allocation-days").forEach(x=>x.onchange=updateTotals);updateTotals()}
+HEAD:applications.js:19:async function submitPaid(e){e.preventDefault();const btn=e.submitter;btn.disabled=true;setMessage("paidMessage","送信中…",true);try{const editing=editingApplication?.type==="paid_leave",app=editing?{id:editingApplication.id}:await createApplication("paid_leave");const detail={site_id:Number($("paidSite").value)||null,start_date:$("paidStart").value,end_date:$("paidEnd").value,days:Number($("paidDays").value),day_part:$("paidPart").value,reason:$("paidReason").value.trim()||null};await request(editing?`paid_leave_application_details?application_id=eq.${app.id}`:"paid_leave_application_details",{method:editing?"PATCH":"POST",headers:{"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify(editing?detail:{application_id:app.id,...detail})});await callRpc("submit_application",{p_application_id:app.id});e.target.reset();finishEditing();setMessage("paidMessage",editing?"申請を再提出しました。":"申請を提出しました。",true);await Promise.all([loadBalances(),loadHistory()])}catch(err){console.error(err);setMessage("paidMessage",errorMessage(err))}finally{btn.disabled=false}}
+HEAD:applications.js:20:async function submitComp(e){e.preventDefault();const dates=[...document.querySelectorAll(".date-row")].map((r,i)=>({application_id:null,leave_date:r.querySelector(".comp-date").value,days:Number(r.querySelector(".comp-date-days").value),display_order:i}));const allocations=[...document.querySelectorAll(".allocation-days")].filter(x=>Number(x.value)>0).map(x=>({application_id:null,holiday_work_record_id:Number(x.dataset.record),allocated_days:Number(x.value)}));const leave=dates.reduce((n,x)=>n+x.days,0),allocated=allocations.reduce((n,x)=>n+x.allocated_days,0);if(!dates.length||dates.some(x=>!x.leave_date)){setMessage("compMessage","代替休日取得日を入力してください。");return}if(leave!==allocated){setMessage("compMessage","代休日数と休日出勤の割当日数を一致させてください。");return}const btn=e.submitter;btn.disabled=true;setMessage("compMessage","送信中…",true);try{const editing=editingApplication?.type==="comp_leave",app=editing?{id:editingApplication.id}:await createApplication("comp_leave");const note={note:$("compNote").value.trim()||null};await request(editing?`comp_leave_application_details?application_id=eq.${app.id}`:"comp_leave_application_details",{method:editing?"PATCH":"POST",headers:{"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify(editing?note:{application_id:app.id,...note})});if(editing){await request(`comp_leave_allocations?application_id=eq.${app.id}`,{method:"DELETE",headers:{"Prefer":"return=minimal"}});await request(`comp_leave_dates?application_id=eq.${app.id}`,{method:"DELETE",headers:{"Prefer":"return=minimal"}})}dates.forEach(x=>x.application_id=app.id);allocations.forEach(x=>x.application_id=app.id);await request("comp_leave_dates",{method:"POST",headers:{"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify(dates)});await request("comp_leave_allocations",{method:"POST",headers:{"Content-Type":"application/json","Prefer":"return=minimal"},body:JSON.stringify(allocations)});await callRpc("submit_application",{p_application_id:app.id});e.target.reset();$("compDates").innerHTML="";addCompDateRow();finishEditing();setMessage("compMessage",editing?"申請を再提出しました。":"申請を提出しました。",true);await Promise.all([loadBalances(),loadHistory()])}catch(err){console.error(err);setMessage("compMessage",errorMessage(err))}finally{btn.disabled=false}}
+HEAD:applications.js:27:async function editRevisionApplication(applicationId,type,comment,button){button.disabled=true;const label=button.textContent;button.textContent="読込中…";try{await callRpc("reopen_application_draft",{p_application_id:applicationId});editingApplication={id:applicationId,type};if(type==="paid_leave"){const rows=await request(`paid_leave_application_details?select=site_id,start_date,end_date,days,day_part,reason&application_id=eq.${applicationId}`),detail=rows[0];if(!detail)throw new Error("paid_leave_detail_required");$("paidForm").reset();$("paidSite").value=detail.site_id??"";$("paidStart").value=detail.start_date;$("paidEnd").value=detail.end_date;$("paidDays").value=detail.days;$("paidPart").value=detail.day_part;$("paidReason").value=detail.reason??"";$("paidEnd").disabled=detail.day_part!=="full"}else{const [details,dates,allocations]=await Promise.all([request(`comp_leave_application_details?select=note&application_id=eq.${applicationId}`),request(`comp_leave_dates?select=leave_date,days,display_order&application_id=eq.${applicationId}&order=display_order.asc`),request(`comp_leave_allocations?select=holiday_work_record_id,allocated_days&application_id=eq.${applicationId}`)]);$("compForm").reset();$("compNote").value=details[0]?.note??"";$("compDates").innerHTML="";dates.forEach(date=>addCompDateRow(date.leave_date,date.days));renderAllocations();allocations.forEach(allocation=>{const select=document.querySelector(`.allocation-days[data-record="${allocation.holiday_work_record_id}"]`);if(select)select.value=String(allocation.allocated_days)});updateTotals()}openEditForm(type,comment)}catch(error){console.error(error);editingApplication=null;window.alert(errorMessage(error));await loadHistory();button.disabled=false;button.textContent=label}}
+HEAD:applications.js:28:async function loadHistory(){const apps=await request(`applications?select=id,application_type,status,submitted_at,created_at,reviewer_comment&employee_id=eq.${user.id}&order=created_at.desc`);if(!apps.length){$("applicationHistory").innerHTML='<p class="empty">申請履歴はありません。</p>';return}const ids=apps.map(x=>x.id).join(","),[paid,comp]=await Promise.all([request(`paid_leave_application_details?select=application_id,start_date,end_date,days&application_id=in.(${ids})`),request(`comp_leave_dates?select=application_id,leave_date,days,display_order&application_id=in.(${ids})&order=display_order.asc`)]);const typeMap=new Map(types.map(x=>[x.code,x.display_name]));$("applicationHistory").innerHTML=apps.map(a=>{const p=paid.find(x=>x.application_id===a.id),dates=comp.filter(x=>x.application_id===a.id);const when=p?`${dateText(p.start_date)}${p.end_date!==p.start_date?`～${dateText(p.end_date)}`:""}`:dates.map(x=>dateText(x.leave_date)).join("、");const days=p?.days??dates.reduce((n,x)=>n+Number(x.days),0);const deleteButton=a.status==="draft"?`<button type="button" class="draft-delete-button" data-delete-draft="${a.id}">削除</button>`:"",editButton=a.status==="revision_required"?`<button type="button" class="revision-edit-button" data-edit-revision="${a.id}" data-application-type="${esc(a.application_type)}" data-reviewer-comment="${esc(a.reviewer_comment||"")}">修正する</button>`:"";return`<article class="application-item"><div class="application-item-head"><h3>${esc(typeMap.get(a.application_type)||a.application_type)}</h3><span class="status ${a.status}">${statusLabels[a.status]||a.status}</span></div><div class="application-item-body"><p>申請日 ${dateText((a.submitted_at||a.created_at).slice(0,10))}</p><p>取得日 ${when||"-"} ／ ${days}日</p>${a.reviewer_comment?`<p>管理者コメント：${esc(a.reviewer_comment)}</p>`:""}</div><div class="application-item-actions">${editButton}${deleteButton}</div></article>`}).join("");document.querySelectorAll("[data-delete-draft]").forEach(button=>button.onclick=()=>deleteDraftApplication(Number(button.dataset.deleteDraft),button));document.querySelectorAll("[data-edit-revision]").forEach(button=>button.onclick=()=>editRevisionApplication(Number(button.dataset.editRevision),button.dataset.applicationType,button.dataset.reviewerComment,button))}
+HEAD:attendance-admin.js:118:let sites = [];
+HEAD:attendance-admin.js:285:    `${SUPABASE_URL}/rest/v1/sites` +
+HEAD:attendance-admin.js:287:    `id,display_name,input_code,construction_no,site_type`;
+HEAD:attendance-admin.js:303:  sites =
+HEAD:attendance-admin.js:587:  return sites.find(
+HEAD:attendance-admin.js:623:  return site.construction_no || "";
+HEAD:attendance-admin.js:649:      getSiteName(item.site_id) ||
+HEAD:attendance-admin.js:703:    item.site_id ||
+HEAD:attendance-admin.js:993:        getConstructionNo(item.site_id);
+HEAD:attendance-admin.js:996:        getSiteName(item.site_id);
+HEAD:attendance-admin.js:1005:        getConstructionNo(item.site_id);
+HEAD:near-miss-admin.js:738:    record.client_name || "-";
+HEAD:near-miss-admin.js:985:        record.client_name || "",
+HEAD:near-miss.js:638:    `${SUPABASE_URL}/rest/v1/sites` +
+HEAD:near-miss.js:696:    site.site_id ||
+HEAD:near-miss.js:708:    site.client_name ||
+HEAD:near-miss.js:1153:    currentDraft.client_name || ""
+HEAD:near-miss.js:1237:  if (record.site_id) {
+HEAD:near-miss.js:1239:      String(record.site_id);
+HEAD:near-miss.js:1497:    site_id:
+HEAD:near-miss.js:1503:    client_name:
+HEAD:personal-tools.js:635:  return tool.current_site_id
+HEAD:personal-tools.js:687:    tool.current_site_id
+HEAD:personal-tools.js:810:      `${SUPABASE_URL}/rest/v1/sites?select=id,display_name`
+HEAD:personal-tools.js:998:              tool.current_site_id
+HEAD:shared-tool-state.js:6:    return tool.current_site_id != null ? "in_use" : "available";
+HEAD:shared-tools.js:637:    !tool.current_site_id
+HEAD:shared-tools.js:647:        tool.current_site_id
+HEAD:shared-tools.js:680:  return tool.current_site_id
+HEAD:shared-tools.js:759:    `${SUPABASE_URL}/rest/v1/sites` +
+HEAD:shared-tools.js:760:    `?select=id,display_name,visible,display_order` +
+HEAD:shared-tools.js:762:    `&order=display_order.asc`;
+HEAD:shared-tools.js:1107:              !tool.current_site_id &&
+HEAD:shared-tools.js:1184:              tool.current_site_id
+HEAD:shared-tools.js:1314:          tool.current_site_id
+HEAD:shared-tools.js:2071:        current_site_id:
+HEAD:site-admin.js:223:      `${SUPABASE_URL}/rest/v1/sites` +
+HEAD:site-admin.js:225:      `&order=display_order.asc,display_name.asc`;
+HEAD:site-admin.js:285:        String(site.construction_no || "")
+HEAD:site-admin.js:288:        String(site.input_code || "")
+HEAD:site-admin.js:291:        String(site.client_name || "")
+HEAD:site-admin.js:371:          ${escapeHtml(site.display_order)}
+HEAD:site-admin.js:376:          ${escapeHtml(site.input_code)}
+HEAD:site-admin.js:381:          ${escapeHtml(site.construction_no)}
+HEAD:site-admin.js:386:          ${escapeHtml(site.client_name)}
+HEAD:site-admin.js:452:              Number(site.display_order) || 0
+HEAD:site-admin.js:511:    site.display_order ?? "";
+HEAD:site-admin.js:517:    site.input_code || "";
+HEAD:site-admin.js:520:    site.construction_no || "";
+HEAD:site-admin.js:523:    site.client_code || "";
+HEAD:site-admin.js:526:    site.client_name || "";
+HEAD:site-admin.js:558:    display_order:
+HEAD:site-admin.js:564:    input_code:
+HEAD:site-admin.js:567:    construction_no:
+HEAD:site-admin.js:570:    client_code:
+HEAD:site-admin.js:573:    client_name:
+HEAD:site-admin.js:682:      `${SUPABASE_URL}/rest/v1/sites`;
+HEAD:supabase/add_application_attendance_sync.sql:65:      or new.site_id is distinct from old.site_id
+HEAD:supabase/add_application_attendance_sync.sql:141:      or v_row.site_id is not null
+HEAD:supabase/add_application_attendance_sync.sql:155:    set site_type = '休み', site_id = null,
+HEAD:supabase/add_application_attendance_sync.sql:163:      (employee_id, work_date, site_type, site_id, misc_company,
+HEAD:supabase/add_comp_leave_expiration.sql:114:  site_id bigint
+HEAD:supabase/add_comp_leave_expiration.sql:115:    references public.sites(id)
+HEAD:supabase/add_comp_leave_expiration.sql:413:      site_id,
+HEAD:supabase/add_comp_leave_expiration.sql:433:      v_record.site_id,
+HEAD:supabase/add_comp_leave_expiration.sql:448:      site_id = excluded.site_id,
+HEAD:supabase/add_comp_leave_expiration.sql:1136:  p_site_id bigint default null,
+HEAD:supabase/add_comp_leave_expiration.sql:1214:    site_id = p_site_id,
+HEAD:supabase/add_personal_tool_identity_correction.sql:142:     or v_tool.current_site_id is not null or v_tool.status is distinct from 'available'
+HEAD:supabase/add_personal_tool_registration_details.sql:32:    inspection_required, inspection_category, status, active, current_site_id, updated_at)
+HEAD:supabase/add_return_shared_tool.sql:37:  if v_tool.current_site_id is null then
+HEAD:supabase/add_return_shared_tool.sql:42:  set current_site_id = null,
+HEAD:supabase/add_return_shared_tool.sql:52:    tool_id, action_type, from_site_id, to_site_id,
+HEAD:supabase/add_return_shared_tool.sql:55:    v_tool.id, 'return', v_tool.current_site_id, null,
+HEAD:supabase/add_tool_catalog.sql:1:-- Prerequisites:
+HEAD:supabase/application_management.sql:5:--       admin_scope text), public.sites(id bigint), public.attendance(id bigint)
+HEAD:supabase/application_management.sql:20:  display_order integer not null default 0,
+HEAD:supabase/application_management.sql:27:  (code, display_name, category, detail_kind, display_order)
+HEAD:supabase/application_management.sql:35:  display_order = excluded.display_order;
+HEAD:supabase/application_management.sql:83:  site_id bigint references public.sites(id) on delete set null,
+HEAD:supabase/application_management.sql:124:  display_order integer not null default 0 check (display_order >= 0),
+HEAD:supabase/application_management.sql:183:  site_id bigint references public.sites(id) on delete set null,
+HEAD:supabase/application_management.sql:275:      or new.site_id is distinct from old.site_id
+HEAD:supabase/application_management.sql:351:      or v_row.site_id is not null
+HEAD:supabase/application_management.sql:365:    set site_type = '休み', site_id = null,
+HEAD:supabase/application_management.sql:373:      (employee_id, work_date, site_type, site_id, misc_company,
+HEAD:supabase/application_management.sql:763:returns table(id bigint, work_date date, site_id bigint, remaining_days numeric,
+HEAD:supabase/application_management.sql:766:  select h.id, h.work_date, h.site_id, h.remaining_days,
+HEAD:supabase/application_management.sql:781:returns table(id bigint, work_date date, site_id bigint, remaining_days numeric,
+HEAD:supabase/application_management.sql:1195:  p_site_id bigint default null,
+HEAD:supabase/application_management.sql:1214:     site_id, note, source_type, source_attendance_id,
+HEAD:supabase/application_management.sql:1218:     p_site_id, nullif(trim(p_note), ''), p_source_type, p_source_attendance_id,
+HEAD:supabase/application_management.sql:1229:  p_site_id bigint default null,
+HEAD:supabase/application_management.sql:1267:      site_id = p_site_id,
+HEAD:supabase/application_management.sql:1339:  on public.comp_leave_dates (application_id, display_order, leave_date);
+HEAD:supabase/application_management.sql:1567:grant insert (application_id, site_id, start_date, end_date, days, day_part, reason),
+HEAD:supabase/application_management.sql:1568:  update (site_id, start_date, end_date, days, day_part, reason)
+HEAD:supabase/application_management.sql:1572:grant insert (application_id, leave_date, days, display_order),
+HEAD:supabase/application_management.sql:1573:  update (leave_date, days, display_order), delete
+HEAD:supabase/application_management_verify.sql:65:select code, display_name, category, detail_kind, active, display_order
+HEAD:supabase/application_management_verify.sql:67:order by display_order;
+HEAD:supabase/comp_leave_availability_functions.sql:4:returns table(id bigint, work_date date, site_id bigint, remaining_days numeric,
+HEAD:supabase/comp_leave_availability_functions.sql:7:  select h.id, h.work_date, h.site_id, h.remaining_days,
+HEAD:supabase/comp_leave_availability_functions.sql:22:returns table(id bigint, work_date date, site_id bigint, remaining_days numeric,
+HEAD:supabase/fix_application_attendance_sync_found.sql:57:      or v_row.site_id is not null
+HEAD:supabase/fix_application_attendance_sync_found.sql:71:    set site_type = '休み', site_id = null,
+HEAD:supabase/fix_application_attendance_sync_found.sql:79:      (employee_id, work_date, site_type, site_id, misc_company,
+HEAD:supabase/fix_comp_leave_reservations.sql:7:returns table(id bigint, work_date date, site_id bigint, remaining_days numeric,
+HEAD:supabase/fix_comp_leave_reservations.sql:10:  select h.id, h.work_date, h.site_id, h.remaining_days,
+HEAD:supabase/fix_comp_leave_reservations.sql:25:returns table(id bigint, work_date date, site_id bigint, remaining_days numeric,
+HEAD:supabase/personal_tool_registration.sql:95:    inspection_required, inspection_category, status, active, current_site_id, updated_at)
+HEAD:supabase/personal_tool_registration_verify.sql:30:    or v_tool.active is distinct from true or v_tool.current_site_id is not null
+HEAD:supabase/tool_catalog_registration.sql:102:    inspection_required, inspection_category, status, active, current_site_id, updated_at)
+HEAD:tests/admin-comp-expiration-history.test.mjs:10:  sites:[{id:10,display_name:'現場A'}],
+HEAD:tests/admin-comp-expiration-history.test.mjs:21:const row={id:1,work_date:'2025-08-23',valid_until_date:'2026-08-23',expiration_date:'2026-08-24',earned_days:'1',used_days_at_expiration:'0',expired_days:'1',site_id:10,note:'<img src=x>'};
+HEAD:tests/admin-comp-expiration-history.test.mjs:22:respond=async()=>[row,{...row,id:2,expired_days:'.5',site_id:null,note:null}];
+HEAD:tests/admin-comp-expiration-history.test.mjs:27:respond=async path=>path.startsWith('sites?')?[{id:99,display_name:'過去の現場'}]:[{...row,site_id:99}];
+HEAD:tests/comp-leave-reservations.test.mjs:27:  create table sites(id bigint primary key);
+HEAD:tests/personal-tool-identity-db.test.sql:20: inspection_required boolean,inspection_category text,status text,active boolean,current_site_id bigint,
+HEAD:tests/personal-tool-identity-db.test.sql:208:     or v_tool.current_site_id is not null or v_tool.status is distinct from 'available'
+HEAD:tests/personal-tool-identity-db.test.sql:284:  update public.tools set current_site_id=1 where id=42;
+HEAD:tests/personal-tool-identity-db.test.sql:286:  update public.tools set current_site_id=null where id=42;
+HEAD:tests/shared-tool-return.test.mjs:18:    sharedToolRecords: scenario === 'missing' ? [] : [{ id: 42, tool_name: '工具', ownership_type: 'shared', active: true, checkout_managed: true, current_site_id: 10 }],
+HEAD:tests/shared-tool-return.test.mjs:52:    assert.equal(context.sharedToolRecords[0].current_site_id, null);
+HEAD:tests/shared-tool-return.test.mjs:82:    current_site_id: 10, assigned_employee_id: 7, status: 'available'
+HEAD:tests/shared-tool-return.test.mjs:95:          ...t, current_site_id: null, assigned_employee_id: null, status: 'available'
+HEAD:tests/shared-tool-state.test.mjs:11:  for (const current_site_id of [null, 10]) {
+HEAD:tests/shared-tool-state.test.mjs:12:    const tool = { ...base, status, current_site_id };
+HEAD:tests/shared-tool-state.test.mjs:14:    assert.equal(state.getDisplayToolStatus(tool), special ? status : current_site_id ? 'in_use' : 'available');
+HEAD:tests/shared-tool-state.test.mjs:15:    assert.equal(state.canCheckout(tool), !special && current_site_id === null);
+HEAD:tests/shared-tool-state.test.mjs:16:    assert.equal(state.canMoveOrReturn(tool), !special && current_site_id !== null);
+HEAD:tests/shared-tool-state.test.mjs:32:    {...base, status:'available', current_site_id: mode === 'checkout' ? 10 : null},
+HEAD:tests/shared-tool-state.test.mjs:33:    ...['repair','stopped','disposed'].map(status => ({...base,status,current_site_id:10})),
+HEAD:tests/shared-tool-state.test.mjs:34:    {...base,active:false,current_site_id:10}
+HEAD:tests/shared-tool-state.test.mjs:70:  sharedToolRecords:[{...base,status:'available',current_site_id:10}],
+HEAD:tests/tool-detail-status.test.mjs:37:  current_site_id: 10, checkout_managed: true };
+HEAD:tests/tool-detail-status.test.mjs:53:buttons = render({ current_site_id: null });
+HEAD:tests/tool-detail-status.test.mjs:61:  for (const current_site_id of [null, 10]) {
+HEAD:tests/tool-detail-status.test.mjs:62:    buttons = render({ status, current_site_id });
+HEAD:tests/tool-detail-status.test.mjs:77:for (const current_site_id of [null, 10]) {
+HEAD:tests/tool-detail-status.test.mjs:78:  assert.equal(render({ checkout_managed: false, current_site_id }), '');
+HEAD:tests/tool-detail-status.test.mjs:124:  assert.equal(context.currentTool.current_site_id, success ? null : 10);
+HEAD:tool-checkout.js:163:    `${SUPABASE_URL}/rest/v1/sites` +
+HEAD:tool-checkout.js:164:    `?select=id,display_name,visible,display_order` +
+HEAD:tool-checkout.js:166:    `&order=display_order.asc`;
+HEAD:tool-checkout.js:182:  const sites =
+HEAD:tool-checkout.js:185:  sites.forEach(site => {
+HEAD:tool-checkout.js:294:              current_site_id:
+HEAD:tool-checkout.js:357:              from_site_id:
+HEAD:tool-checkout.js:360:              to_site_id:
+HEAD:tool-detail.js:804:    `${SUPABASE_URL}/rest/v1/sites` +
+HEAD:tool-detail.js:827:  const sites =
+HEAD:tool-detail.js:834:  sites.forEach(
+HEAD:tool-detail.js:1085:    currentTool.current_site_id
+HEAD:tool-detail.js:1089:              currentTool.current_site_id
+HEAD:tool-detail.js:1237:      current_site_id: null,
+HEAD:tool-detail.js:1798:        history.from_site_id
+HEAD:tool-detail.js:1802:                  history.from_site_id
+HEAD:tool-detail.js:1810:        history.to_site_id
+HEAD:tool-detail.js:1814:                  history.to_site_id
+HEAD:tool-inspection-list.js:223:let sites =
+HEAD:tool-inspection-list.js:1211:    `${SUPABASE_URL}/rest/v1/sites` +
+HEAD:tool-inspection-list.js:1235:  sites =
+HEAD:tool-inspection-list.js:1242:  sites.forEach(
+HEAD:tool-inspection-list.js:1972:  sites.forEach(
+HEAD:tool-inspection-list.js:2389:          tool.current_site_id ||
+HEAD:tool-master.js:488:    tool.current_site_id
+HEAD:tool-master.js:493:        tool.current_site_id
+HEAD:tool-master.js:2286:    return tool.current_site_id
+HEAD:tool-master.js:2534:      `${SUPABASE_URL}/rest/v1/sites?select=*&order=id.asc`
+HEAD:tool-master.js:2632:              tool.current_site_id
+HEAD:tool-master.js:2700:        tool.current_site_id
+HEAD:tool-move.js:119:    `${SUPABASE_URL}/rest/v1/sites` +
+HEAD:tool-move.js:120:    `?select=id,display_name,visible,display_order` +
+HEAD:tool-move.js:122:    `&order=display_order.asc`;
+HEAD:tool-move.js:138:  const sites =
+HEAD:tool-move.js:143:  sites.forEach(site => {
+HEAD:tool-move.js:281:    currentTool.current_site_id
+HEAD:tool-move.js:285:              currentTool.current_site_id
+HEAD:tool-move.js:309:    currentTool.current_site_id
+HEAD:tool-move.js:313:        currentTool.current_site_id
+HEAD:tool-move.js:373:    currentTool.current_site_id;
+HEAD:tool-move.js:446:              current_site_id:
+HEAD:tool-move.js:505:              from_site_id:
+HEAD:tool-move.js:508:              to_site_id:

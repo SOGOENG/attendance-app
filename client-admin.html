@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>元請マスタ｜Staff Portal</title>
+  <link rel="stylesheet" href="style.css?v=25"><link rel="stylesheet" href="master-admin.css?v=1">
+</head>
+<body><main class="admin-home-page">
+  <header class="admin-home-header"><div class="admin-home-header-text"><h1>元請マスタ</h1></div>
+    <a href="settings-admin.html" class="admin-home-back-button">設定へ戻る</a></header>
+  <section class="admin-section-card">
+    <button id="newClientButton" type="button" class="admin-primary-button" disabled>新規元請登録</button>
+    <button id="reloadClients" type="button" class="admin-secondary-button">再読み込み</button>
+    <a href="site-admin.html">現場マスタへ</a>
+    <p class="master-note">↑ ↓ で元請の順番を変更できます。非表示にしても既存現場との紐付け・現場の表示状態は変わりません。</p>
+    <p id="clientMessage" class="master-message" role="status" aria-live="polite"></p>
+    <div id="clientList"></div>
+  </section>
+  <section id="clientEditSection" class="admin-section-card" hidden>
+    <h2 id="clientFormTitle">元請登録</h2>
+    <form id="clientForm" novalidate>
+      <input id="editingClientId" type="hidden">
+      <label class="admin-form-label">元請名（必須）<input id="clientName" class="admin-form-control" required></label>
+      <label class="admin-form-label">元請コード（必須）<input id="clientCode" class="admin-form-control" required></label>
+      <p class="master-note">既存の元請は一覧から編集してください。名称・コードの変更は新規現場から適用され、既存現場の互換用項目と入力コードは維持されます。</p>
+      <label class="admin-form-label">表示状態<select id="clientVisible" class="admin-form-control"><option value="true">表示</option><option value="false">非表示</option></select></label>
+      <p id="clientFormMessage" class="master-message" role="alert"></p>
+      <button id="saveClientButton" class="admin-primary-button" type="submit">保存する</button>
+      <button id="cancelClientButton" class="admin-secondary-button" type="button">閉じる</button>
+    </form>
+  </section>
+</main><script src="portal-auth.js"></script><script src="master-admin-common.js?v=1"></script><script src="client-admin.js?v=1"></script></body>
+</html>

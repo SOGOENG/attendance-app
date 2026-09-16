@@ -117,13 +117,13 @@ async function loadEmployees() {
 
 async function loadSites() {
   const url =
-    `${SUPABASE_URL}/rest/v1/sites` +
+    `${SUPABASE_URL}/rest/v1/site_master_order` +
     `?select=` +
     `id,display_order,display_name,input_code,` +
     `construction_no,client_code,client_name,` +
     `official_name,visible,site_type` +
     `&visible=eq.true` +
-    `&order=display_order.asc`;
+    `&order=client_display_order.asc.nullslast,client_site_order.asc.nullslast,display_order.asc.nullslast,id.asc`;
 
   const response =
     await portalFetch(url);

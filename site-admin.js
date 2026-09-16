@@ -1,829 +1,93 @@
-/* =========================================
-   現場設定
-========================================= */
-
-const SUPABASE_URL =
-  "https://fgmvmbjnoyagnpygcbky.supabase.co";
-
-
-/* =========================================
-   HTML要素
-========================================= */
-
-const newSiteButton =
-  document.getElementById(
-    "newSiteButton"
-  );
-
-const siteSearchInput =
-  document.getElementById(
-    "siteSearchInput"
-  );
-
-const siteVisibleFilter =
-  document.getElementById(
-    "siteVisibleFilter"
-  );
-
-const siteTypeFilter =
-  document.getElementById(
-    "siteTypeFilter"
-  );
-
-const siteMessage =
-  document.getElementById(
-    "siteMessage"
-  );
-
-const siteList =
-  document.getElementById(
-    "siteList"
-  );
-
-const siteEditSection =
-  document.getElementById(
-    "siteEditSection"
-  );
-
-const siteFormTitle =
-  document.getElementById(
-    "siteFormTitle"
-  );
-
-const editingSiteId =
-  document.getElementById(
-    "editingSiteId"
-  );
-
-const siteDisplayOrder =
-  document.getElementById(
-    "siteDisplayOrder"
-  );
-
-const siteDisplayName =
-  document.getElementById(
-    "siteDisplayName"
-  );
-
-const siteInputCode =
-  document.getElementById(
-    "siteInputCode"
-  );
-
-const siteConstructionNo =
-  document.getElementById(
-    "siteConstructionNo"
-  );
-
-const siteClientCode =
-  document.getElementById(
-    "siteClientCode"
-  );
-
-const siteClientName =
-  document.getElementById(
-    "siteClientName"
-  );
-
-const siteOfficialName =
-  document.getElementById(
-    "siteOfficialName"
-  );
-
-const siteVisible =
-  document.getElementById(
-    "siteVisible"
-  );
-
-const siteType =
-  document.getElementById(
-    "siteType"
-  );
-
-const saveSiteButton =
-  document.getElementById(
-    "saveSiteButton"
-  );
-
-const cancelSiteEditButton =
-  document.getElementById(
-    "cancelSiteEditButton"
-  );
-
-
-/* =========================================
-   現在使用中のデータ
-========================================= */
-
-let siteRecords = [];
-
-
-/* =========================================
-   管理者権限確認
-========================================= */
-
-function getLoginUser() {
-  const savedUser =
-    localStorage.getItem(
-      "portalLoginUser"
-    );
-
-  if (!savedUser) {
-    return null;
+(() => {
+  'use strict';
+  const $ = id => document.getElementById(id), M = MasterAdmin;
+  let sites = [], clients = [], busy = false, ready = false;
+  const group = site => String(site.client_id ?? '');
+  const message = text => { $('siteMessage').textContent = text; };
+  function render() {
+    const search = $('siteSearchInput').value.trim().toLowerCase();
+    const filtered = sites.filter(s =>
+      (!search || [s.display_name,s.official_name,s.construction_no,s.input_code,s.client_name,s.master_client_name]
+        .some(v => String(v ?? '').toLowerCase().includes(search))) &&
+      ($('siteVisibleFilter').value === 'all' || String(s.visible) === $('siteVisibleFilter').value) &&
+      ($('siteTypeFilter').value === 'all' || s.site_type === $('siteTypeFilter').value));
+    // Include hidden sites in ordering; avoid swapping with invisible search results.
+    const filtering = !!search || $('siteVisibleFilter').value !== 'all' || $('siteTypeFilter').value !== 'all';
+    let previousGroup = null;
+    $('siteList').innerHTML = filtered.map(s => {
+      const key = group(s), siblings = sites.filter(x => group(x) === key), index = siblings.indexOf(s);
+      const title = key !== previousGroup ? `<h3 class="master-group-title">${M.escape(s.master_client_name || '元請未設定（既存データ）')}</h3>` : '';
+      previousGroup = key;
+      return `${title}<article class="admin-schedule-item"><div class="admin-schedule-info">
+        <strong>${M.escape(s.display_name)}</strong>
+        <p>入力コード：${M.escape(s.input_code)} ／ 工事番号：${M.escape(s.construction_no)}</p>
+        <p>元請：${M.escape(s.master_client_name || s.client_name)}</p>
+        <p>正式名称：${M.escape(s.official_name)}</p>
+        <p>${M.escape(s.site_type)} ／ ${s.visible ? '表示中' : '非表示'}</p></div>
+        <div class="admin-schedule-actions">
+        <button class="master-order-button" data-id="${M.escape(s.id)}" data-direction="-1" aria-label="${M.escape(s.display_name)}を上へ" ${busy || filtering || !index ? 'disabled' : ''}>↑</button>
+        <button class="master-order-button" data-id="${M.escape(s.id)}" data-direction="1" aria-label="${M.escape(s.display_name)}を下へ" ${busy || filtering || index === siblings.length - 1 ? 'disabled' : ''}>↓</button>
+        <button class="edit-schedule-button" data-edit="${M.escape(s.id)}" ${busy ? 'disabled' : ''}>編集</button></div></article>`;
+    }).join('') || '<p>該当する現場はありません</p>';
+    $('newSiteButton').disabled = busy || !ready;
+    $('siteOrderNote').textContent = filtering ? '並び替えるには検索・表示状態・現場種別の絞り込みを解除してください。' : '↑ ↓ で元請内の現場順を変更できます。非表示の現場も並び順に含みます。';
   }
-
-  try {
-    return JSON.parse(savedUser);
-
-  } catch (error) {
-    console.error(error);
-    return null;
+  async function load() {
+    const result = await Promise.all([
+      M.all('site_master_order?select=*&order=client_display_order.asc.nullslast,client_id.asc.nullslast,client_site_order.asc.nullslast,display_order.asc.nullslast,display_name.asc,id.asc'),
+      M.all('clients?select=*&order=display_order.asc,id.asc')
+    ]);
+    [sites, clients] = result; ready = true; render();
   }
-}
-
-
-function checkAdminAccess() {
-  const loginUser =
-    getLoginUser();
-
-  if (!loginUser) {
-    window.location.href =
-      "login.html";
-
-    return false;
+  function edit(s = {}) {
+    $('siteForm').reset(); $('editingSiteId').value = s.id ?? '';
+    const options = clients.filter(c => c.visible || String(c.id) === String(s.client_id));
+    $('siteClientId').innerHTML = '<option value="">選択してください</option>' + options.map(c =>
+      `<option value="${M.escape(c.id)}">${M.escape(c.name)}${c.visible ? '' : '（非表示・現在の元請）'}</option>`).join('');
+    $('siteClientId').value = s.client_id ?? '';
+    $('siteDisplayName').value = s.display_name ?? '';
+    $('siteConstructionNo').value = s.construction_no ?? '';
+    $('siteOfficialName').value = s.official_name ?? '';
+    $('siteVisible').value = String(s.visible ?? true); $('siteType').value = s.site_type || '一般';
+    $('siteFormTitle').textContent = s.id ? '現場情報の修正' : '新規現場登録';
+    $('siteCodeNote').textContent = s.id ? `入力コード：${s.input_code ?? ''}（変更しません）` : '入力コードは保存時に自動発行し、選択した元請の一番下に追加します。';
+    $('siteFormMessage').textContent = '';
+    $('siteForm').querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
+    $('siteEditSection').hidden = false; $('siteDisplayName').focus();
   }
-
-  if (
-  !loginUser.adminScope ||
-  loginUser.adminScope === "none" ||
-  loginUser.adminScope === "tool_admin"
-) {
-  
-    alert(
-      "現場設定を開く権限がありません"
-    );
-
-    window.location.href =
-      "home.html";
-
-    return false;
-  }
-
-  return true;
-}
-
-
-/* =========================================
-   共通処理
-========================================= */
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-
-function showMessage(message) {
-  siteMessage.textContent =
-    message;
-}
-
-
-function clearMessage() {
-  siteMessage.textContent =
-    "";
-}
-
-
-function formatVisible(value) {
-  return value
-    ? "表示中"
-    : "非表示";
-}
-
-
-/* =========================================
-   現場一覧取得
-========================================= */
-
-async function loadSites() {
-  siteList.innerHTML =
-    `
-      <p class="schedule-empty-message">
-        現場情報を読み込み中...
-      </p>
-    `;
-
-  try {
-    const url =
-      `${SUPABASE_URL}/rest/v1/sites` +
-      `?select=*` +
-      `&order=display_order.asc,display_name.asc`;
-
-    const response =
-      await portalFetch(url);
-
-    if (!response.ok) {
-      const errorText =
-        await response.text();
-
-      console.error(errorText);
-
-      throw new Error(
-        "現場情報を読み込めませんでした"
-      );
-    }
-
-    siteRecords =
-      await response.json();
-
-    displaySites();
-
-  } catch (error) {
-    console.error(error);
-
-    siteList.innerHTML =
-      `
-        <p class="schedule-empty-message">
-          ${escapeHtml(error.message)}
-        </p>
-      `;
-  }
-}
-
-
-/* =========================================
-   絞り込み済み現場取得
-========================================= */
-
-function getFilteredSites() {
-  const searchText =
-    siteSearchInput.value
-      .trim()
-      .toLowerCase();
-
-  const visibleValue =
-    siteVisibleFilter.value;
-
-  const typeValue =
-    siteTypeFilter.value;
-
-  return siteRecords.filter(
-    site => {
-      const searchMatches =
-        !searchText ||
-        String(site.display_name || "")
-          .toLowerCase()
-          .includes(searchText) ||
-        String(site.official_name || "")
-          .toLowerCase()
-          .includes(searchText) ||
-        String(site.construction_no || "")
-          .toLowerCase()
-          .includes(searchText) ||
-        String(site.input_code || "")
-          .toLowerCase()
-          .includes(searchText) ||
-        String(site.client_name || "")
-          .toLowerCase()
-          .includes(searchText);
-
-      const visibleMatches =
-        visibleValue === "all" ||
-        String(site.visible) ===
-          visibleValue;
-
-      const typeMatches =
-        typeValue === "all" ||
-        site.site_type ===
-          typeValue;
-
-      return (
-        searchMatches &&
-        visibleMatches &&
-        typeMatches
-      );
-    }
-  );
-}
-
-
-/* =========================================
-   現場一覧表示
-========================================= */
-
-function displaySites() {
-  const filteredSites =
-    getFilteredSites();
-
-  siteList.innerHTML =
-    "";
-
-  if (filteredSites.length === 0) {
-    siteList.innerHTML =
-      `
-        <p class="schedule-empty-message">
-          該当する現場はありません
-        </p>
-      `;
-
-    return;
-  }
-
-  filteredSites.forEach(
-    site => {
-      const card =
-        createSiteCard(site);
-
-      siteList.appendChild(
-        card
-      );
-    }
-  );
-}
-
-
-/* =========================================
-   現場カード作成
-========================================= */
-
-function createSiteCard(site) {
-  const card =
-    document.createElement("div");
-
-  card.className =
-    "admin-schedule-item";
-
-  card.innerHTML =
-    `
-      <div class="admin-schedule-info">
-
-        <strong>
-          ${escapeHtml(site.display_name)}
-        </strong>
-
-        <p>
-          表示順：
-          ${escapeHtml(site.display_order)}
-        </p>
-
-        <p>
-          入力コード：
-          ${escapeHtml(site.input_code)}
-        </p>
-
-        <p>
-          工事番号：
-          ${escapeHtml(site.construction_no)}
-        </p>
-
-        <p>
-          元請：
-          ${escapeHtml(site.client_name)}
-        </p>
-
-        <p>
-          正式名称：
-          ${escapeHtml(site.official_name)}
-        </p>
-
-        <p>
-          現場種別：
-          ${escapeHtml(site.site_type)}
-        </p>
-
-        <p>
-          状態：
-          ${escapeHtml(
-            formatVisible(site.visible)
-          )}
-        </p>
-
-      </div>
-
-      <div class="admin-schedule-actions">
-
-        <button
-          type="button"
-          class="edit-schedule-button"
-        >
-          編集
-        </button>
-
-      </div>
-    `;
-
-  const editButton =
-    card.querySelector(
-      ".edit-schedule-button"
-    );
-
-  editButton.addEventListener(
-    "click",
-    () => {
-      startSiteEdit(site);
-    }
-  );
-
-  return card;
-}
-
-
-/* =========================================
-   新規現場登録開始
-========================================= */
-
-function startNewSiteRegistration() {
-  editingSiteId.value =
-    "";
-
-  siteFormTitle.textContent =
-    "新規現場登録";
-
-  const nextDisplayOrder =
-    siteRecords.length > 0
-      ? Math.max(
-          ...siteRecords.map(
-            site =>
-              Number(site.display_order) || 0
-          )
-        ) + 1
-      : 1;
-
-  siteDisplayOrder.value =
-    String(nextDisplayOrder);
-
-  siteDisplayName.value =
-    "";
-
-  siteInputCode.value =
-    "";
-
-  siteConstructionNo.value =
-    "";
-
-  siteClientCode.value =
-    "";
-
-  siteClientName.value =
-    "";
-
-  siteOfficialName.value =
-    "";
-
-  siteVisible.value =
-    "true";
-
-  siteType.value =
-    "一般";
-
-  siteEditSection.hidden =
-    false;
-
-  clearMessage();
-
-  siteEditSection.scrollIntoView({
-    behavior:
-      "smooth",
-
-    block:
-      "start"
-  });
-}
-
-
-/* =========================================
-   現場編集開始
-========================================= */
-
-function startSiteEdit(site) {
-  editingSiteId.value =
-    site.id;
-
-  siteFormTitle.textContent =
-    "現場情報の修正";
-
-  siteDisplayOrder.value =
-    site.display_order ?? "";
-
-  siteDisplayName.value =
-    site.display_name || "";
-
-  siteInputCode.value =
-    site.input_code || "";
-
-  siteConstructionNo.value =
-    site.construction_no || "";
-
-  siteClientCode.value =
-    site.client_code || "";
-
-  siteClientName.value =
-    site.client_name || "";
-
-  siteOfficialName.value =
-    site.official_name || "";
-
-  siteVisible.value =
-    String(site.visible);
-
-  siteType.value =
-    site.site_type || "一般";
-
-  siteEditSection.hidden =
-    false;
-
-  clearMessage();
-
-  siteEditSection.scrollIntoView({
-    behavior:
-      "smooth",
-
-    block:
-      "start"
-  });
-}
-
-
-/* =========================================
-   保存用データ作成
-========================================= */
-
-function createSiteSaveData() {
-  return {
-    display_order:
-      Number(siteDisplayOrder.value),
-
-    display_name:
-      siteDisplayName.value.trim(),
-
-    input_code:
-      siteInputCode.value.trim(),
-
-    construction_no:
-      siteConstructionNo.value.trim(),
-
-    client_code:
-      siteClientCode.value.trim(),
-
-    client_name:
-      siteClientName.value.trim(),
-
-    official_name:
-      siteOfficialName.value.trim(),
-
-    visible:
-      siteVisible.value === "true",
-
-    site_type:
-      siteType.value
+  $('newSiteButton').onclick = () => edit();
+  $('cancelSiteEditButton').onclick = () => { if (!busy) $('siteEditSection').hidden = true; };
+  $('reloadSites').onclick = async () => {
+    if (busy) return;
+    try { await M.authorize(); await load(); message('一覧を更新しました'); } catch (e) { message(e.message); }
   };
-}
-
-
-/* =========================================
-   入力確認
-========================================= */
-
-function validateSite() {
-  if (
-    !siteDisplayOrder.value ||
-    Number(siteDisplayOrder.value) < 1
-  ) {
-    throw new Error(
-      "表示順を入力してください"
-    );
-  }
-
-  if (!siteDisplayName.value.trim()) {
-    throw new Error(
-      "表示名を入力してください"
-    );
-  }
-
-  if (!siteInputCode.value.trim()) {
-    throw new Error(
-      "入力コードを入力してください"
-    );
-  }
-
-  if (!siteConstructionNo.value.trim()) {
-    throw new Error(
-      "工事番号を入力してください"
-    );
-  }
-
-  if (!siteClientName.value.trim()) {
-    throw new Error(
-      "元請名を入力してください"
-    );
-  }
-
-  if (!siteOfficialName.value.trim()) {
-    throw new Error(
-      "正式名称を入力してください"
-    );
-  }
-}
-
-
-/* =========================================
-   現場情報保存
-========================================= */
-
-async function saveSite() {
-  clearMessage();
-
-  try {
-    validateSite();
-
-  } catch (error) {
-    showMessage(
-      error.message
-    );
-
-    return;
-  }
-
-  const siteId =
-    editingSiteId.value;
-
-  const isNewSite =
-    !siteId;
-
-  const saveData =
-    createSiteSaveData();
-
-  const confirmed =
-    window.confirm(
-      isNewSite
-        ? "新規現場を登録しますか？"
-        : "現場情報を保存しますか？"
-    );
-
-  if (!confirmed) {
-    return;
-  }
-
-  saveSiteButton.disabled =
-    true;
-
-  saveSiteButton.textContent =
-    isNewSite
-      ? "登録中..."
-      : "保存中...";
-
-  try {
-    let url =
-      `${SUPABASE_URL}/rest/v1/sites`;
-
-    let method =
-      "POST";
-
-    if (!isNewSite) {
-      url +=
-        `?id=eq.${siteId}`;
-
-      method =
-        "PATCH";
-    }
-
-    const response =
-      await portalFetch(
-        url,
-        {
-          method,
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            Prefer:
-              "return=minimal"
-          },
-
-          body:
-            JSON.stringify(
-              saveData
-            )
-        }
-      );
-
-    if (!response.ok) {
-      const errorText =
-        await response.text();
-
-      console.error(errorText);
-
-      throw new Error(
-        isNewSite
-          ? "新規現場を登録できませんでした"
-          : "現場情報を保存できませんでした"
-      );
-    }
-
-    await loadSites();
-
-    closeSiteEdit();
-
-    showMessage(
-      isNewSite
-        ? "新規現場を登録しました"
-        : "現場情報を保存しました"
-    );
-
-  } catch (error) {
-    console.error(error);
-
-    showMessage(
-      error.message
-    );
-
-  } finally {
-    saveSiteButton.disabled =
-      false;
-
-    saveSiteButton.textContent =
-      "保存する";
-  }
-}
-
-
-/* =========================================
-   編集画面を閉じる
-========================================= */
-
-function closeSiteEdit() {
-  editingSiteId.value =
-    "";
-
-  siteFormTitle.textContent =
-    "現場情報の修正";
-
-  siteEditSection.hidden =
-    true;
-}
-
-
-/* =========================================
-   イベント設定
-========================================= */
-
-newSiteButton.addEventListener(
-  "click",
-  startNewSiteRegistration
-);
-
-
-siteSearchInput.addEventListener(
-  "input",
-  displaySites
-);
-
-
-siteVisibleFilter.addEventListener(
-  "change",
-  displaySites
-);
-
-
-siteTypeFilter.addEventListener(
-  "change",
-  displaySites
-);
-
-
-saveSiteButton.addEventListener(
-  "click",
-  saveSite
-);
-
-
-cancelSiteEditButton.addEventListener(
-  "click",
-  () => {
-    closeSiteEdit();
-
-    clearMessage();
-  }
-);
-
-
-/* =========================================
-   初期表示
-========================================= */
-
-async function initializeSiteAdmin() {
-  if (!checkAdminAccess()) {
-    return;
-  }
-
-  await loadSites();
-}
-
-
-initializeSiteAdmin();
+  $('siteSearchInput').oninput = render;
+  $('siteVisibleFilter').onchange = render; $('siteTypeFilter').onchange = render;
+  $('siteList').onclick = async event => {
+    const button = event.target.closest('button'); if (!button || busy) return;
+    if (button.dataset.edit) return edit(sites.find(s => String(s.id) === button.dataset.edit));
+    const row = sites.find(s => String(s.id) === button.dataset.id); if (!row) return;
+    busy = true; render();
+    try {
+      await M.rpc('move_master_item', { p_kind: 'site', p_id: row.id,
+        p_direction: Number(button.dataset.direction), p_expected_ids: sites.filter(s => group(s) === group(row)).map(s => s.id) });
+      await load(); message('現場の順番を保存しました');
+    } catch (e) { message(e.message); }
+    finally { busy = false; render(); }
+  };
+  $('siteForm').onsubmit = async event => {
+    event.preventDefault(); if (busy) return;
+    try { M.validate([[$('siteDisplayName'),'表示名'],[$('siteClientId'),'元請'],
+      [$('siteConstructionNo'),'工事番号'],[$('siteOfficialName'),'正式名称']]); }
+    catch (e) { $('siteFormMessage').textContent = e.message; return; }
+    busy = true; $('saveSiteButton').disabled = true; render();
+    try {
+      await M.rpc('save_site_master', { p_id: $('editingSiteId').value || null, p_client_id: $('siteClientId').value,
+        p_display_name: $('siteDisplayName').value.trim(), p_construction_no: $('siteConstructionNo').value.trim(),
+        p_official_name: $('siteOfficialName').value.trim(), p_visible: $('siteVisible').value === 'true', p_site_type: $('siteType').value });
+      $('siteEditSection').hidden = true; message('現場を保存しました'); await load();
+    } catch (e) { $('siteFormMessage').textContent = e.message; message(e.message); }
+    finally { busy = false; $('saveSiteButton').disabled = false; render(); }
+  };
+  (async () => { try { await M.authorize(); await load(); } catch (e) { message(e.message); } })();
+})();

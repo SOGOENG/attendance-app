@@ -3,9 +3,15 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v85";
+  "staff-portal-v86";
 
 const CACHE_FILES = [
+  "./site-admin.html",
+  "./client-admin.html",
+  "./site-admin.js?v=2",
+  "./client-admin.js?v=1",
+  "./master-admin-common.js?v=1",
+  "./master-admin.css?v=1",
   "./tool-inspection-workflow.js?v=1",
   "./tool-inspection-registration.js?v=1",
   "./tool-catalog-admin.js?v=1",
@@ -45,17 +51,17 @@ const CACHE_FILES = [
   "./push-notifications.js",
   "./login.js",
   "./home.js?v=8",
-  "./app.js?v=12",
+  "./app.js?v=13",
   "./improvement.js",
-  "./near-miss.js",
+  "./near-miss.js?v=1",
   "./my-page.js?v=5",
-  "./applications.js?v=8",
-  "./applications-admin.js?v=7",
+  "./applications.js?v=9",
+  "./applications-admin.js?v=8",
   "./application-print.js?v=3",
   "./tool-employees.js?v=1",
-  "./tool-checkout.js?v=3",
+  "./tool-checkout.js?v=4",
   "./tool-qr.js?v=16",
-  "./shared-tools.js?v=15",
+  "./shared-tools.js?v=16",
   "./settings.js",
   "./schedule.js",
   "./admin.js",

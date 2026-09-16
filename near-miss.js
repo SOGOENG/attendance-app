@@ -635,8 +635,8 @@ function createFixedOptions() {
 
 async function loadSites() {
   const url =
-    `${SUPABASE_URL}/rest/v1/sites` +
-    `?select=*`;
+    `${SUPABASE_URL}/rest/v1/site_master_order` +
+    `?select=*&order=client_display_order.asc.nullslast,client_site_order.asc.nullslast,display_order.asc.nullslast,id.asc`;
 
   const response =
     await portalFetch(url);
@@ -654,19 +654,6 @@ async function loadSites() {
 
   siteRecords =
     await response.json();
-
-  siteRecords.sort((a, b) => {
-    const nameA =
-      getSiteDisplayName(a);
-
-    const nameB =
-      getSiteDisplayName(b);
-
-    return nameA.localeCompare(
-      nameB,
-      "ja"
-    );
-  });
 
   createSiteOptions();
 }

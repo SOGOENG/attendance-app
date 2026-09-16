@@ -1,0 +1,9 @@
+[aria-invalid="true"] { outline: 2px solid #b42318; outline-offset: 2px; }
+.master-message { color: #b42318; font-weight: 600; white-space: pre-wrap; }
+.master-group-title { margin-top: 1.5rem; padding-bottom: .5rem; border-bottom: 1px solid #aaa; }
+.master-order-button { min-width: 44px; min-height: 44px; cursor: pointer; }
+.master-order-button:disabled { opacity: .4; cursor: default; }
+.master-note { line-height: 1.7; }
+.admin-schedule-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin: .5rem 0 1rem; }
+.admin-schedule-actions .master-order-button { width: 44px; flex: 0 0 44px; }
+.admin-schedule-actions .edit-schedule-button { width: auto; flex: 1; }
