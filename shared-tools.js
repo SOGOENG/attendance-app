@@ -1477,7 +1477,8 @@ function renderCurrentToolSearch(
     sharedToolRecords.filter(
       activeToolSearch.matches
     ),
-    scroll
+    scroll,
+    activeToolSearch.type
   );
 }
 
@@ -1485,8 +1486,10 @@ function renderCurrentToolSearch(
 function showResult(
   title,
   tools,
-  scroll = true
+  scroll = true,
+  searchType = null
 ) {
+  const isSiteSearch = searchType === "site";
 
   sharedToolResultTitle.textContent =
     title;
@@ -1506,10 +1509,12 @@ function showResult(
 
   sharedToolSummary.innerHTML =
     `
+      ${isSiteSearch ? "" : `
       <div class="shared-tool-summary-item is-available">
         <span>貸出可能</span>
         <strong>${availableCount}件</strong>
       </div>
+      `}
       <div class="shared-tool-summary-item is-in-use">
         <span>使用中</span>
         <strong>${inUseCount}件</strong>
@@ -1517,7 +1522,11 @@ function showResult(
     `;
 
 
-  if (
+  if (isSiteSearch) {
+    sharedToolMessage.textContent = inUseCount === 0
+      ? "この現場で使用中の工具はありません。"
+      : "";
+  } else if (
     availableCount === 0 &&
     inUseCount === 0 &&
     tools.length === 0
@@ -1556,7 +1565,8 @@ function showResult(
 
 
   renderToolCards(
-    tools
+    tools,
+    searchType
   );
 
 
@@ -1579,8 +1589,10 @@ function showResult(
 ========================================= */
 
 function renderToolCards(
-  tools
+  tools,
+  searchType = null
 ) {
+  const isSiteSearch = searchType === "site";
 
   const availableTools =
     tools.filter(
@@ -1608,6 +1620,7 @@ function renderToolCards(
 
   sharedToolList.innerHTML =
     `
+      ${isSiteSearch ? "" : `
       <section class="shared-tool-result-group">
         <h3>貸出可能</h3>
         <div
@@ -1615,6 +1628,7 @@ function renderToolCards(
           class="shared-tool-result-group-list"
         ></div>
       </section>
+      `}
 
       <section class="shared-tool-result-group">
         <h3>使用中</h3>
@@ -1625,7 +1639,7 @@ function renderToolCards(
       </section>
 
       ${
-        otherTools.length
+        !isSiteSearch && otherTools.length
           ? `
             <section class="shared-tool-result-group">
               <h3>その他</h3>
@@ -1658,14 +1672,14 @@ function renderToolCards(
     );
 
 
-  if (!availableTools.length) {
+  if (!isSiteSearch && !availableTools.length) {
 
     availableList.innerHTML =
       '<p class="schedule-empty-message">現在、倉庫に貸出可能な工具はありません。</p>';
   }
 
 
-  if (!inUseTools.length) {
+  if (!isSiteSearch && !inUseTools.length) {
 
     inUseList.innerHTML =
       '<p class="schedule-empty-message">使用中の工具はありません。</p>';
@@ -1673,7 +1687,7 @@ function renderToolCards(
 
 
   const orderedTools =
-    [
+    isSiteSearch ? inUseTools : [
       ...availableTools,
       ...inUseTools,
       ...otherTools

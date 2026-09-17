@@ -134,7 +134,7 @@ for (const mode of ['site', 'category', 'keyword', 'stock', 'refresh-error']) {
   assert.equal(alerts.filter(a => a === '工具を返却しました').length, 5);
   if (['site', 'refresh-error'].includes(mode)) {
     assert.equal(displayed.length, 0);
-    assert.equal(element('sharedToolMessage').textContent, '該当する工具はありません');
+    assert.equal(element('sharedToolMessage').textContent, 'この現場で使用中の工具はありません。');
   }
   if (mode === 'refresh-error') assert.equal(alerts.filter(a => /最新の工具一覧/.test(a)).length, 5);
   console.log(`PASS: ${mode} search retained across five returns, counts and empty state, no actor payload`);
