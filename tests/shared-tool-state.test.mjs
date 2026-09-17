@@ -56,7 +56,7 @@ for (const name of ['shared-tools.js','tool-detail.js']) {
   const start = source.indexOf(name === 'shared-tools.js' ? 'async function returnTool(' : 'async function returnSharedTool(');
   const end = source.indexOf('/* =========================================', start);
   assert.doesNotMatch(source.slice(start,end), /PATCH|operated_by_employee_id|tool_history/);
-  assert.match(source.slice(start,end), /SharedToolState.returnSharedTool/);
+  assert.match(source.slice(start,end), /SharedToolState\s*\.returnSharedTool/);
 }
 console.log('PASS: dependency order, PWA dependency, QR destination and RPC-only return paths');
 

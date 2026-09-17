@@ -1189,15 +1189,6 @@ function buildSiteSelect() {
         ).length;
 
 
-      if (
-        count ===
-        0
-      ) {
-
-        return;
-      }
-
-
       const option =
         document.createElement(
           "option"

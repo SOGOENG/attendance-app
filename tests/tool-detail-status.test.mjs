@@ -81,8 +81,8 @@ console.log('PASS: unmanaged tools have no action buttons');
 
 const worker = await readFile(new URL('../service-worker.js', import.meta.url), 'utf8');
 new vm.Script(worker);
-assert.match(worker, /const CACHE_NAME\s*=\s*"staff-portal-v86"/);
-console.log('PASS: service worker cache version is v86; JavaScript syntax checks passed');
+assert.match(worker, /const CACHE_NAME\s*=\s*"staff-portal-v87"/);
+console.log('PASS: service worker cache version is v87; JavaScript syntax checks passed');
 
 for (const scenario of ['success', 'rpc-error', 'non-json', 'network', 'cancel', 'refresh-error']) {
   render();

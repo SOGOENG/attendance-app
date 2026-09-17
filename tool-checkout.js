@@ -206,6 +206,19 @@ async function loadSites() {
 ========================================= */
 
 async function loadEmployees() {
+  const loginUser = getLoginUser();
+  if (currentTool?.ownership_type === "shared" &&
+      !["all", "tool_admin"].includes(loginUser?.adminScope)) {
+    checkoutDepartment.disabled = true;
+    checkoutEmployee.disabled = true;
+    checkoutEmployee.replaceChildren();
+    const option = document.createElement("option");
+    option.value = loginUser?.id || "";
+    option.textContent = loginUser?.name || "ログイン中の社員";
+    checkoutEmployee.appendChild(option);
+    checkoutEmployee.value = String(loginUser?.id || "");
+    return;
+  }
   await ToolEmployeeSelector.loadEmployees({
     supabaseUrl: SUPABASE_URL,
     departmentSelect: checkoutDepartment,
@@ -233,6 +246,8 @@ async function checkoutTool() {
     checkoutMessage.textContent = "現在操作できません";
     return;
   }
+
+  if (checkoutButton.disabled) return;
 
   if (!checkoutSite.value) {
     checkoutMessage.textContent =
@@ -264,6 +279,42 @@ async function checkoutTool() {
     "登録中...";
 
   try {
+    if (currentTool.ownership_type === "shared") {
+      const siteId = Number(checkoutSite.value);
+      const response = await portalFetch(
+        `${SUPABASE_URL}/rest/v1/rpc/checkout_shared_tool`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            p_tool_id: currentTool.id,
+            p_site_id: siteId,
+            p_employee_id: Number(checkoutEmployee.value),
+            p_note: checkoutNote.value.trim() || null
+          })
+        }
+      );
+      if (!response.ok) {
+        let message = "工具の持出登録に失敗しました";
+        try {
+          const error = await response.json();
+          if (error?.message) message = error.message;
+        } catch { /* 非JSONエラーでは既定メッセージを使用 */ }
+        throw new Error(message);
+      }
+      const saved = await response.json();
+      if (!saved || String(saved.id) !== String(currentTool.id) ||
+          String(saved.current_site_id) !== String(siteId) ||
+          saved.assigned_employee_id == null || saved.status !== "in_use" ||
+          !saved.updated_at) {
+        throw new Error("持出結果を確認できません。工具情報を再読込してください");
+      }
+      currentTool = saved;
+      alert("工具を持ち出しました");
+      window.location.href = "shared-tools.html";
+      return;
+    }
+
     const loginUser =
       getLoginUser();
 
