@@ -51,6 +51,9 @@ const toolQrList =
 const toolQrSelectAll =
   document.getElementById("toolQrSelectAll");
 
+const toolQrSelectedCount =
+  document.getElementById("toolQrSelectedCount");
+
 const toolQrStickerAll =
   document.getElementById("toolQrStickerAll");
 
@@ -78,6 +81,10 @@ const toolQrPrintButton =
 ========================================= */
 
 let toolRecords = [];
+
+// 検索結果の再描画とは独立して、工具IDで選択を保持する。
+const selectedToolIds = new Set();
+const selectedStickerIds = new Set();
 
 let employeeRecords = [];
 
@@ -786,6 +793,7 @@ function displayTools(
             <input
               type="checkbox"
               class="tool-qr-checkbox"
+              ${selectedToolIds.has(String(tool.id)) ? "checked" : ""}
               data-tool-id="${escapeHtml(
                 tool.id
               )}"
@@ -836,6 +844,7 @@ function displayTools(
                       <input
                         type="checkbox"
                         class="tool-qr-sticker-checkbox"
+                        ${selectedStickerIds.has(String(tool.id)) ? "checked" : ""}
                         data-tool-id="${escapeHtml(
                           tool.id
                         )}"
@@ -872,7 +881,10 @@ function displayTools(
 
         checkbox.addEventListener(
           "change",
-          updateToolSelectAllState
+          () => {
+            updateSelection(selectedToolIds, checkbox);
+            updateToolSelectAllState();
+          }
         );
       }
     );
@@ -887,12 +899,16 @@ function displayTools(
 
         checkbox.addEventListener(
           "change",
-          updateStickerSelectAllState
+          () => {
+            updateSelection(selectedStickerIds, checkbox);
+            updateStickerSelectAllState();
+          }
         );
       }
     );
 
 
+  updateToolSelectAllState();
   updateStickerSelectAllState();
 
 
@@ -926,16 +942,32 @@ function selectAllTools() {
 
         checkbox.checked =
           checked;
+
+        updateSelection(selectedToolIds, checkbox);
       }
     );
 
 
-  toolQrSelectAll.indeterminate =
-    false;
+  updateToolSelectAllState();
+}
+
+
+function updateSelection(selection, checkbox) {
+
+  const toolId = String(checkbox.dataset.toolId);
+
+  if (checkbox.checked) {
+    selection.add(toolId);
+  } else {
+    selection.delete(toolId);
+  }
 }
 
 
 function updateToolSelectAllState() {
+
+  toolQrSelectedCount.textContent =
+    `選択中：${selectedToolIds.size}件`;
 
   const list =
     [
@@ -984,6 +1016,8 @@ function selectAllStickers() {
 
         checkbox.checked =
           checked;
+
+        updateSelection(selectedStickerIds, checkbox);
       }
     );
 
@@ -1051,21 +1085,12 @@ function updateStickerSelectAllState() {
 function getSelectedItems() {
 
   const selected =
-    [
-      ...document.querySelectorAll(
-        ".tool-qr-checkbox:checked"
-      )
-    ];
+    [...selectedToolIds];
 
 
   return selected
     .map(
-      checkbox => {
-
-        const toolId =
-          String(
-            checkbox.dataset.toolId
-          );
+      toolId => {
 
 
         const tool =
@@ -1081,21 +1106,12 @@ function getSelectedItems() {
         }
 
 
-        const stickerCheckbox =
-          document.querySelector(
-            `.tool-qr-sticker-checkbox[data-tool-id="${toolId}"]`
-          );
-
-
         return {
 
           tool,
 
           printSticker:
-            Boolean(
-              stickerCheckbox &&
-              stickerCheckbox.checked
-            ),
+            selectedStickerIds.has(toolId),
 
           stickerNumber:
             latestStickerMap.get(
