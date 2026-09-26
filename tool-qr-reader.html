@@ -49,6 +49,18 @@
       text-align: center;
     }
 
+    .qr-reader-controls {
+      margin-top: 16px;
+    }
+
+    .qr-reader-controls select,
+    .qr-reader-controls input {
+      display: block;
+      width: 100%;
+      min-height: 44px;
+      margin-top: 8px;
+    }
+
   </style>
 
 </head>
@@ -109,10 +121,28 @@
 
       <div id="qrReader"></div>
 
+      <div id="qrCameraControls" class="qr-reader-controls" hidden>
+        <label for="qrCameraSelect">読み取りにくい場合はカメラを切り替えてください</label>
+        <select id="qrCameraSelect" disabled></select>
+      </div>
+
+      <div id="qrZoomControls" class="qr-reader-controls" hidden>
+        <label for="qrZoom">ズーム <output id="qrZoomValue" for="qrZoom"></output></label>
+        <input id="qrZoom" type="range" disabled>
+        <p id="qrZoomMessage" role="status"></p>
+      </div>
+
+      <p class="qr-reader-guide">
+        QR全体と周囲の余白を枠内に入れてください。ぼやける場合は少し離し、
+        ズームが表示される端末では必要に応じて拡大してください。
+        明るい場所で、ラベルの反射を避けて読み取ってください。
+      </p>
+
 
       <p
         id="qrReaderMessage"
         class="qr-reader-message"
+        role="status"
       ></p>
 
     </section>
@@ -124,10 +154,10 @@
   <script src="side-menu.js?v=1"></script>
 
   <script
-    src="https://unpkg.com/html5-qrcode"
+    src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"
   ></script>
 
-  <script src="./tool-qr-reader.js?v=2"></script>
+  <script src="./tool-qr-reader.js?v=4"></script>
 
 </body>
 
