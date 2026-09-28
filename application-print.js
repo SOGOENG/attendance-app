@@ -45,10 +45,10 @@
     return `<article class="print-copy paid-form"><h1 class="form-title">有給休暇届</h1><p class="form-meta">届出年月日　${formatDate(application.submitted_at)}</p><table class="form-table"><tr><th>氏名</th><td>${escapeHtml(applicant)}</td></tr><tr><th>現場名</th><td>${escapeHtml(siteName || "")}</td></tr><tr><th>期間</th><td>${period}</td></tr><tr><th>日数</th><td>${escapeHtml(detail.days)} 日</td></tr><tr><th>事由</th><td class="multi-line">${escapeHtml(detail.reason || "")}</td></tr><tr><th rowspan="3">会社使用欄</th><td class="company-use">支給日数　${balance ? `${escapeHtml(balance.granted_days)} 日` : ""}</td></tr><tr><td class="company-use">累積使用日数　${balance ? `${escapeHtml(balance.used_days)} 日` : ""}</td></tr><tr><td class="company-use">有給休暇残日数　${balance ? `${escapeHtml(balance.remaining_days)} 日` : ""}</td></tr></table>${approvalHtml(application, employeeMap)}</article>`;
   }
 
-  function compHtml(application, applicant, dates, workDates, employeeMap) {
+  function compHtml(application, applicant, dates, workDates, employeeMap, reason) {
     const holidayRows = workDates.length ? workDates.map(value => `<li>${formatDate(value)}</li>`).join("") : "<li></li>";
     const leaveRows = dates.length ? dates.map(row => `<li>${formatDate(row.leave_date)}（${escapeHtml(row.days)}日）</li>`).join("") : "<li></li>";
-    return `<article class="print-copy comp-form"><h1 class="form-title">代替休日請求願</h1><p class="form-meta">届出年月日　${formatDate(application.submitted_at)}</p><table class="form-table"><tr><th>氏名</th><td>${escapeHtml(applicant)}</td></tr><tr><th>休日出勤日</th><td class="multi-line"><ul class="date-list">${holidayRows}</ul></td></tr><tr><th>代替請求日</th><td class="multi-line"><ul class="date-list">${leaveRows}</ul></td></tr></table><p class="form-note">上記の通り請求いたしたくお願い致します。</p>${approvalHtml(application, employeeMap)}</article>`;
+    return `<article class="print-copy comp-form"><h1 class="form-title">代替休日請求願</h1><p class="form-meta">届出年月日　${formatDate(application.submitted_at)}</p><table class="form-table"><tr><th>氏名</th><td>${escapeHtml(applicant)}</td></tr><tr><th>休日出勤日</th><td class="multi-line"><ul class="date-list">${holidayRows}</ul></td></tr><tr><th>代替請求日</th><td class="multi-line"><ul class="date-list">${leaveRows}</ul></td></tr><tr><th>事由</th><td class="multi-line">${escapeHtml(reason || "-")}</td></tr></table><p class="form-note">上記の通り請求いたしたくお願い致します。</p>${approvalHtml(application, employeeMap)}</article>`;
   }
 
   async function initialize() {
@@ -77,13 +77,14 @@
       ]);
       copyHtml = paidHtml(application, detail, applicant, sites[0]?.display_name || "", balances[0] || null, employeeMap);
     } else if (application.application_type === "comp_leave") {
-      const [dates, allocations] = await Promise.all([
+      const [dates, allocations, details] = await Promise.all([
         request(`comp_leave_dates?select=leave_date,days,display_order&application_id=eq.${applicationId}&order=display_order.asc`),
-        request(`comp_leave_allocations?select=holiday_work_record_id&application_id=eq.${applicationId}`)
+        request(`comp_leave_allocations?select=holiday_work_record_id&application_id=eq.${applicationId}`),
+        request(`comp_leave_application_details?select=note&application_id=eq.${applicationId}`)
       ]);
       const workIds = [...new Set(allocations.map(row => row.holiday_work_record_id))];
       const workRecords = workIds.length ? await request(`holiday_work_records?select=id,work_date&id=in.(${workIds.join(",")})&order=work_date.asc`) : [];
-      copyHtml = compHtml(application, applicant, dates, workRecords.map(row => row.work_date), employeeMap);
+      copyHtml = compHtml(application, applicant, dates, workRecords.map(row => row.work_date), employeeMap, details[0]?.note);
     } else {
       throw new Error("この申請種別の帳票には対応していません。");
     }

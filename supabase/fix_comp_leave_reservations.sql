@@ -31,8 +31,11 @@ begin
     or coalesce(public.is_leave_manager(),false)
     or coalesce(public.is_application_admin(),false)
   ) then raise exception 'forbidden'; end if;
-  return query select * from public.comp_leave_availability_internal(p_employee_id)
-    order by work_date,id;
+  -- 新規使用候補だけをJSTの当日で絞る。内部集計は過去取得・予約保護でも使用する。
+  return query select b.* from public.comp_leave_availability_internal(p_employee_id) b
+    where (statement_timestamp() at time zone 'Asia/Tokyo')::date
+      <= (b.work_date + interval '1 year')::date
+    order by b.work_date,b.id;
 end;
 $$;
 revoke all on function public.comp_leave_availability_internal(bigint,bigint) from public,anon,authenticated;

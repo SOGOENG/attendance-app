@@ -309,7 +309,7 @@ $$;
 -- =========================================================
 
 create or replace function
-public.expire_comp_leave_records()
+public.expire_comp_leave_records_internal()
 returns table(
   holiday_work_record_id bigint,
   newly_expired_days numeric,
@@ -327,11 +327,7 @@ declare
   v_expire numeric;
 begin
 
-  if public.current_employee_id() is null
-     or not coalesce(public.is_leave_manager(), false)
-  then
-    raise exception 'leave_manager_required';
-  end if;
+  -- 呼出権限は非公開。手動・service_role専用ラッパーからのみ実行する。
 
   for v_id in
 
@@ -460,6 +456,53 @@ begin
 
 end;
 $$;
+
+create or replace function public.expire_comp_leave_records()
+returns table(
+  holiday_work_record_id bigint,
+  newly_expired_days numeric,
+  protected_reserved_days numeric
+)
+language plpgsql
+security definer
+set search_path = ''
+set timezone = 'Asia/Tokyo'
+as $$
+begin
+  if public.current_employee_id() is null
+     or not coalesce(public.is_leave_manager(), false)
+  then
+    raise exception 'leave_manager_required';
+  end if;
+  return query select * from public.expire_comp_leave_records_internal();
+end;
+$$;
+
+-- service_role専用。一般ユーザーのJWTでは実行不可。
+create or replace function public.expire_comp_leave_records_automated()
+returns table(
+  holiday_work_record_id bigint,
+  newly_expired_days numeric,
+  protected_reserved_days numeric
+)
+language plpgsql
+security definer
+set search_path = ''
+set timezone = 'Asia/Tokyo'
+as $$
+begin
+  return query select * from public.expire_comp_leave_records_internal();
+end;
+$$;
+
+revoke all on function public.expire_comp_leave_records_internal()
+  from public, anon, authenticated, service_role;
+revoke all on function public.expire_comp_leave_records_automated()
+  from public, anon, authenticated, service_role;
+grant execute on function public.expire_comp_leave_records_automated() to service_role;
+revoke all on function public.expire_comp_leave_records()
+  from public, anon, authenticated, service_role;
+grant execute on function public.expire_comp_leave_records() to authenticated;
 
 
 -- =========================================================
@@ -1405,6 +1448,26 @@ public.cancel_holiday_work(
   text
 )
 to authenticated;
+
+create or replace function public.get_comp_leave_availability(p_employee_id bigint)
+returns table(id bigint, work_date date, site_id bigint, remaining_days numeric,
+  reserved_days numeric, available_days numeric)
+language plpgsql security definer set search_path = '' as $$
+begin
+  if public.current_employee_id() is null or not (
+    p_employee_id=public.current_employee_id()
+    or coalesce(public.is_leave_manager(),false)
+    or coalesce(public.is_application_admin(),false)
+  ) then raise exception 'forbidden'; end if;
+  -- 新規使用候補だけをJSTの当日で絞る。内部集計は過去取得・予約保護でも使用する。
+  return query select b.* from public.comp_leave_availability_internal(p_employee_id) b
+    where (statement_timestamp() at time zone 'Asia/Tokyo')::date
+      <= (b.work_date + interval '1 year')::date
+    order by b.work_date,b.id;
+end;
+$$;
+revoke all on function public.get_comp_leave_availability(bigint) from public, anon, authenticated;
+grant execute on function public.get_comp_leave_availability(bigint) to authenticated;
 
 notify pgrst, 'reload schema';
 
