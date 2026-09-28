@@ -315,8 +315,6 @@ Deno.serve(async (request: Request) => {
         return jsonResponse({ success: false, error: "Application not found" }, 404);
       }
 
-      const actorCanUseApplicationFeatures =
-        actor.admin_scope === "all" || Number(actor.id) === 39;
       const actorIsAdmin = actor.admin_scope === "all";
       const applicationType = application.application_type === "paid_leave"
         ? "有給休暇申請"
@@ -325,7 +323,6 @@ Deno.serve(async (request: Request) => {
       if (eventType === "submitted") {
         if (
           Number(application.employee_id) !== Number(actor.id) ||
-          !actorCanUseApplicationFeatures ||
           application.status !== "submitted"
         ) {
           return jsonResponse({ success: false, error: "Forbidden" }, 403);

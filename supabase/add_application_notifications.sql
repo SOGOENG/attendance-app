@@ -14,10 +14,6 @@ as $$
     select 1 from public.employees e
     where e.auth_user_id = auth.uid()
       and e.active = true
-      and (
-        e.admin_scope = 'all'
-        or e.id = 39
-      )
   )
 $$;
 
