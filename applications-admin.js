@@ -110,6 +110,6 @@ async function changePersonalEmployee() {
 }
 initializeApprovedFilters();
 document.addEventListener("click",event=>{const button=event.target.closest(".print-approved-button");if(!button)return;event.preventDefault();event.stopImmediatePropagation();window.open(`application-print.html?application_id=${encodeURIComponent(button.dataset.id)}`,"_blank","noopener")},true);
-const compUsage=createAdminCompUsage({rpc,allowed:isLeaveManager,refreshWork:loadWork,employeeName:emp,escapeHtml:esc});
+const compUsage=createAdminCompUsage({rpc,allowed:isLeaveManager,refreshWork:async()=>{await loadWork();await loadCompExpirationHistory()},employeeName:emp,escapeHtml:esc});
 const paidUsage=createAdminPaidUsage({rpc,req,allowed:isLeaveManager,refreshBalances:loadBalances,employeeName:emp,escapeHtml:esc});
 init().catch(e=>{console.error(e);alert("管理データを読み込めませんでした。")});})();

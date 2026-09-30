@@ -16,6 +16,7 @@ window.createAdminCompUsage = function ({
   let busy = false;
   let generation = 0;
   let retry = null;
+  let rows = [];
 
   const now = new Date();
   const dateInput = $('adminCompUsageDate');
@@ -30,6 +31,7 @@ window.createAdminCompUsage = function ({
   function clear() {
     generation++;
     employeeId = null;
+    rows = [];
     remaining = 0;
 
     if (panel) {
@@ -99,6 +101,7 @@ window.createAdminCompUsage = function ({
       }
 
       remaining = balances.reduce((sum, row) => sum + Number(row.available_days), 0);
+      rows = historyRows;
       const daysInput = $('adminCompUsageDays');
       if (daysInput) daysInput.max = String(remaining);
       const balanceMessage = $('adminCompUsageMessage');
@@ -158,6 +161,14 @@ window.createAdminCompUsage = function ({
                       ).toLocaleString('ja-JP')
                     )}
                   </p>
+                  ${allowed() && row.status === 'approved' ? `
+                    <div class="record-actions">
+                      <button type="button" class="secondary" data-comp-action="edit" data-id="${Number(row.id)}">修正</button>
+                      <button type="button" class="danger" data-comp-action="delete" data-id="${Number(row.id)}">削除</button>
+                    </div>
+                    <div data-comp-editor hidden></div>
+                    <p class="message" role="status" data-comp-message></p>
+                  ` : ''}
                 </article>
               `
             )
@@ -176,6 +187,71 @@ window.createAdminCompUsage = function ({
       }
     }
   }
+
+  const history = $('adminCompUsageHistory');
+  history?.addEventListener('click', async event => {
+    const actionButton = event.target.closest('[data-comp-action]');
+    if (!actionButton || busy || !allowed() || !employeeId) return;
+    const row = rows.find(item => Number(item.id) === Number(actionButton.dataset.id));
+    if (!row || row.status !== 'approved' || Number(row.employee_id) !== employeeId) return;
+    const card = actionButton.closest('article');
+    const editor = card.querySelector('[data-comp-editor]');
+    const message = card.querySelector('[data-comp-message]');
+    const action = actionButton.dataset.compAction;
+    if (action === 'edit') {
+      editor.innerHTML = `
+        <div class="field"><label>代休使用日<input data-comp-date type="date" required value="${escapeHtml(row.usage_date)}"></label></div>
+        <div class="field"><label>使用日数<input data-comp-days type="number" min="0.01" max="9999.99" step="0.01" required value="${Number(row.days)}"></label></div>
+        <div class="field"><label>備考<textarea data-comp-note rows="3">${escapeHtml(row.note || '')}</textarea></label></div>
+        <div class="record-actions">
+          <button type="button" class="primary" data-comp-action="save" data-id="${Number(row.id)}">保存</button>
+          <button type="button" class="secondary" data-comp-action="cancel" data-id="${Number(row.id)}">キャンセル</button>
+        </div>`;
+      editor.hidden = false;
+      card.querySelector('.record-actions').hidden = true;
+      editor.querySelector('input').focus();
+      message.textContent = '';
+      return;
+    }
+    if (action === 'cancel') {
+      editor.hidden = true;
+      card.querySelector('.record-actions').hidden = false;
+      message.textContent = '';
+      return;
+    }
+    const payload = { p_application_id: Number(row.id), p_employee_id: employeeId };
+    if (action === 'save') {
+      const inputs = [...editor.querySelectorAll('input')];
+      if (!inputs.every(input => input.reportValidity())) return;
+      payload.p_usage_date = editor.querySelector('[data-comp-date]').value;
+      payload.p_days = Number(editor.querySelector('[data-comp-days]').value);
+      payload.p_note = editor.querySelector('[data-comp-note]').value.trim() || null;
+    } else if (action === 'delete') {
+      if (!window.confirm('この代休使用履歴を削除しますか？\n使用済み日数は代休残数へ戻ります。ただし、有効期限を過ぎた分は使用できません。')) return;
+    } else return;
+    busy = true;
+    const token = generation;
+    const controls = [...history.querySelectorAll('button, input, textarea'), button].filter(Boolean);
+    const states = controls.map(control => control.disabled);
+    controls.forEach(control => { control.disabled = true; });
+    message.textContent = action === 'save' ? '保存しています…' : '削除しています…';
+    try {
+      await rpc(action === 'save' ? 'update_admin_comp_leave_usage' : 'delete_admin_comp_leave_usage', payload);
+      if (token === generation) {
+        message.textContent = action === 'save' ? '保存しました' : '削除しました';
+        try { await refreshWork(); }
+        catch (error) {
+          $('adminCompUsageHistory').textContent = `処理は完了しましたが一覧更新に失敗しました。対象社員を選び直してください：${error.message}`;
+        }
+      }
+    } catch (error) {
+      if (token === generation) message.textContent = `処理できませんでした：${error.message}`;
+    } finally {
+      controls.forEach((control, index) => { control.disabled = states[index]; });
+      busy = false;
+      if (button) button.disabled = !employeeId || !allowed() || remaining <= 0;
+    }
+  });
 
   if (form) {
     form.addEventListener(

@@ -172,3 +172,12 @@
     justify-content: flex-end;
   }
 }
+
+#adminCompUsageHistory .history-card { min-width: 0; overflow-wrap: anywhere; }
+#adminCompUsageHistory [data-comp-editor] { min-width: 0; margin-top: 12px; }
+#adminCompUsageHistory [data-comp-editor] label { display: block; min-width: 0; }
+#adminCompUsageHistory [data-comp-editor] input,
+#adminCompUsageHistory [data-comp-editor] textarea { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; }
+#adminCompUsageHistory .record-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+#adminCompUsageHistory .record-actions[hidden] { display: none; }
+#adminCompUsageHistory .record-actions button { min-height: 44px; flex: 1 1 90px; }
