@@ -23,6 +23,10 @@ begin
     raise exception 'invalid_attendance_leave_type';
   end if;
 
+  -- Serialize approval syncs even when the employee/date has no row yet.
+  perform pg_advisory_xact_lock(hashtextextended(
+    'application_attendance:' || p_employee_id::text || ':' || p_work_date::text, 0));
+
   select count(*) into v_count
   from public.attendance
   where employee_id = p_employee_id and work_date = p_work_date;
@@ -45,35 +49,13 @@ begin
        and v_row.source_application_id <> p_application_id then
       raise exception 'attendance_date_already_managed_by_application:%', p_work_date;
     end if;
-    if v_row.source_application_id is null and (
-      coalesce(v_row.status, 'draft') <> 'draft'
-      or (
-        coalesce(v_row.site_type, '') <> ''
-        and not (
-          p_leave_type = '有給'
-          and v_row.site_type = '有給奨励日'
-        )
-      )
-      or v_row.site_id is not null
-      or coalesce(v_row.misc_company, '') <> ''
-      or coalesce(v_row.misc_department, '') <> ''
-      or coalesce(v_row.company_work, '') <> ''
-      or coalesce(v_row.misc_name, '') <> ''
-      or coalesce(v_row.leave_type, '') <> ''
-      or coalesce(v_row.start_time, '') <> ''
-      or coalesce(v_row.end_time, '') <> ''
-      or coalesce(v_row.note, '') <> ''
-    ) then
-      raise exception 'attendance_date_has_existing_input:%', p_work_date;
-    end if;
-
     update public.attendance
     set site_type = '休み', site_id = null,
         misc_company = '', misc_department = '', company_work = '', misc_name = '',
         leave_type = p_leave_type, start_time = '', end_time = '', note = '',
         status = 'draft', source_type = 'application',
         source_application_id = p_application_id
-    where id = v_row.id;
+    where id = v_row.id and employee_id = p_employee_id and work_date = p_work_date;
   else
     insert into public.attendance
       (employee_id, work_date, site_type, site_id, misc_company,
