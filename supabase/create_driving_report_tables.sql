@@ -6,7 +6,7 @@
 -- current_employee_id(), is_application_admin(), authenticated and anon roles.
 -- 基本1日1人1車両。複数車両対応は将来拡張。
 -- unique(employee_id, report_date) also supports employee / 21st-next-20th queries.
--- DELETE is not granted on any of the five tables (including details).
+-- DELETE is forbidden on vehicles/reports; details allow only the owner's draft.
 -- Submission is deliberately blocked until a separate migration implements the
 -- authoritative validator below. Draft input is available after application.
 begin;
@@ -30,7 +30,8 @@ create table public.driving_reports (
   status text not null default 'draft' check (status in ('draft','submitted')),
   vehicle_id bigint references public.vehicles(id) on delete restrict,
   driving_status text not null check (driving_status in ('driven','no_driving')),
-  route_type text check (route_type in ('office','direct','direct_return','other')),
+  outbound_route_type text check (outbound_route_type in ('office','direct','direct_return','other')),
+  return_route_type text check (return_route_type in ('office','direct','direct_return','other')),
   route_note text,
   site_id bigint references public.sites(id) on delete restrict,
   site_name_snapshot text,
@@ -56,10 +57,12 @@ create table public.driving_reports (
   check (status='draft' or submitted_at is not null),
   check (
     status='draft' or
-    (driving_status='driven' and vehicle_id is not null and route_type is not null
+    (driving_status='driven' and vehicle_id is not null
+      and outbound_route_type is not null and return_route_type is not null
       and start_odometer is not null and end_odometer is not null)
     or
-    (driving_status='no_driving' and vehicle_id is null and route_type is null
+    (driving_status='no_driving' and vehicle_id is null
+      and outbound_route_type is null and return_route_type is null
       and route_note is null and site_id is null and site_name_snapshot is null
       and start_odometer is null and end_odometer is null
       and not accident_or_violation and accident_violation_note is null)
@@ -110,9 +113,9 @@ create index driving_refuels_report_time_idx on public.driving_refuels(driving_r
 
 -- Future migration MUST replace only this NEW validator (or introduce a secure
 -- submission RPC plus equivalent DB enforcement). No client toggle/GUC bypass.
--- For driven reports validate: vehicle, route, start/end odometers, exact official
+-- For driven reports validate: vehicle, outbound/return routes, start/end odometers, exact official
 -- 13 inspection codes/results, before AND after alcohol checks, accident note.
--- For no_driving validate: no vehicle/site/route/odometers or driving details.
+-- For no_driving validate: no vehicle/site/outbound/return routes/odometers or driving details.
 -- Re-submission must pass the same validation. Lock parent first, save details,
 -- then update status last in one transaction; keep first submitted_at unchanged.
 -- Until that migration, block ALL submissions, including no_driving, rather than
@@ -274,6 +277,9 @@ begin
         and r.employee_id=public.current_employee_id())) with check (
       exists(select 1 from public.driving_reports r where r.id=driving_report_id
         and r.employee_id=public.current_employee_id()))',t);
+    execute format('create policy detail_delete on public.%I for delete to authenticated using (
+      exists(select 1 from public.driving_reports r where r.id=driving_report_id
+        and r.employee_id=public.current_employee_id() and r.status=''draft''))',t);
   end loop;
 end;
 $$;
@@ -281,7 +287,7 @@ $$;
 revoke all on public.vehicles,public.driving_reports,public.driving_report_inspections,
   public.driving_alcohol_checks,public.driving_refuels from public,anon,authenticated;
 grant select,insert,update on public.vehicles,public.driving_reports to authenticated;
-grant select,insert,update on public.driving_report_inspections,
+grant select,insert,update,delete on public.driving_report_inspections,
   public.driving_alcohol_checks,public.driving_refuels to authenticated;
 revoke all on sequence public.vehicles_id_seq,public.driving_reports_id_seq,
   public.driving_alcohol_checks_id_seq,public.driving_refuels_id_seq from public,anon,authenticated;

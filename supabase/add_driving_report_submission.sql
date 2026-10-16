@@ -38,7 +38,8 @@ begin
 
   if p_report.driving_status='no_driving' then
     -- A formal no-driving submission, not a missing report or zero-km drive.
-    if p_report.vehicle_id is not null or p_report.route_type is not null
+    if p_report.vehicle_id is not null or p_report.outbound_route_type is not null
+      or p_report.return_route_type is not null
       or p_report.route_note is not null or p_report.site_id is not null
       or p_report.site_name_snapshot is not null
       or p_report.start_odometer is not null or p_report.end_odometer is not null
@@ -54,7 +55,8 @@ begin
   if p_report.driving_status is distinct from 'driven' then
     raise exception 'invalid_driving_status';
   end if;
-  if p_report.vehicle_id is null or p_report.route_type is null
+  if p_report.vehicle_id is null or p_report.outbound_route_type is null
+    or p_report.return_route_type is null
     or p_report.start_odometer is null or p_report.end_odometer is null then
     raise exception 'driving_submission_fields_required';
   end if;
