@@ -17,6 +17,10 @@
     rel="stylesheet"
     href="style.css?v=25"
   >
+  <style>
+    #employeeVehicleSection input { min-width: 0; max-width: 100%; }
+    #employeeVehicleSection p { line-height: 1.7; overflow-wrap: anywhere; }
+  </style>
 </head>
 
 
@@ -65,6 +69,7 @@
       </h2>
 
       <div class="admin-action-buttons">
+
 
         <button
           id="newEmployeeButton"
@@ -260,6 +265,18 @@
         </label>
       </div>
 
+
+      <div id="employeeVehicleSection" hidden>
+        <label class="admin-form-label" for="employeeManagedVehicleNumber">車両番号（ナンバープレート全表記）</label>
+        <input id="employeeManagedVehicleNumber" class="admin-form-control" maxlength="100" placeholder="名古屋 400 あ 12-34" disabled>
+        <label class="admin-form-label" for="employeeManagedVehicleName">車両名</label>
+        <input id="employeeManagedVehicleName" class="admin-form-control" maxlength="100" placeholder="ハイエース" disabled>
+        <p id="employeeVehicleOwner"></p>
+        <p>管理車両は専用ボタンで保存します。買い替え前の車両と過去の日報は保持します。</p>
+        <button id="employeeVehicleSave" type="button" class="admin-primary-button" disabled>管理車両を保存</button>
+        <button id="employeeVehicleReload" type="button" class="admin-secondary-button" disabled>管理車両を再読み込み</button>
+        <p id="employeeVehicleMessage" class="schedule-message" role="status" aria-live="polite"></p>
+      </div>
 
       <!-- ==============================
            新規社員登録時のみ表示
@@ -504,7 +521,8 @@
 
 
   <script src="portal-auth.js"></script>
-  <script src="employee-admin.js?v=10"></script>
+  <script src="employee-default-vehicle-admin.js?v=2"></script>
+  <script src="employee-admin.js?v=11"></script>
 
 </body>
 

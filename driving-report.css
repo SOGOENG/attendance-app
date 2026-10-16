@@ -1,0 +1,46 @@
+.driving-page { max-width: 820px; padding-bottom: 32px; }
+.driving-back { text-decoration: none; text-align: center; }
+.driving-page fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+.driving-page .card { padding: 20px; margin-bottom: 16px; }
+.driving-page label, .driving-page legend { font-weight: 600; }
+.driving-page input, .driving-page select, .driving-page textarea { width: 100%; max-width: 100%; min-width: 0; font: inherit; font-weight: 400; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #1f2937; }
+.driving-page textarea { display: block; margin-top: 6px; resize: vertical; }
+.driving-page button { min-height: 46px; cursor: pointer; }
+.driving-page button:disabled { cursor: default; opacity: .55; }
+.driving-page :focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+.driving-page [aria-invalid="true"] { border-color: #b91c1c; }
+.driving-page [hidden] { display: none !important; }
+.driving-intro, .driving-help { color: #526174; line-height: 1.7; }
+.driving-help { font-size: 14px; margin: 8px 0 14px; font-weight: 400; }
+.driving-message { padding: 14px; border-radius: 8px; background: #eaf2ff; line-height: 1.7; overflow-wrap: anywhere; }
+.driving-message.is-error { background: #fff1f2; color: #9f1239; }
+.driving-secondary { background: #edf2f7; color: #24364b; border: 1px solid #cbd5e1; }
+.driving-choice { margin-top: 24px !important; }
+.driving-radio-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.driving-radio-row label { display: flex; align-items: center; gap: 6px; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px 8px; margin: 8px 0; }
+.driving-radio-row input { width: 20px; height: 20px; flex: 0 0 20px; margin: 0; padding: 0; }
+.driving-radio-row label:has(input:checked) { background: #eff6ff; border-color: #2563eb; }
+.driving-section-heading h2 { margin: 0; }
+.driving-inspection { border-top: 1px solid #e2e8f0; padding: 14px 0; }
+.driving-inspection:first-child { border-top: 0; }
+.driving-inspection > label { margin-top: 0; line-height: 1.6; }
+.driving-save { padding: 0 0 16px; }
+.driving-save button { padding: 16px; font-size: 18px; }
+.driving-save .is-error { color: #b91c1c; }
+@media (min-width: 640px) {
+  .driving-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+  .driving-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .driving-section-heading button { width: auto; margin: 0; }
+}
+html[data-portal-theme="dark"] .driving-page { color: #e5e7eb; }
+html[data-portal-theme="dark"] .driving-page .card { background: #1f2937; }
+html[data-portal-theme="dark"] .driving-page input,
+html[data-portal-theme="dark"] .driving-page select,
+html[data-portal-theme="dark"] .driving-page textarea { background: #111827; color: #e5e7eb; border-color: #64748b; }
+html[data-portal-theme="dark"] .driving-help,
+html[data-portal-theme="dark"] .driving-intro { color: #cbd5e1; }
+html[data-portal-theme="dark"] .driving-message { background: #1e3a5f; color: #e5e7eb; }
+html[data-portal-theme="dark"] .driving-message.is-error { background: #4c1d2b; }
+html[data-portal-theme="dark"] .driving-save .is-error { color: #fda4af; }
+html[data-portal-theme="dark"] .driving-secondary { background: #334155; color: #f1f5f9; }
+html[data-portal-theme="dark"] .driving-radio-row label:has(input:checked) { background: #1e3a5f; }

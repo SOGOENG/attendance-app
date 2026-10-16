@@ -128,7 +128,7 @@ async function loadSettingsProfile(
   const response =
     await portalFetch(
       `${SETTINGS_SUPABASE_URL}/rest/v1/employees` +
-      `?select=name,department,job_title,profile_email,phone_number` +
+      `?select=name,department,job_title,profile_email,phone_number,default_vehicle_id` +
       `&auth_user_id=eq.${encodeURIComponent(authUser.id)}` +
       `&limit=1`
     );
@@ -189,7 +189,94 @@ async function loadSettingsProfile(
   settingsProfileEmail.disabled = false;
   settingsProfilePhone.disabled = false;
   settingsProfileSaveButton.disabled = false;
+  return employee;
 }
+
+
+const settingsDefaultVehicle = document.getElementById("settingsDefaultVehicle");
+const settingsVehicleSaveButton = document.getElementById("settingsVehicleSaveButton");
+const settingsVehicleMessage = document.getElementById("settingsVehicleMessage");
+
+function showSettingsVehicleMessage(message, type = "") {
+  settingsVehicleMessage.textContent = message;
+  settingsVehicleMessage.classList.remove("is-success", "is-error");
+  if (type) settingsVehicleMessage.classList.add(`is-${type}`);
+}
+
+async function loadSettingsDefaultVehicle(employee) {
+  try {
+    const vehicles = [];
+    for (let offset = 0; ; offset += 500) {
+      const response = await portalFetch(
+        `${SETTINGS_SUPABASE_URL}/rest/v1/vehicles` +
+        `?select=id,vehicle_number,vehicle_name&active=eq.true&order=vehicle_number.asc,id.asc&limit=500&offset=${offset}`
+      );
+      if (!response.ok) throw new Error("車両一覧を読み込めませんでした。ページを再読み込みしてください。");
+      const page = await response.json();
+      vehicles.push(...page);
+      if (page.length < 500) break;
+    }
+    settingsDefaultVehicle.replaceChildren(new Option("未設定", ""));
+    vehicles.forEach(vehicle => settingsDefaultVehicle.add(new Option(
+      `${vehicle.vehicle_number}${vehicle.vehicle_name ? ` ／ ${vehicle.vehicle_name}` : ""}`, String(vehicle.id)
+    )));
+    const saved = employee.default_vehicle_id;
+    let unavailable = false;
+    if (saved != null && !vehicles.some(vehicle => String(vehicle.id) === String(saved))) {
+      // Preserve inactive settings on load; never silently turn them into NULL.
+      const option = new Option("設定済み車両（現在は選択対象外）", String(saved));
+      option.disabled = true;
+      settingsDefaultVehicle.add(option);
+      unavailable = true;
+    }
+    settingsDefaultVehicle.value = saved == null ? "" : String(saved);
+    settingsDefaultVehicle.disabled = false;
+    settingsVehicleSaveButton.disabled = false;
+    showSettingsVehicleMessage(unavailable ? "現在の車両は無効または参照対象外です。変更する場合は有効な車両か「未設定」を選択してください。" : "");
+  } catch (error) {
+    showSettingsVehicleMessage(error.message || "通常使用車両を読み込めませんでした。", "error");
+  }
+}
+
+document.getElementById("settingsVehicleForm").addEventListener("submit", async event => {
+  event.preventDefault();
+  if (settingsVehicleSaveButton.disabled) return;
+  if (settingsDefaultVehicle.selectedOptions[0]?.disabled) {
+    showSettingsVehicleMessage("有効な車両か「未設定」を選択してください。", "error");
+    return;
+  }
+  const value = settingsDefaultVehicle.value;
+  const vehicleId = value === "" ? null : Number(value);
+  if (vehicleId !== null && (!Number.isSafeInteger(vehicleId) || vehicleId <= 0)) {
+    showSettingsVehicleMessage("車両の選択を確認してください。", "error");
+    return;
+  }
+  settingsVehicleSaveButton.disabled = true;
+  settingsDefaultVehicle.disabled = true;
+  settingsVehicleSaveButton.textContent = "保存中...";
+  showSettingsVehicleMessage("");
+  try {
+    const response = await portalFetch(`${SETTINGS_SUPABASE_URL}/rest/v1/rpc/set_my_default_vehicle`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ p_vehicle_id: vehicleId })
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(response.status === 401 ? "ログインの有効期限が切れています。再度ログインしてください。" :
+        String(data.message || "").includes("vehicle_already_assigned") || data.code === "23505" ? "この車両は他の社員が通常使用車両に設定しています。別の車両を選択してください。" :
+        String(data.message || "").includes("active_vehicle_required") ? "この車両は現在設定できません。車両一覧を再読み込みしてください。" :
+        "通常使用車両を保存できませんでした。再度お試しください。");
+    }
+    settingsDefaultVehicle.querySelectorAll("option:disabled").forEach(option => option.remove());
+    showSettingsVehicleMessage("通常使用車両を更新しました", "success");
+  } catch (error) {
+    showSettingsVehicleMessage(error.message || "通常使用車両を保存できませんでした。", "error");
+  } finally {
+    settingsVehicleSaveButton.disabled = false;
+    settingsDefaultVehicle.disabled = false;
+    settingsVehicleSaveButton.textContent = "通常使用車両を保存";
+  }
+});
 
 
 function showSettingsProfileMessage(
@@ -863,9 +950,10 @@ async function initializeSettingsPage() {
   }
 
   try {
-    await loadSettingsProfile(
+    const employee = await loadSettingsProfile(
       loginUser
     );
+    await loadSettingsDefaultVehicle(employee);
 
   } catch (error) {
     console.error(error);
@@ -894,6 +982,7 @@ async function initializeSettingsPage() {
         "プロフィールを読み込めませんでした。",
       "error"
     );
+    showSettingsVehicleMessage("通常使用車両を読み込めませんでした。ページを再読み込みしてください。", "error");
   }
 }
 

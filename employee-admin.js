@@ -548,6 +548,7 @@ function createEmployeeCard(
 ========================================= */
 
 function startNewEmployeeRegistration() {
+  window.EmployeeVehicleAdmin?.close();
   editingEmployeeId.value =
     "";
 
@@ -617,6 +618,7 @@ function startNewEmployeeRegistration() {
 function startEmployeeEdit(
   employee
 ) {
+  window.EmployeeVehicleAdmin?.open(employee.id);
   editingEmployeeId.value =
     employee.id;
 
@@ -1391,6 +1393,7 @@ async function saveEmployee() {
 ========================================= */
 
 function closeEmployeeEdit() {
+  window.EmployeeVehicleAdmin?.close();
   editingEmployeeId.value =
     "";
 

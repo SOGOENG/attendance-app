@@ -120,6 +120,9 @@
       outline: 3px solid rgba(37, 99, 235, 0.14);
     }
 
+    .settings-vehicle-row dd { min-width: 0; }
+    #settingsDefaultVehicle { min-width: 0; max-width: 100%; text-overflow: ellipsis; }
+
     .settings-profile-save-button {
       width: 100%;
       min-height: 46px;
@@ -360,6 +363,19 @@
       <p class="settings-help-text">
         氏名・所属部署・役職は管理者のみ変更できます。ここで設定するメールアドレスはプロフィール用で、ログイン用メールアドレスは変更されません。
       </p>
+      <form id="settingsVehicleForm">
+        <dl class="settings-profile-list">
+          <div class="settings-profile-row settings-vehicle-row">
+            <dt><label for="settingsDefaultVehicle">通常使用車両</label></dt>
+            <dd><select id="settingsDefaultVehicle" class="settings-profile-input" disabled>
+              <option value="">未設定</option>
+            </select></dd>
+          </div>
+        </dl>
+        <p class="settings-help-text">普段使用する車両を設定します。その日だけの車両変更とは別の設定です。</p>
+        <button id="settingsVehicleSaveButton" type="submit" class="settings-profile-save-button" disabled>通常使用車両を保存</button>
+        <p id="settingsVehicleMessage" class="settings-profile-message" role="status" aria-live="polite">読み込み中...</p>
+      </form>
     </section>
 
 
@@ -523,7 +539,7 @@
   <script src="side-menu.js?v=1"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="push-notifications.js?v=2"></script>
-  <script src="settings.js?v=10"></script>
+  <script src="settings.js?v=11"></script>
 
 </body>
 
