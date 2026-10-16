@@ -133,7 +133,7 @@
 
     html[data-portal-theme="dark"] .my-page-category-title { color: #e2e8f0; }
   </style>
-</head>
+<link rel="stylesheet" href="application-result-badge.css?v=1"></head>
 
 
 <body>
@@ -258,7 +258,7 @@
 
       <h2 class="my-page-category-title">2. 各種申請</h2>
 
-      <a id="applicationsMenu" href="applications.html" class="home-menu-card hidden">
+      <a id="applicationsMenu" href="applications.html?panel=history" class="home-menu-card hidden"><span id="applicationResultBadge" class="application-result-badge" hidden aria-live="polite" aria-label="未確認の申請結果0件"></span>
         <div class="home-menu-text">
           <h2>各種申請</h2>
           <p>有給・代休の申請、履歴・残日数</p>
@@ -408,7 +408,7 @@
     }
   </script>
 
-  <script src="my-page.js?v=5"></script>
+  <script src="my-page.js?v=5"></script><script src="application-result-badge.js?v=1"></script>
 
 </body>
 

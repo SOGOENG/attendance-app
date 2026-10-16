@@ -3,7 +3,7 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v93";
+  "staff-portal-v95";
 
 const CACHE_FILES = [
   "./site-admin.html",
@@ -49,13 +49,16 @@ const CACHE_FILES = [
   "./application-print-approval.css?v=1",
   "./portal-auth.js",
   "./push-notifications.js",
+  "./notification-badge.js?v=1",
   "./login.js",
   "./home.js?v=8",
   "./app.js?v=13",
   "./improvement.js",
   "./near-miss.js?v=1",
   "./my-page.js?v=5",
-  "./applications.js?v=10",
+  "./applications.js?v=11",
+  "./application-result-badge.js?v=1",
+  "./application-result-badge.css?v=1",
   "./applications-admin.js?v=17",
   "./application-print.js?v=4",
   "./tool-employees.js?v=1",
@@ -227,6 +230,82 @@ self.addEventListener(
   }
 );
 
+/* Device-local unread count. Only this worker writes it; pages send a message.
+   IndexedDB survives worker restarts and cache upgrades. Serialize storage AND
+   badge calls so overlapping push/click/home events cannot lose increments. */
+let notificationBadgeQueue = Promise.resolve();
+
+function storeNotificationBadgeCount(clear) {
+  return new Promise((resolve, reject) => {
+    const request = self.indexedDB.open("staff-portal-notification-badge", 1);
+    let expired = false;
+    let transaction;
+    const timer = setTimeout(() => {
+      expired = true;
+      try { transaction?.abort(); } catch (_) { /* Already completed. */ }
+      reject(new Error("Notification badge storage timed out"));
+    }, 3000);
+    const fail = error => { clearTimeout(timer); reject(error); };
+    request.onupgradeneeded = () => request.result.createObjectStore("state");
+    request.onerror = () => fail(request.error);
+    request.onblocked = () => {
+      expired = true;
+      fail(new Error("Notification badge storage blocked"));
+    };
+    request.onsuccess = () => {
+      const db = request.result;
+      if (expired) { db.close(); return; }
+      try {
+        transaction = db.transaction("state", "readwrite");
+        const store = transaction.objectStore("state");
+        const read = store.get("unread");
+        let count = 0;
+        read.onsuccess = () => {
+          const previous = Number.isSafeInteger(read.result) && read.result >= 0 ? read.result : 0;
+          count = clear ? 0 : Math.min(previous + 1, Number.MAX_SAFE_INTEGER);
+          store.put(count, "unread");
+        };
+        transaction.oncomplete = () => { clearTimeout(timer); db.close(); resolve(count); };
+        transaction.onabort = () => { db.close(); fail(transaction.error); };
+      } catch (error) { db.close(); fail(error); }
+    };
+  });
+}
+
+async function applyNotificationBadge(count) {
+  const api = self.navigator;
+  try {
+    if (count === 0 && typeof api?.clearAppBadge === "function") {
+      await api.clearAppBadge();
+    } else if (typeof api?.setAppBadge === "function") {
+      await api.setAppBadge(count);
+    }
+  } catch (_) { /* Badging must never prevent notification delivery/navigation. */ }
+}
+
+function updateNotificationBadge(clear = false) {
+  notificationBadgeQueue = notificationBadgeQueue.then(async () => {
+    try {
+      await applyNotificationBadge(await storeNotificationBadgeCount(clear));
+    } catch (_) {
+      // Storage may be unavailable. Do not invent an inaccurate unread count.
+      if (clear) await applyNotificationBadge(0);
+    }
+  }).catch(() => {});
+  return notificationBadgeQueue;
+}
+
+self.addEventListener("message", event => {
+  if (event.data?.type !== "CLEAR_NOTIFICATION_BADGE") return;
+  // Accept only messages from this app's home page.
+  try {
+    const home = new URL("./home.html", self.registration.scope);
+    const source = new URL(event.source.url);
+    if (source.origin !== home.origin || source.pathname !== home.pathname) return;
+  } catch (_) { return; }
+  event.waitUntil(updateNotificationBadge(true));
+});
+
 /* =========================================
    Push通知受信
 ========================================= */
@@ -272,11 +351,11 @@ self.addEventListener(
     };
 
     event.waitUntil(
-      self.registration
+      Promise.all([updateNotificationBadge(), self.registration
         .showNotification(
           title,
           options
-        )
+        )])
     );
   }
 );
@@ -297,18 +376,26 @@ self.addEventListener(
       "./home.html";
 
     event.waitUntil(
-      clients.matchAll({
+      Promise.all([updateNotificationBadge(true), clients.matchAll({
         type: "window",
         includeUncontrolled: true
       })
-        .then(clientList => {
+        .then(async clientList => {
+          const target = new URL(url, self.registration.scope);
           for (
             const client of clientList
           ) {
             if (
-              "focus" in client
+              "focus" in client &&
+              new URL(client.url).origin === target.origin
             ) {
-              return client.focus();
+              if (client.url === target.href) return client.focus();
+              if ("navigate" in client) {
+                try {
+                  const navigated = await client.navigate(target.href);
+                  if (navigated) return navigated.focus();
+                } catch (_) { /* Fall back to opening the notification URL. */ }
+              }
             }
           }
 
@@ -319,7 +406,7 @@ self.addEventListener(
               url
             );
           }
-        })
+        })])
     );
   }
 );
