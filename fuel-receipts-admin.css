@@ -1,0 +1,22 @@
+.receipt-admin header { margin-bottom: 20px; }
+.receipt-admin .card { margin-top: 20px; }
+.receipt-admin .receipt-item, .receipt-admin .receipt-job { border: 1px solid #cbd5e1; padding: 16px; border-radius: 8px; margin: 14px 0; overflow-wrap: anywhere; }
+.receipt-admin h3 { margin-top: 0; }
+.receipt-admin .receipt-actions { margin-top: 12px; }
+.receipt-admin button { padding: 10px 14px; }
+.receipt-admin input[type="checkbox"] { width: 20px; height: 20px; vertical-align: middle; }
+.receipt-admin label { display: block; margin: 10px 0; }
+#receiptAdminMessage.is-error { color: #b91c1c; }
+html[data-portal-theme="dark"] #receiptAdminMessage.is-error { color: #fda4af; }
+.receipt-admin [hidden] { display: none !important; }
+
+.receipt-admin header a { color: #e2e8f0; text-decoration: underline; }
+
+#receiptFilters > label { min-width: 0; }
+#receiptFilters select, #receiptFilters input[type="month"] { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; }
+
+.receipt-disclosure > summary { cursor: pointer; min-height: 44px; padding: 8px 0; overflow-wrap: anywhere; }
+.receipt-disclosure > summary:focus-visible { outline: 2px solid #2563eb; outline-offset: 4px; border-radius: 4px; }
+.receipt-disclosure-title { font-size: 1.15rem; font-weight: 700; }
+.receipt-disclosure-status { display: block; margin: 8px 0 0 20px; font-size: .9rem; line-height: 1.6; }
+.receipt-disclosure-body { margin-top: 16px; overflow-wrap: anywhere; }

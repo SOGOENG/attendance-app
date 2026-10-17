@@ -1,0 +1,47 @@
+.monthly-controls { display:flex; flex-direction:column; gap:6px; }
+.monthly-controls label { margin:0; }
+.monthly-controls select { width:100%; min-width:0; box-sizing:border-box; }
+.monthly-overview #monthlyPeriod { margin:10px 0; white-space:nowrap; font-size:15px; }
+.monthly-actions { display:flex; flex-direction:column; gap:8px; }
+.driving-month .monthly-button { display:flex; align-items:center; justify-content:center; width:100%; min-height:46px; box-sizing:border-box; padding:9px 11px; margin:0; border:1px solid #2563eb; border-radius:10px; background:#fff; color:#2563eb; font:inherit; font-size:15px; font-weight:bold; line-height:1.5; text-decoration:none; cursor:pointer; }
+.monthly-button:focus-visible { outline:2px solid #1f5fae; outline-offset:3px; }
+#monthlyCounts { margin:12px 0 0; }
+#monthlyMessage { margin:8px 0 0; font-size:14px; }
+#monthlyDays { list-style:none; margin:0; padding:0; }
+.monthly-day { border-bottom:1px solid #cbd5e1; padding:14px 0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.monthly-day p { margin:4px 0; }
+.monthly-day a { min-height:44px; display:inline-flex; align-items:center; padding:0 12px; border:1px solid currentColor; border-radius:6px; }
+#monthlyMessage.is-error { color:#b91c1c; }
+html[data-portal-theme="dark"] #monthlyMessage.is-error { color:#fda4af; }
+@media(min-width:600px) { .monthly-controls { max-width:320px; } .monthly-actions { flex-direction:row; } .driving-month .monthly-button { width:auto; min-width:160px; } }
+
+.monthly-calendar,.monthly-work { font-size:14px; line-height:1.6; overflow-wrap:anywhere; }
+.monthly-day > div { min-width:0; flex:1 1 220px; }
+.monthly-day[data-work="unsubmitted"] .monthly-work { color:#b91c1c; font-weight:bold; }
+html[data-portal-theme="dark"] .monthly-day[data-work="unsubmitted"] .monthly-work { color:#fda4af; }
+
+.monthly-day.is-company-holiday strong { color:#D81B60; }
+html[data-portal-theme="dark"] .monthly-day.is-company-holiday strong { color:#D81B60; }
+/* This class is assigned only to the holiday-work entry link. Keep the pink
+   border independent of browser link/visited color; no global anchor override. */
+#monthlyDays a.monthly-holiday-work,
+#monthlyDays a.monthly-holiday-work:link,
+#monthlyDays a.monthly-holiday-work:visited,
+#monthlyDays a.monthly-holiday-work:hover,
+#monthlyDays a.monthly-holiday-work:focus,
+#monthlyDays a.monthly-holiday-work:active {
+ color:#D81B60;
+ border-color:#D81B60;
+ background:#fff;
+}
+.monthly-calendar[hidden],.monthly-work[hidden] { display:none; }
+.monthly-submit { overflow-wrap:anywhere; }
+.monthly-submit h2 { font-size:18px; margin:0 0 8px; }
+#monthSubmitIssues { padding-left:20px; font-size:14px; }
+.driving-month .monthly-button:disabled { opacity:.6; cursor:not-allowed; }
+
+#monthSubmitSummary { margin:8px 0; font-size:14px; line-height:1.6; }
+#monthSubmitDetails { margin:8px 0 12px; font-size:14px; }
+#monthSubmitDetails summary { cursor:pointer; padding:8px 0; }
+#monthSubmitDetails[hidden] { display:none; }
+#monthSubmitIssues li { margin:6px 0; }

@@ -549,6 +549,7 @@ function createEmployeeCard(
 
 function startNewEmployeeRegistration() {
   window.EmployeeVehicleAdmin?.close();
+  window.EmployeeFuelReceiptRole?.close();
   editingEmployeeId.value =
     "";
 
@@ -619,6 +620,7 @@ function startEmployeeEdit(
   employee
 ) {
   window.EmployeeVehicleAdmin?.open(employee.id);
+  window.EmployeeFuelReceiptRole?.open(employee.id);
   editingEmployeeId.value =
     employee.id;
 
@@ -1239,6 +1241,7 @@ async function deleteEmployeeAccount() {
 ========================================= */
 
 async function saveEmployee() {
+  if (saveEmployeeButton.disabled) return;
   clearMessage();
 
   const employeeId =
@@ -1260,6 +1263,12 @@ async function saveEmployee() {
     return;
   }
 
+  let receiptRoleChange;
+  try {
+    receiptRoleChange = isNewEmployee ? null : await window.EmployeeFuelReceiptRole?.prepare(employeeId);
+  } catch (error) { showMessage(error.message); return; }
+
+  if (saveEmployeeButton.disabled) return;
   const updateData =
     createEmployeeUpdateData();
 
@@ -1365,6 +1374,12 @@ async function saveEmployee() {
 
     displayEmployees();
 
+    try {
+      await window.EmployeeFuelReceiptRole?.save(receiptRoleChange);
+    } catch (error) {
+      throw new Error('社員情報は保存済みですが、給油領収書管理権限の保存を確認できません。編集画面の入力を保持しています。再度編集を開き、社員情報と権限の両方を確認してください。 ' + error.message);
+    }
+
     closeEmployeeEdit();
 
     showMessage(
@@ -1394,6 +1409,7 @@ async function saveEmployee() {
 
 function closeEmployeeEdit() {
   window.EmployeeVehicleAdmin?.close();
+  window.EmployeeFuelReceiptRole?.close();
   editingEmployeeId.value =
     "";
 

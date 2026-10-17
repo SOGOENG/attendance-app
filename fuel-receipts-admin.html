@@ -1,0 +1,13 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>給油領収書管理</title><link rel="stylesheet" href="style.css?v=25"><link rel="stylesheet" href="side-menu.css?v=1"><link rel="stylesheet" href="driving-report.css?v=6"><link rel="stylesheet" href="fuel-receipts-admin.css?v=3"></head><body>
+<main class="home-page driving-page receipt-admin"><header><h1>給油領収書管理</h1><a href="admin.html">管理者メニューへ</a></header>
+<p id="receiptAdminMessage" role="status" aria-live="polite">権限を確認中…</p>
+<div id="receiptAdminContent" hidden>
+<section class="card"><h2>領収書一覧</h2><form id="receiptFilters" class="driving-grid">
+<label>対象年月<input id="receiptMonth" type="month" required></label><label>部署<select id="receiptDepartment"><option value="">すべての部署</option></select></label><label>社員名<select id="receiptEmployee"><option value="">すべての社員</option></select></label><label>車両ナンバー<select id="receiptVehicle"><option value="">すべての車両</option></select></label>
+<label>原本受領<select id="receiptReceived"><option value="">すべて</option><option value="false">未受領</option><option value="true">受領済み</option></select></label><label><input id="receiptMissing" type="checkbox">画像未添付のみ</label><button type="submit">表示</button></form>
+<p id="receiptUsage"></p><button id="receiptExport" type="button">この月のZIPをダウンロード</button><p class="driving-help">ZIPにはこの月の全件とCSV・照合用manifest.jsonを含みます。検索条件による絞り込みは適用しません。ダウンロードは会社側バックアップの完了を意味しません。</p>
+<div id="receiptList"></div></section>
+<section class="card"><details id="receiptBackupDetails" class="receipt-disclosure"><summary><span class="receipt-disclosure-title">バックアップ確認・画像整理</span><span id="receiptBackupStatus" class="receipt-disclosure-status" aria-live="polite">状態を確認中…</span></summary><div class="receipt-disclosure-body"><p class="driving-help">自動削除はしません。会社管理先へZIPを保存・展開し、照合スクリプトで件数とSHA-256を検証してください。保存義務・社内ルールを担当者が確認し、全体管理者が承認した、保存後1年以上のファイルだけ削除できます。日報・給油履歴は残ります。</p><div id="receiptJobs"></div></div></details></section>
+
+<section class="card"><details id="receiptAuditDetails" class="receipt-disclosure"><summary><span class="receipt-disclosure-title">最近の監査履歴</span></summary><div id="receiptAudit" class="receipt-disclosure-body"></div></details></section>
+</div></main><script src="portal-auth.js"></script><script src="side-menu.js?v=1"></script><script src="fuel-receipts.js?v=2"></script><script src="fuel-receipts-admin.js?v=4"></script></body></html>

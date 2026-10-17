@@ -431,6 +431,16 @@
       </label>
 
 
+      <div id="fuelReceiptRoleField" hidden>
+        <label class="admin-form-label">給油領収書管理権限
+          <select id="employeeFuelReceiptRole" class="admin-form-control" disabled>
+            <option value="none">権限なし</option>
+            <option value="accounting">経理担当者</option>
+          </select>
+        </label>
+        <p>全体管理者のみ変更できます。全体管理者は「権限なし」でも全機能を利用できます。経理担当者には社員管理権限は付与されません。</p>
+        <p id="fuelReceiptRoleMessage" role="status" aria-live="polite"></p>
+      </div>
       <div class="admin-action-buttons">
 
         <button
@@ -517,12 +527,15 @@
 
     </section>
 
+
   </main>
 
 
   <script src="portal-auth.js"></script>
   <script src="employee-default-vehicle-admin.js?v=2"></script>
-  <script src="employee-admin.js?v=11"></script>
+  <script src="employee-admin.js?v=12"></script>
+  <script src="fuel-receipts.js?v=2"></script>
+  <script src="fuel-receipt-roles-admin.js?v=2"></script>
 
 </body>
 

@@ -75,6 +75,7 @@
         <a class="portal-side-menu-link" href="home.html">
           <span>ホーム</span><span aria-hidden="true">›</span>
         </a>
+        <a class="portal-side-menu-link" href="fuel-receipts-admin.html"><span>給油領収書管理（経理・管理者）</span><span aria-hidden="true">›</span></a>
         <a class="portal-side-menu-link" href="my-page.html">
           <span>マイページ</span><span aria-hidden="true">›</span>
         </a>

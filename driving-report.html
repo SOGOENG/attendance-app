@@ -4,13 +4,13 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>運転日報｜綜合エンジニアリング㈱</title>
   <link rel="stylesheet" href="style.css?v=25"><link rel="stylesheet" href="side-menu.css?v=1">
-  <link rel="stylesheet" href="driving-report.css?v=2">
+  <link rel="stylesheet" href="driving-report.css?v=7">
 </head>
 <body>
 <main class="home-page driving-page">
-  <header class="home-header"><div><h1>運転日報</h1><p>朝の入力・下書き保存</p></div>
-    <a href="my-page.html" class="logout-button driving-back">〈 マイページ</a></header>
-  <p class="driving-intro">朝の情報を途中保存できます。空欄があっても保存でき、提出は行いません。</p>
+  <header class="home-header"><div><h1>運転日報</h1><p id="drivingModeLabel">日報入力・保存／提出</p></div>
+    <a href="driving-report-month.html" class="logout-button driving-back">〈 月別一覧</a></header>
+  <p id="drivingIntro" class="driving-intro">帰着メーターが空欄なら下書き保存、入力済みなら提出します。運転なしの日報はメーター入力なしで提出できます。</p>
   <p id="drivingMessage" class="driving-message" role="status" aria-live="polite">読み込み中…</p>
   <form id="drivingForm" novalidate>
     <section class="card"><label for="reportDate">1. 日付</label><input id="reportDate" type="date" required disabled>
@@ -22,21 +22,32 @@
         <fieldset class="driving-choice"><legend>4. 運転有無</legend><div class="driving-radio-row">
           <label><input type="radio" name="drivingStatus" value="driven" checked> 運転あり</label>
           <label><input type="radio" name="drivingStatus" value="no_driving"> 本日運転なし</label></div></fieldset>
-        <p id="noDrivingNote" class="driving-help" hidden>「本日運転なし」として下書き保存します。</p></section>
+        <p id="noDrivingNote" class="driving-help" hidden>「本日運転なし」として提出します。メーター入力は不要です。</p></section>
       <section class="card" data-driving>
         <div class="driving-section-heading"><h2>5. 始業点検13項目</h2><button id="allGood" class="driving-secondary" type="button">全項目 良好</button></div>
         <p class="driving-help">未点検の項目は空欄のまま保存できます。不良の場合は備考を入力してください。</p><div id="inspectionList"></div></section>
       <section class="card" data-driving><h2>6. アルコールチェック</h2>
         <p class="driving-help">未入力のまま下書き保存できます。提出には両チェックの4項目が必要です。電話確認×も入力済みとして扱います。</p>
         <p class="driving-help">時刻は手入力できます。「現在時刻」を押すと日本時間の時刻を入力し、日報の日付と組み合わせて保存します。</p>
-        <h3>出勤運転前アルコールチェック</h3>
+        <h3>行き運転前アルコールチェック</h3>
         <div class="driving-grid">
           <div><label for="alcoholTime">測定時刻（日本時間・時:分）</label>
             <div class="driving-time-row"><input id="alcoholTime" type="time" step="60">
-              <button id="alcoholNow" class="driving-secondary" type="button" aria-label="出勤運転前の測定時刻に現在時刻を入力">現在時刻</button></div></div>
+              <button id="alcoholNow" class="driving-secondary" type="button" aria-label="行き運転前の測定時刻に現在時刻を入力">現在時刻</button></div></div>
           <label>アルコール値<input id="alcoholValue" type="number" inputmode="decimal" min="0" max="999.999" step="0.001" placeholder="0.000"></label>
           <label>電話確認<select id="alcoholPhone"><option value="">未入力</option><option value="true">○</option><option value="false">×</option></select></label>
           <label>確認者<select id="alcoholConfirmer"><option value="">未入力</option><option value="中尾">中尾</option><option value="安藤">安藤</option></select></label></div>
+        <div id="legacyAlcohol" hidden><h3>旧方式の保存記録（変更しません）</h3><p class="driving-help">旧「帰着後」は帰り運転前の記録ではありません。新方式で下書き保存しても、この旧記録は保持します。</p><div id="legacyAlcoholRows"></div></div>
+      </section>
+      <section class="card" data-driving><label for="outboundRoute">7. 行き経路</label>
+        <select id="outboundRoute"><option value="">未選択</option><option value="office">会社経由</option><option value="direct">直行</option><option value="direct_return">直行直帰</option><option value="other">その他</option></select>
+        <label id="routeNoteLabel" hidden>経路の備考<textarea id="routeNote" rows="3"></textarea></label>
+        <label for="siteId">8. 現場・行先</label><select id="siteId"><option value="">選択なし</option><option value="__other__">その他（自由入力）</option></select>
+        <label id="destinationTextLabel" hidden>行先（自由入力）<textarea id="destinationText" rows="3" maxlength="500" placeholder="例：資材購入・取引先訪問"></textarea></label>
+        <label for="startOdometer">9. 出発メーター（km）</label><input id="startOdometer" aria-describedby="odometerError" type="number" inputmode="decimal" min="0" max="9999999999.9" step="0.1" placeholder="例：12345.6">
+        <p id="odometerHint" class="driving-help" role="status" aria-live="polite"></p>
+      </section>
+      <section class="card" data-driving>
         <h3>帰り運転前アルコールチェック</h3>
         <div class="driving-grid">
           <div><label for="returnAlcoholTime">測定時刻（日本時間・時:分）</label>
@@ -46,20 +57,22 @@
           <label>電話確認<select id="returnAlcoholPhone"><option value="">未入力</option><option value="true">○</option><option value="false">×</option></select></label>
           <label>確認者<select id="returnAlcoholConfirmer"><option value="">未入力</option><option value="中尾">中尾</option><option value="安藤">安藤</option></select></label>
         </div>
-        <div id="legacyAlcohol" hidden><h3>旧方式の保存記録（変更しません）</h3><p class="driving-help">旧「帰着後」は帰り運転前の記録ではありません。新方式で下書き保存しても、この旧記録は保持します。</p><div id="legacyAlcoholRows"></div></div>
-      </section>
-      <section class="card" data-driving><label for="outboundRoute">7. 行き経路</label>
-        <select id="outboundRoute"><option value="">未選択</option><option value="office">会社経由</option><option value="direct">直行</option><option value="direct_return">直行直帰</option><option value="other">その他</option></select>
-        <label id="routeNoteLabel" hidden>経路の備考<textarea id="routeNote" rows="3"></textarea></label>
-        <label for="siteId">8. 現場・行先</label><select id="siteId"><option value="">選択なし</option><option value="__other__">その他（自由入力）</option></select>
-        <label id="destinationTextLabel" hidden>行先（自由入力）<textarea id="destinationText" rows="3" maxlength="500" placeholder="例：資材購入・取引先訪問"></textarea></label>
-        <label for="startOdometer">9. 出発メーター（km）</label><input id="startOdometer" type="number" inputmode="decimal" min="0" max="9999999999.9" step="0.1" placeholder="例：12345.6"></section>
-      <div class="driving-save"><button id="saveDraft" type="submit">下書き保存</button>
+        <label for="returnRoute">帰り経路</label><select id="returnRoute"><option value="">未選択</option><option value="office">会社経由</option><option value="direct">直行</option><option value="direct_return">直行直帰</option><option value="other">その他</option></select>
+        <label for="endOdometer">10. 帰着メーター（km）</label><input id="endOdometer" aria-describedby="odometerError" type="number" inputmode="decimal" min="0" max="9999999999.9" step="0.1" placeholder="例：12400.0">
+        <p id="odometerError" class="driving-meter-error" role="alert" hidden></p>
+        <p class="driving-help">帰着時に入力してください。下書きでは未入力で保存できます。運転ありの日報の提出には必須です。</p>
+        <p>本日の走行距離：<output id="distanceKm" for="startOdometer endOdometer" aria-live="polite">— km</output></p></section>
+        <section id="refuelSection" class="card driving-refuels" data-driving aria-labelledby="refuelHeading"><h2 id="refuelHeading">給油記録</h2>
+          <label for="refuelChoice">給油の有無</label><select id="refuelChoice"><option value="none">給油なし</option><option value="yes">給油あり</option></select>
+          <div id="refuelFields" hidden><p class="driving-help">給油日は日報の日付を自動設定します。給油ごとに追加してください。</p>
+            <div id="refuelRows"></div><button id="addRefuel" class="driving-secondary" type="button">＋給油を追加</button></div>
+        </section>
+      <div class="driving-save"><div class="driving-save-actions"><button id="saveDraft" type="submit">下書き保存</button><button id="saveReturn" type="submit" hidden>保存（帰り）</button></div>
         <p id="saveFeedback" class="driving-help"></p></div>
     </fieldset>
   </form>
   <noscript><p>入力するにはJavaScriptを有効にしてください。</p></noscript>
 </main>
-<script src="portal-auth.js"></script><script src="side-menu.js?v=1"></script><script src="driving-alcohol.js?v=1"></script><script src="driving-report.js?v=5"></script>
+<script src="portal-auth.js"></script><script src="side-menu.js?v=1"></script><script src="driving-alcohol.js?v=1"></script><script src="fuel-receipts.js?v=2"></script><script src="driving-report-period.js?v=1"></script><script src="driving-report-month-mode.js?v=2"></script><script src="driving-report.js?v=15"></script>
 </body>
 </html>

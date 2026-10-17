@@ -48,3 +48,25 @@ html[data-portal-theme="dark"] .driving-radio-row label:has(input:checked) { bac
 .driving-time-row { display: flex; align-items: center; gap: 8px; }
 .driving-time-row input { flex: 1; width: 0; }
 .driving-time-row button { flex: 0 0 auto; width: auto; margin: 0; padding: 10px 12px; white-space: nowrap; }
+
+.driving-meter-error { color: #b91c1c; font-size: 14px; line-height: 1.7; margin: 8px 0; }
+html[data-portal-theme="dark"] .driving-meter-error { color: #fda4af; }
+
+.driving-page .driving-refuels { margin: 20px 0 !important; border: 1px solid #cbd5e1; }
+html[data-portal-theme="dark"] .driving-page .driving-refuels { border-color: #64748b; }
+.driving-refuel-row { border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px; margin: 12px 0; }
+.driving-refuel-row h4 { margin: 0 0 12px; }
+.driving-refuel-row button { margin-top: 12px; }
+
+.receipt-attachment { border-top: 1px solid #cbd5e1; margin-top: 16px; padding-top: 12px; }
+.receipt-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.receipt-actions button { width: auto; padding: 10px; }
+.receipt-preview img { max-width: 100%; max-height: 220px; object-fit: contain; }
+.receipt-attachment .is-error { color: #b91c1c; }
+html[data-portal-theme="dark"] .receipt-attachment .is-error { color: #fda4af; }
+
+.receipt-preview a { display: inline-flex; align-items: center; gap: 10px; min-width: 44px; min-height: 44px; max-width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 8px; }
+
+.driving-save-actions { display:flex; gap:10px; flex-wrap:wrap; }
+.driving-save-actions button { flex:1 1 180px; }
+.driving-save-actions [hidden] { display:none; }
