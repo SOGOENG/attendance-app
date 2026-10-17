@@ -28,6 +28,23 @@
     const p = tokyoParts(value);
     return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:${p.second}`;
   }
+  function tokyoTime(value) {
+    return value ? tokyoInput(value).slice(11, 16) : '';
+  }
+  // Track explicit edits so unrelated saves preserve historical dates and seconds.
+  const editedTimes = new Set();
+  function setCurrentTime(prefix) {
+    if (busy || !ready || report?.status === 'submitted' || status() === 'no_driving') return;
+    const now = new Date();
+    const date = $('reportDate').value;
+    if (date !== loadedDate) return;
+    if (date !== tokyoDate(now) && !window.confirm(
+      `日報の日付（${date}）は今日（${tokyoDate(now)}）と異なります。現在の日本時間の時刻を入力し、日報の日付で保存しますか？`)) return;
+    $(prefix+'Time').value = tokyoTime(now);
+    $(prefix+'Time').removeAttribute('aria-invalid');
+    editedTimes.add(prefix);
+    dirty = true;
+  }
   function lock() {
     $('drivingEditor').disabled = busy || !ready || report?.status === 'submitted';
     $('reportDate').disabled = busy || !initialized;
@@ -109,6 +126,7 @@
     });
   }
   function populate() {
+    editedTimes.clear();
     const r = report || {};
     document.querySelector(`[name="drivingStatus"][value="${r.driving_status || 'driven'}"]`).checked = true;
     const initialVehicle = report ? r.vehicle_id : employee.default_vehicle_id;
@@ -126,7 +144,7 @@
     }
     for (const [type, prefix] of [['commute_before','alcohol'],['return_before','returnAlcohol']]) {
       const check = alcoholChecks.find(c => c.check_type === type);
-      $(prefix+'Time').value = tokyoInput(check?.checked_at);
+      $(prefix+'Time').value = tokyoTime(check?.checked_at);
       $(prefix+'Value').value = check?.alcohol_value ?? '';
       $(prefix+'Phone').value = check?.phone_confirmed == null ? '' : String(check.phone_confirmed);
       $(prefix+'Confirmer').value = check?.confirmed_by_name_snapshot || '';
@@ -233,9 +251,11 @@
       if (!time && value === null && !phone && !confirmer) continue;
       let checkedAt = null;
       if (time) {
-        const parsed = new Date(time + '+09:00');
-        if (!$(prefix+'Time').validity.valid || !Number.isFinite(parsed.getTime())) invalid(prefix+'Time','測定時刻を確認してください。');
-        checkedAt = parsed.toISOString();
+        const parsed = new Date(`${date}T${time}:00+09:00`);
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time) || !$(prefix+'Time').validity.valid || !Number.isFinite(parsed.getTime())) invalid(prefix+'Time','測定時刻を確認してください。');
+        const old = alcoholChecks.find(c => c.check_type === type);
+        checkedAt = !editedTimes.has(prefix) && old?.checked_at && tokyoTime(old.checked_at) === time
+          ? old.checked_at : parsed.toISOString();
       }
       alcohol.push({check_type:type, checked_at:checkedAt, alcohol_value:value,
         phone_confirmed:phone === '' ? null : phone === 'true',
@@ -277,12 +297,17 @@
       }
       inspections = data.items;
       alcoholChecks = [...alcoholChecks.filter(c => ['before','after'].includes(c.check_type)), ...data.alcohol];
+      editedTimes.clear();
       dirty = false;
       message('下書き保存しました。提出はしていません。');
     } catch (error) {
       dirty = true;
       message(`保存が完了していません。一部だけ保存されている場合があります。入力内容を残していますので再保存してください。別画面での変更や同日重複の場合は再読み込みしてください。 ${error.message}`, true);
     } finally { busy = false; lock(); }
+  }
+  for (const prefix of ['alcohol', 'returnAlcohol']) {
+    $(prefix+'Now').onclick = () => setCurrentTime(prefix);
+    $(prefix+'Time').addEventListener('input', () => { editedTimes.add(prefix); });
   }
   $('drivingForm').addEventListener('submit', save);
   $('drivingEditor').addEventListener('input', () => { dirty = true; });

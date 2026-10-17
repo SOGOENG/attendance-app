@@ -4,7 +4,7 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>運転日報｜綜合エンジニアリング㈱</title>
   <link rel="stylesheet" href="style.css?v=25"><link rel="stylesheet" href="side-menu.css?v=1">
-  <link rel="stylesheet" href="driving-report.css?v=1">
+  <link rel="stylesheet" href="driving-report.css?v=2">
 </head>
 <body>
 <main class="home-page driving-page">
@@ -28,15 +28,20 @@
         <p class="driving-help">未点検の項目は空欄のまま保存できます。不良の場合は備考を入力してください。</p><div id="inspectionList"></div></section>
       <section class="card" data-driving><h2>6. アルコールチェック</h2>
         <p class="driving-help">未入力のまま下書き保存できます。提出には両チェックの4項目が必要です。電話確認×も入力済みとして扱います。</p>
+        <p class="driving-help">時刻は手入力できます。「現在時刻」を押すと日本時間の時刻を入力し、日報の日付と組み合わせて保存します。</p>
         <h3>出勤運転前アルコールチェック</h3>
         <div class="driving-grid">
-          <label>測定時刻（日本時間）<input id="alcoholTime" type="datetime-local" step="1"></label>
+          <div><label for="alcoholTime">測定時刻（日本時間・時:分）</label>
+            <div class="driving-time-row"><input id="alcoholTime" type="time" step="60">
+              <button id="alcoholNow" class="driving-secondary" type="button" aria-label="出勤運転前の測定時刻に現在時刻を入力">現在時刻</button></div></div>
           <label>アルコール値<input id="alcoholValue" type="number" inputmode="decimal" min="0" max="999.999" step="0.001" placeholder="0.000"></label>
           <label>電話確認<select id="alcoholPhone"><option value="">未入力</option><option value="true">○</option><option value="false">×</option></select></label>
           <label>確認者<select id="alcoholConfirmer"><option value="">未入力</option><option value="中尾">中尾</option><option value="安藤">安藤</option></select></label></div>
         <h3>帰り運転前アルコールチェック</h3>
         <div class="driving-grid">
-          <label>測定時刻（日本時間）<input id="returnAlcoholTime" type="datetime-local" step="1"></label>
+          <div><label for="returnAlcoholTime">測定時刻（日本時間・時:分）</label>
+            <div class="driving-time-row"><input id="returnAlcoholTime" type="time" step="60">
+              <button id="returnAlcoholNow" class="driving-secondary" type="button" aria-label="帰り運転前の測定時刻に現在時刻を入力">現在時刻</button></div></div>
           <label>アルコール値<input id="returnAlcoholValue" type="number" inputmode="decimal" min="0" max="999.999" step="0.001" placeholder="0.000"></label>
           <label>電話確認<select id="returnAlcoholPhone"><option value="">未入力</option><option value="true">○</option><option value="false">×</option></select></label>
           <label>確認者<select id="returnAlcoholConfirmer"><option value="">未入力</option><option value="中尾">中尾</option><option value="安藤">安藤</option></select></label>
@@ -55,6 +60,6 @@
   </form>
   <noscript><p>入力するにはJavaScriptを有効にしてください。</p></noscript>
 </main>
-<script src="portal-auth.js"></script><script src="side-menu.js?v=1"></script><script src="driving-alcohol.js?v=1"></script><script src="driving-report.js?v=4"></script>
+<script src="portal-auth.js"></script><script src="side-menu.js?v=1"></script><script src="driving-alcohol.js?v=1"></script><script src="driving-report.js?v=5"></script>
 </body>
 </html>

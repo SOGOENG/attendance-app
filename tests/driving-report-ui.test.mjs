@@ -53,9 +53,18 @@ try {
  const base='http://127.0.0.1:'+server.address().port;
  const waitReady=()=>page.waitForFunction(()=>!document.getElementById('reportDate').disabled&&!document.getElementById('drivingEditor').disabled);
  const save=async()=>{await page.locator('#saveDraft').click();await page.waitForFunction(()=>document.getElementById('drivingMessage').textContent.includes('下書き保存しました。'));};
+ await page.clock.install({time:new Date('2026-10-16T15:05:42Z')});
  await page.goto(base+'/driving-report.html');await waitReady();
  const today=await page.locator('#reportDate').inputValue();
+ assert.equal(today,'2026-10-17'); // Tokyo next day, browser timezone remains Los Angeles.
  assert.equal(today,await page.locator('#reportDate').getAttribute('max'));
+ for(const prefix of ['alcohol','returnAlcohol']) {
+  assert.equal(await page.locator('#'+prefix+'Time').getAttribute('type'),'time');
+  assert.equal(await page.locator('#'+prefix+'Time').inputValue(),'');
+  await page.locator('#'+prefix+'Now').click();
+  assert.equal(await page.locator('#'+prefix+'Time').inputValue(),'00:05');
+  await page.locator('#'+prefix+'Time').fill('');
+ }
  assert.equal(await page.locator('[data-result]').count(),13);
  assert.equal(await page.locator('#vehicleId').inputValue(),'1');
  assert.equal(await page.locator('#employeeName').inputValue(),'テスト社員 ／ 工事部');
@@ -71,10 +80,10 @@ try {
  await page.locator('#startOdometer').fill('1234.56');await page.locator('#saveDraft').click();
  await page.waitForFunction(()=>document.getElementById('drivingMessage').textContent.includes('出発メーターの範囲'));
  await page.locator('#startOdometer').fill('');
- await page.locator('#alcoholTime').fill(today+'T07:30');await page.locator('#alcoholValue').fill('0');
+ await page.locator('#alcoholTime').fill('07:30');await page.locator('#alcoholValue').fill('0');
  await save();assert.equal(checks.length,1);assert.equal(checks[0].phone_confirmed,null);assert.equal(checks[0].confirmed_by_name_snapshot,null);
  await page.locator('#alcoholPhone').selectOption('false');await page.locator('#alcoholConfirmer').selectOption('中尾');
- await page.locator('#returnAlcoholTime').fill(today+'T17:30');await page.locator('#returnAlcoholValue').fill('0');
+ await page.locator('#returnAlcoholTime').fill('17:30');await page.locator('#returnAlcoholValue').fill('0');
  await page.locator('#returnAlcoholPhone').selectOption('true');await page.locator('#returnAlcoholConfirmer').selectOption('安藤');
  await page.locator('#outboundRoute').selectOption('other');await page.locator('#routeNote').fill('経路メモ');await page.locator('#siteId').selectOption('2');await page.locator('#startOdometer').fill('1234.5');
  await save();assert.equal(reports.length,1);assert.equal(inspections.length,13);assert.equal(checks.length,2);assert.equal(checks[0].check_type,'commute_before');
@@ -88,6 +97,8 @@ try {
  assert.equal(reports[0].site_id,null);assert.equal(reports[0].destination_text,'資材店・取引先への訪問');
  await page.reload();await waitReady();assert.equal(await page.locator('#siteId').inputValue(),'__other__');
  assert.equal(await page.locator('#destinationText').inputValue(),'資材店・取引先への訪問');
+ assert.equal(await page.locator('#alcoholTime').inputValue(),'07:30');
+ assert.equal(await page.locator('#returnAlcoholTime').inputValue(),'17:30');
  await page.locator('#siteId').selectOption('2');await save();assert.equal(reports[0].destination_text,null);
  const legacy={driving_report_id:reports[0].id,check_type:'after',checked_at:today+'T20:00:00+09:00',alcohol_value:'0.1',confirmation_method:'対面',confirmed_by_name_snapshot:'旧確認者'};
  checks.push(legacy);const oldLegacy=JSON.stringify(legacy);
@@ -99,11 +110,24 @@ try {
  assert.equal(await page.locator('#note-tires').inputValue(),'タイヤ要確認');assert.equal(await page.locator('#alcoholConfirmer').inputValue(),'中尾');
  assert.equal(await page.locator('#returnAlcoholConfirmer').inputValue(),'安藤');
  assert((await page.locator('#legacyAlcohol').innerText()).includes('帰着後（旧方式）'));assert.equal(JSON.stringify(legacy),oldLegacy);
+ const assertTimeLayout=async()=>{
+  for(const prefix of ['alcohol','returnAlcohol']) {
+   const input=await page.locator('#'+prefix+'Time').boundingBox();
+   const button=await page.locator('#'+prefix+'Now').boundingBox();
+   assert(input.width>=80);assert(button.height>=44);
+   assert(button.x>=input.x+input.width);assert(Math.abs(button.y-input.y)<12);
+  }
+ };
+ await assertTimeLayout();
+ await page.locator('section').filter({has:page.locator('#alcoholTime')}).screenshot({path:join(tmpdir(),'driving-alcohol-desktop.png')});
  await page.screenshot({path:join(tmpdir(),'driving-report-desktop.png'),fullPage:true});
  await page.setViewportSize({width:390,height:844});
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));
+ await assertTimeLayout();
+ await page.locator('section').filter({has:page.locator('#alcoholTime')}).screenshot({path:join(tmpdir(),'driving-alcohol-mobile.png')});
  await page.screenshot({path:join(tmpdir(),'driving-report-mobile.png'),fullPage:true});
  await page.setViewportSize({width:320,height:740});
+ await assertTimeLayout();
  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth));
  await page.evaluate(()=>document.documentElement.dataset.portalTheme='dark');
  assert.notEqual(await page.locator('.card').first().evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(255, 255, 255)');
@@ -121,6 +145,8 @@ try {
  await page.locator('#reportDate').fill(past);await page.locator('#reportDate').dispatchEvent('change');await page.waitForFunction(()=>document.getElementById('drivingMessage').textContent==='この日の日報は提出済みです');assert(await page.locator('#saveDraft').isDisabled());assert(await page.locator('#vehicleId').isDisabled());
  assert.equal(await page.locator('#siteId').inputValue(),'__other__');assert.equal(await page.locator('#destinationText').inputValue(),'提出済みの自由行先');assert(await page.locator('#destinationText').isDisabled());
  assert.equal(await page.locator('#returnAlcoholConfirmer').inputValue(),'安藤');assert(await page.locator('#returnAlcoholPhone').isDisabled());
+ assert(await page.locator('#alcoholNow').isDisabled());assert(await page.locator('#returnAlcoholNow').isDisabled());
+ assert.equal(await page.locator('#returnAlcoholTime').inputValue(),'17:00');
  await page.locator('#reportDate').fill(today);await page.locator('#reportDate').dispatchEvent('change');await waitReady();
  failLoad=true;await page.locator('#reloadReport').click();await page.waitForFunction(()=>document.getElementById('drivingMessage').textContent.includes('読み込めませんでした'));assert(await page.locator('#saveDraft').isDisabled());failLoad=false;await page.locator('#reloadReport').click();await waitReady();
  // Another session submits the record after load: filtered PATCH must stop before detail writes.
@@ -135,6 +161,38 @@ try {
  defaultVehicle=99;newDay.setUTCDate(newDay.getUTCDate()-1);
  await page.locator('#reportDate').fill(newDay.toISOString().slice(0,10));await page.locator('#reportDate').dispatchEvent('change');await waitReady();
  assert.equal(await page.locator('#vehicleId').inputValue(),''); // inactive/missing preference is not auto-selected
+ // An old draft's untouched timestamp retains its original date, seconds and offset.
+ const historicalDate=newDay.toISOString().slice(0,10);
+ await page.locator('#alcoholTime').fill('23:59');await save();
+ const historicalReport=reports.find(r=>r.report_date===historicalDate);
+ const historicalCheck=checks.find(c=>c.driving_report_id===historicalReport.id);
+ historicalCheck.checked_at='2026-01-01T14:59:37Z';
+ await page.locator('#reloadReport').click();await waitReady();
+ assert.equal(await page.locator('#alcoholTime').inputValue(),'23:59');
+ await save();assert.equal(historicalCheck.checked_at,'2026-01-01T14:59:37Z');
+ for(const prefix of ['alcohol','returnAlcohol']) {
+  const before=await page.locator('#'+prefix+'Time').inputValue();
+  page.once('dialog',d=>{assert(d.message().includes(historicalDate));return d.dismiss();});
+  await page.locator('#'+prefix+'Now').click();
+  assert.equal(await page.locator('#'+prefix+'Time').inputValue(),before);
+  page.once('dialog',d=>d.accept());await page.locator('#'+prefix+'Now').click();
+  assert.equal(await page.locator('#'+prefix+'Time').inputValue(),'00:05');
+ }
+ await save();
+ for(const check of checks.filter(c=>c.driving_report_id===historicalReport.id)) {
+  assert.equal(check.checked_at,new Date(historicalDate+'T00:05:00+09:00').toISOString());
+ }
+ // Midnight rollover while the report stays open also requires confirmation.
+ await page.clock.setFixedTime(new Date('2026-10-17T14:59:59Z'));
+ page.once('dialog',d=>d.accept());await page.locator('#alcoholNow').click();
+ assert.equal(await page.locator('#alcoholTime').inputValue(),'23:59');
+ await page.clock.setFixedTime(new Date('2026-10-17T15:00:01Z'));
+ page.once('dialog',d=>{assert(d.message().includes('2026-10-18'));return d.accept();});
+ await page.locator('#returnAlcoholNow').click();assert.equal(await page.locator('#returnAlcoholTime').inputValue(),'00:00');
+ await save();await page.locator('#reloadReport').click();await waitReady();
+ assert.equal(await page.locator('#alcoholTime').inputValue(),'23:59');
+ assert.equal(await page.locator('#returnAlcoholTime').inputValue(),'00:00');
+ await page.clock.setFixedTime(new Date('2026-10-16T15:05:42Z'));
  // Future dates must not reach the API or create reports.
  const future=new Date(today+'T00:00:00Z');future.setUTCDate(future.getUTCDate()+1);await page.locator('#reportDate').fill(future.toISOString().slice(0,10));await page.locator('#reportDate').dispatchEvent('change');await page.waitForFunction(()=>document.getElementById('drivingMessage').textContent.includes('今日以前'));assert(await page.locator('#saveDraft').isDisabled());
  assert(!calls.some(c=>c.table==='submit_driving_report'||c.table==='driving_refuels'));
@@ -142,5 +200,6 @@ try {
  assert(!calls.some(c=>c.body && ['submitted_at','late_entry','late_entry_days','created_at','updated_at','created_by_employee_id','updated_by_employee_id','end_odometer','return_route_type'].some(k=>k in c.body)));
  assert.deepEqual(errors,[]);
  console.log('PASS morning UI: empty draft, verified employee, 13 items, defect notes, bulk confirmation, before alcohol, Tokyo time, insert/update, reload, partial failure/retry, no_driving cleanup, submitted lock, read failure, future date, later-day preservation, desktop/mobile overflow.');
+ console.log('PASS alcohol time: manual HH:mm, both current-time buttons, no automatic fill, Tokyo timezone, report-date save/reload, historical timestamp preservation, past-date confirm/cancel, midnight rollover, submitted buttons disabled.');
  console.log('Screenshots: '+join(tmpdir(),'driving-report-desktop.png')+' / '+join(tmpdir(),'driving-report-mobile.png'));
 } finally {await browser.close();await new Promise(r=>server.close(r));}
