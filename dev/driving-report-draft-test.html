@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>TEST DRAFT｜社員39のCSV検証</title>
+  <link rel="stylesheet" href="../style.css?v=25">
+  <link rel="stylesheet" href="../driving-report-csv-admin.css?v=1">
+</head>
+<body>
+  <main class="csv-page">
+    <h1>TEST DRAFT｜開発専用CSV検証</h1>
+    <p>社員ID39 ／ 2026年9月分（8/21〜9/20）</p>
+    <p>対象は保存済みの8/21・8/24・8/25・8/26・8/27の下書き5件だけです。正式提出・提出可否判定は行いません。</p>
+    <p id="draftMessage" role="status" aria-live="polite">localhost限定・明示的な検証モードでのみ利用できます。</p>
+    <p id="draftLogin" hidden><a href="../login.html">同じ開発サーバーで管理者ログイン</a></p>
+    <section id="draftControls" hidden>
+      <p><strong>TEST DRAFT — 正式提出・正式帳票作成に使用しないでください。</strong></p>
+      <p>前回給油は未確認、勤務・休暇判定は未実施として出力します。正式用Excel取込ではexport_kindがofficial以外のファイルを拒否してください。</p>
+      <button id="downloadDraft" type="button" disabled>TEST DRAFT 3CSVをZIPで出力</button>
+      <ul id="draftWarnings"></ul>
+    </section>
+  </main>
+  <!-- No production menu link, no service-worker/precache registration. -->
+  <script src="driving-report-draft-dev.js?v=1"></script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>綜合ポータル - 運転日報CSV出力</title>
+  <link rel="stylesheet" href="style.css?v=25">
+  <link rel="stylesheet" href="driving-report-csv-admin.css?v=1">
+</head>
+<body>
+  <main class="csv-page">
+    <header><h1>運転日報CSV出力</h1><a href="admin.html">管理者メニューへ戻る</a></header>
+    <section aria-labelledby="exportTitle">
+      <h2 id="exportTitle">月別提出済みの正式データ</h2>
+      <p>運転日報・給油・前回給油の3CSVを、1つのZIPにまとめます。</p>
+      <label for="closingMonth">締め月</label>
+      <input id="closingMonth" type="month" required disabled>
+      <button id="reloadCsv" type="button" disabled>提出状況を確認</button>
+      <p id="csvPeriod"></p>
+      <p id="csvMessage" role="status" aria-live="polite">管理者権限を確認中…</p>
+      <div id="csvContent" hidden>
+        <h2>対象者の確認</h2>
+        <p>月別提出済み社員は全員出力します。未提出人数を確認するため、一覧から運転日報の対象者を選択してください。在籍社員と月別提出済み社員は名簿候補であり、運転日報対象者を自動判定した一覧ではありません。</p>
+        <div class="csv-actions"><button id="selectAll" type="button">一覧の全員を対象にする</button><button id="clearSelection" type="button">未提出者の選択を解除</button></div>
+        <fieldset><legend>運転日報対象者</legend><div id="csvRoster" class="csv-roster"></div></fieldset>
+        <p id="csvSummary" aria-live="polite"></p>
+        <p id="csvMissing"></p>
+        <label class="csv-confirm"><input id="confirmRoster" type="checkbox">運転日報対象者の選択を確認しました</label>
+        <p>前回給油の「履歴なし・未提出履歴あり・順序未確認」は、Excelで要確認となります。</p>
+        <ul id="csvWarnings"></ul>
+        <button id="downloadCsvZip" type="button" disabled>正式CSV 3種類をZIPで出力</button>
+        <p>出力時にも最新の提出状況を確認します。給与・出勤簿の締切や日報の提出状態は変更しません。</p>
+      </div>
+    </section>
+  </main>
+  <script src="portal-auth.js"></script>
+  <script src="driving-report-period.js"></script>
+  <script src="driving-report-csv.js?v=1"></script>
+  <script src="driving-report-csv-admin.js?v=1"></script>
+</body>
+</html>

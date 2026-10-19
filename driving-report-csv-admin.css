@@ -1,0 +1,10 @@
+.csv-page{max-width:960px;margin:auto;padding:24px;color:var(--text-color,inherit)}
+.csv-page header,.csv-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.csv-page section{margin-top:24px;padding:24px;border:1px solid #aab5bf;border-radius:12px}
+.csv-page button,.csv-page input[type=month]{padding:10px;margin:6px 0;font:inherit}
+.csv-page button{cursor:pointer}.csv-page button:disabled{cursor:default;opacity:.55}
+.csv-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;max-height:360px;overflow:auto;padding:8px}
+.csv-roster label,.csv-confirm{display:flex;gap:8px;align-items:flex-start}
+.csv-page .is-error{color:#b42318;font-weight:bold}.csv-page #csvSummary{font-weight:bold}
+.csv-page #csvWarnings{padding-left:24px}.csv-page fieldset{margin-top:12px}
+@media(max-width:600px){.csv-page{padding:12px}.csv-page section{padding:12px}.csv-page h1{font-size:1.4rem}.csv-roster{grid-template-columns:1fr}}
