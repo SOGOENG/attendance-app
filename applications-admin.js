@@ -18,7 +18,67 @@ function renderWorkSummary(records){
   return `<div class="work-history-summary" role="status"><p class="work-summary-balance">代休残日数：<strong>${totals.remaining}<small>日</small></strong></p><p class="work-summary-details"><span>発生合計：${totals.earned}日</span><span>使用済み：${totals.used}日</span></p></div>`;
 }
 async function loadWork(){const employeeId=Number($("workEmployee").value);if(!employeeId){clearWorkHistory();return}$("workSummary").innerHTML='<p class="empty">読み込み中...</p>';$("workList").innerHTML='<p class="empty">読み込み中...</p>';$("compUsageList").innerHTML='<p class="empty">読み込み中...</p>';const [workRows,apps]=await Promise.all([req(`holiday_work_records?select=id,employee_id,work_date,earned_days,used_days,expired_days,remaining_days,site_id,note,status&employee_id=eq.${employeeId}&order=work_date.desc`),req(`applications?select=id,employee_id,submitted_at,approved_at,reviewer_comment&employee_id=eq.${employeeId}&application_type=eq.comp_leave&status=eq.approved&order=approved_at.desc`)]);if(Number($("workEmployee").value)!==employeeId)return;work=workRows;const visibleWork=work.filter(w=>!(Number(w.expired_days)>0&&Number(w.remaining_days)===0));$("workSummary").innerHTML=renderWorkSummary(work);$("workList").innerHTML=(visibleWork.length?visibleWork.map(w=>`<article class="work-history-row"><div class="work-history-heading"><h3>${dt(w.work_date)}</h3><span class="status ${w.status}">${w.status==="active"?"有効":"取消"}</span></div><p class="work-history-site">現場：${esc(site(w.site_id))}<span class="work-history-note"> ／ 備考：${esc(w.note||"-")}</span></p><p class="work-history-days"><span>発生${w.earned_days}日</span><span>使用済み${w.used_days}日</span><span>残${w.remaining_days}日</span></p>${w.status==="active"?`<div class="record-actions"><button class="secondary edit-work" data-id="${w.id}">訂正</button><button class="danger cancel-work" data-id="${w.id}">取消</button></div>`:""}</article>`).join(""):'<p class="empty">休日出勤履歴はありません</p>');document.querySelectorAll(".edit-work").forEach(b=>b.onclick=()=>editWork(Number(b.dataset.id)));document.querySelectorAll(".cancel-work").forEach(b=>b.onclick=()=>cancelWork(Number(b.dataset.id)));await compUsage.refresh(employeeId,work);if(Number($("workEmployee").value)!==employeeId)return;await renderCompUsageHistory(employeeId,apps.filter(app=>!String(app.reviewer_comment||"").startsWith("admin_comp_usage:")))}
-async function renderCompUsageHistory(employeeId,apps){if(!apps.length){$("compUsageList").innerHTML='<p class="empty">代休使用履歴はありません</p>';return}const ids=apps.map(app=>app.id),idList=ids.join(","),[dates,allocations]=await Promise.all([req(`comp_leave_dates?select=application_id,leave_date,days,display_order&application_id=in.(${idList})&order=application_id,display_order.asc`),req(`comp_leave_allocations?select=application_id,holiday_work_record_id,allocated_days&application_id=in.(${idList})&order=application_id,id.asc`)]),recordIds=[...new Set(allocations.map(row=>Number(row.holiday_work_record_id)))],sourceRecords=recordIds.length?await req(`holiday_work_records?select=id,work_date&id=in.(${recordIds.join(",")})`):[];if(Number($("workEmployee").value)!==employeeId)return;const sourceMap=new Map(sourceRecords.map(row=>[Number(row.id),row.work_date]));$("compUsageList").innerHTML=apps.map(app=>{const appDates=dates.filter(row=>Number(row.application_id)===Number(app.id)),appAllocations=allocations.filter(row=>Number(row.application_id)===Number(app.id)),usedDays=appDates.reduce((sum,row)=>sum+Number(row.days),0),usedDates=appDates.map(row=>`${dt(row.leave_date)}（${row.days}日）`).join("、")||"-",sources=appAllocations.map(row=>`${dt(sourceMap.get(Number(row.holiday_work_record_id)))}（${row.allocated_days}日）`).join("、")||"-";return`<article class="application-item history-card"><div class="application-item-head"><h3>${usedDates}</h3><span class="status approved">${usedDays}日使用</span></div><p>元の休日出勤日：${esc(sources)}<br>申請日：${dt(app.submitted_at)}<br>承認日：${dt(app.approved_at)}</p></article>`}).join("")}
+async function renderCompUsageHistory(employeeId, apps) {
+  if (!apps.length) {
+    $("compUsageList").innerHTML = '<p class="empty">代休使用履歴はありません</p>';
+    return;
+  }
+  const idList = apps.map(app => app.id).join(",");
+  const [dates, allocations, dateAllocations] = await Promise.all([
+    req(`comp_leave_dates?select=id,application_id,leave_date,days,display_order&application_id=in.(${idList})&order=application_id,display_order.asc`),
+    req(`comp_leave_allocations?select=id,application_id,holiday_work_record_id,allocated_days&application_id=in.(${idList})&order=application_id,id.asc`),
+    req(`comp_leave_date_allocations?select=application_id,comp_leave_date_id,comp_leave_allocation_id,holiday_work_record_id,allocated_days&application_id=in.(${idList})&order=id.asc`)
+  ]);
+  const recordIds = [...new Set(allocations.map(row => Number(row.holiday_work_record_id)))];
+  const sourceRecords = recordIds.length
+    ? await req(`holiday_work_records?select=id,work_date&id=in.(${recordIds.join(",")})`) : [];
+  if (Number($("workEmployee").value) !== employeeId) return;
+  const sourceMap = new Map(sourceRecords.map(row => [Number(row.id), row.work_date]));
+  const daysText = days => `${Number(days)}日`;
+  const sourceDate = row => sourceMap.has(Number(row.holiday_work_record_id))
+    ? dt(sourceMap.get(Number(row.holiday_work_record_id)))
+    : `日付不明（休日出勤ID：${Number(row.holiday_work_record_id)}）`;
+  const pair = (date, allocation, days) => `
+    <li class="comp-usage-pair" data-allocation-id="${Number(allocation.id)}">
+      <div><span class="comp-usage-label">代休使用日</span><strong>${esc(dt(date.leave_date))}（${daysText(days)}）</strong></div>
+      <span class="comp-usage-arrow" aria-hidden="true">←</span>
+      <div><span class="comp-usage-label">元の休日出勤日</span><strong>${esc(sourceDate(allocation))}（${daysText(days)}割当）</strong></div>
+    </li>`;
+  $("compUsageList").innerHTML = apps.map(app => {
+    const appDates = dates.filter(row => Number(row.application_id) === Number(app.id));
+    const appAllocations = allocations.filter(row => Number(row.application_id) === Number(app.id));
+    const saved = dateAllocations.filter(row => Number(row.application_id) === Number(app.id));
+    // Integer hundredths avoid floating-point sum errors. No ordering-based matching.
+    const units = value => Math.round(Number(value) * 100);
+    const used = appDates.reduce((sum, row) => sum + units(row.days), 0);
+    const allocated = appAllocations.reduce((sum, row) => sum + units(row.allocated_days), 0);
+    const consistent = appDates.length > 0 && appAllocations.length > 0 && used === allocated;
+    let body;
+    const dateById = new Map(appDates.map(row => [Number(row.id), row]));
+    const allocationById = new Map(appAllocations.map(row => [Number(row.id), row]));
+    const savedValid = saved.length > 0 && consistent && saved.every(row =>
+      dateById.has(Number(row.comp_leave_date_id)) &&
+      Number(allocationById.get(Number(row.comp_leave_allocation_id))?.holiday_work_record_id) === Number(row.holiday_work_record_id) &&
+      Number(row.allocated_days) > 0) &&
+      appDates.every(date => saved.filter(row => Number(row.comp_leave_date_id) === Number(date.id)).reduce((sum, row) => sum + units(row.allocated_days), 0) === units(date.days)) &&
+      appAllocations.every(allocation => saved.filter(row => Number(row.comp_leave_allocation_id) === Number(allocation.id)).reduce((sum, row) => sum + units(row.allocated_days), 0) === units(allocation.allocated_days));
+    if (savedValid) {
+      body = `<ul class="comp-usage-pairs">${saved.map(row => pair(dateById.get(Number(row.comp_leave_date_id)), allocationById.get(Number(row.comp_leave_allocation_id)), row.allocated_days)).join("")}</ul>`;
+    } else if (!saved.length && consistent && appDates.length === 1) {
+      body = `<ul class="comp-usage-pairs">${appAllocations.map(row => pair(appDates[0], row, row.allocated_days)).join("")}</ul>`;
+    } else if (!saved.length && consistent && appAllocations.length === 1) {
+      body = `<ul class="comp-usage-pairs">${appDates.map(row => pair(row, appAllocations[0], row.days)).join("")}</ul><p class="comp-usage-explanation">同じ休日出勤から合計${daysText(allocated / 100)}を割当</p>`;
+    } else {
+      body = `<p class="comp-usage-explanation">${saved.length ? '保存済みの日別割当と申請内容が一致しないため、対応を表示できません。' : 'この申請には使用日ごとの割当関係が保存されていないため、日別の対応は確定できません。'}以下は申請単位の実割当です。</p>
+        <div class="comp-usage-groups"><section><h4>代休使用日</h4><ul>${appDates.map(row => `<li>${esc(dt(row.leave_date))}（${daysText(row.days)}）</li>`).join("") || '<li>使用日未取得</li>'}</ul></section>
+        <section><h4>元の休日出勤日・実割当</h4><ul>${appAllocations.map(row => `<li data-allocation-id="${Number(row.id)}">${esc(sourceDate(row))}（${daysText(row.allocated_days)}割当）</li>`).join("") || '<li>割当未取得</li>'}</ul></section></div>
+        ${used !== allocated ? '<p class="comp-usage-explanation">使用日数と割当合計が一致していません。</p>' : ''}`;
+    }
+    return `<article class="application-item history-card" data-comp-application-id="${Number(app.id)}">
+      <div class="application-item-head"><h3>代休使用履歴</h3><span class="status approved">${daysText(used / 100)}使用</span></div>
+      ${body}<p class="comp-usage-dates">申請日：${esc(dt(app.submitted_at))}<br>承認日：${esc(dt(app.approved_at))}</p></article>`;
+  }).join("");
+}
 function editWork(id){const w=work.find(x=>x.id===id),employee=employees.find(x=>Number(x.id)===Number(w?.employee_id));if(!w||!employee)return;$("workRecordId").value=w.id;$("workDepartment").value=employee.department||"";filterEmployeeOptions("work");$("workEmployee").value=w.employee_id;$("workDepartment").disabled=true;$("workEmployee").disabled=true;$("workDate").value=w.work_date;$("workDays").value=w.earned_days;$("workSite").value=w.site_id||"";$("workNote").value=w.note||"";window.scrollTo({top:0,behavior:"smooth"})}function resetWork(){$("workForm").reset();$("workDepartment").value=$("personalDepartment").value;$("workRecordId").value="";$("workDepartment").disabled=false;$("workEmployee").disabled=false;filterEmployeeOptions("work");$("workEmployee").value=$("personalEmployee").value;$("workDays").value="1"}
 async function saveWork(e){e.preventDefault();if(!isLeaveManager()){msg("workMessage","残数管理権限がありません。");return}const id=Number($("workRecordId").value),body=id?{p_record_id:id,p_work_date:$("workDate").value,p_earned_days:Number($("workDays").value),p_site_id:Number($("workSite").value)||null,p_note:$("workNote").value}:{p_employee_id:Number($("workEmployee").value),p_work_date:$("workDate").value,p_earned_days:Number($("workDays").value),p_site_id:Number($("workSite").value)||null,p_note:$("workNote").value,p_source_type:"manual",p_source_attendance_id:null};try{await rpc(id?"update_holiday_work":"register_holiday_work",body);msg("workMessage","保存しました。",true);resetWork();await loadWork()}catch(err){console.error(err);msg("workMessage","保存できませんでした。申請への割当状況または権限を確認してください。")}}
 async function cancelWork(id){if(!isLeaveManager()||!confirm("この休日出勤を取り消しますか？"))return;try{await rpc("cancel_holiday_work",{p_record_id:id,p_comment:"管理画面から取消"});await loadWork()}catch(e){console.error(e);alert("取消できませんでした。割当状況または権限を確認してください。")}}

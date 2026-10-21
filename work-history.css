@@ -181,3 +181,30 @@
 #adminCompUsageHistory .record-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 #adminCompUsageHistory .record-actions[hidden] { display: none; }
 #adminCompUsageHistory .record-actions button { min-height: 44px; flex: 1 1 90px; }
+
+#adminPaidUsageHistory [data-paid-editor] { min-width: 0; margin-top: 12px; }
+#adminPaidUsageHistory [data-paid-editor] label { display: block; min-width: 0; }
+#adminPaidUsageHistory [data-paid-editor] input,
+#adminPaidUsageHistory [data-paid-editor] textarea { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; }
+#adminPaidUsageHistory .record-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+#adminPaidUsageHistory .record-actions[hidden] { display: none; }
+#adminPaidUsageHistory .record-actions button { min-height: 44px; flex: 1 1 90px; }
+
+#compUsageList .history-card { min-width: 0; overflow-wrap: anywhere; }
+#compUsageList .comp-usage-pairs { list-style: none; padding: 0; margin: 12px 0; }
+#compUsageList .comp-usage-pair {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--ap-border, #ddd);
+}
+#compUsageList .comp-usage-pair > div { min-width: 0; }
+#compUsageList .comp-usage-label { display: block; color: var(--ap-muted); font-size: 12px; margin-bottom: 4px; }
+#compUsageList .comp-usage-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+#compUsageList .comp-usage-groups h4 { margin: 8px 0; }
+#compUsageList .comp-usage-groups ul { padding-left: 20px; margin: 0; }
+#compUsageList .comp-usage-groups li { margin-bottom: 8px; }
+#compUsageList .comp-usage-explanation { font-size: 13px; color: var(--ap-muted); }
+#compUsageList .comp-usage-dates { border-top: 1px solid var(--ap-border, #ddd); padding-top: 12px; margin-bottom: 0; }
+@media (max-width: 520px) {
+  #compUsageList .comp-usage-pair, #compUsageList .comp-usage-groups { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  #compUsageList .comp-usage-arrow { justify-self: start; transform: rotate(-90deg); margin-left: 12px; }
+}
