@@ -197,10 +197,13 @@ begin
 end;
 $$;
 revoke all on function public.my_initial_data_vehicles(),public.can_use_vehicle_initial_data(bigint),public.get_vehicle_initial_data(bigint,date),
- public.save_vehicle_initial_data(bigint,date,numeric,date,numeric,numeric,text,text,bigint),
- public.previous_vehicle_end_odometer(bigint,date) from public,anon,authenticated,service_role;
+ public.save_vehicle_initial_data(bigint,date,numeric,date,numeric,numeric,text,text,bigint) from public,anon,authenticated,service_role;
 grant execute on function public.my_initial_data_vehicles(),public.can_use_vehicle_initial_data(bigint),public.get_vehicle_initial_data(bigint,date),
- public.save_vehicle_initial_data(bigint,date,numeric,date,numeric,numeric,text,text,bigint),
- public.previous_vehicle_end_odometer(bigint,date) to authenticated;
+ public.save_vehicle_initial_data(bigint,date,numeric,date,numeric,numeric,text,text,bigint) to authenticated;
+-- Preserve existing explicit service_role grants (including grant options).
+-- Explicit EXECUTE also covers installations that previously relied on PUBLIC.
+-- The function's JWT / active employee checks remain unchanged.
+revoke all on function public.previous_vehicle_end_odometer(bigint,date) from public,anon,authenticated;
+grant execute on function public.previous_vehicle_end_odometer(bigint,date) to authenticated,service_role;
 notify pgrst,'reload schema';
 commit;

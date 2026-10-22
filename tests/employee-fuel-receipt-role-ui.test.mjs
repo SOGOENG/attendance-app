@@ -38,12 +38,13 @@ try {
     return route.fulfill({json:[{id:2,name:employee.name,accounting:enabled,admin:employee.admin_scope==='all'}]});
    }
   }
-  if(name==='admin-update-employee-profile'){
+  if(name==='employee_edit_context')return route.fulfill({json:{all:true,actor_id:1,creation_enabled:true,editable_ids:[2]}});
+  if(name==='admin_edit_employee'){
    if(failProfile)return route.fulfill({status:500,json:{error:'profile failed'}});
-   employee.name=body.name;return route.fulfill({json:{employee}});
+   Object.assign(employee,body.p_data);return route.fulfill({json:employee});
   }
   if(name==='employees'){
-   if(req.method()==='PATCH'){Object.assign(employee,body);return route.fulfill({status:204,body:''});}
+   assert.equal(req.method(),'GET');
    return route.fulfill({json:[employee]});
   }
   throw Error('Unexpected request '+name);

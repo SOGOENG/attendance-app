@@ -204,28 +204,66 @@ function checkAdminAccess() {
     return false;
   }
 
-  if (
-  !loginUser.adminScope ||
-  loginUser.adminScope === "none" ||
-  loginUser.adminScope === "tool_admin"
-) {
-  
-    alert(
-      "社員設定を開く権限がありません"
-    );
-
-    window.location.href =
-      "home.html";
-
-    return false;
-  }
-
   return true;
 }
 
 
+let employeeEditAccess = null;
+const employeeEditKeys = ['name','attendance_required','improvement_required','near_miss_required'];
+const employeeAdminKeys = [...employeeEditKeys,'department','active','admin_scope','job_title','profile_email','phone_number'];
+async function employeeManagementRpc(name, body = {}) {
+  const response = await portalFetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
+    method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data?.message?.includes('conflict')
+    ? '社員情報が変更されています。編集を開き直して確認してください。'
+    : '社員情報を保存・取得できません。権限と最新の登録内容を確認してください。');
+  return data;
+}
+function applyEmployeeEditAccess() {
+  const all = employeeEditAccess?.all === true;
+  newEmployeeButton.hidden = !all;
+  newEmployeeButton.disabled = !all || employeeEditAccess?.creation_enabled !== true;
+  document.getElementById('employeeCreationRecovery').hidden = !all;
+  document.getElementById('employeeCreationNotice').textContent = employeeEditAccess?.creation_enabled === true
+    ? '未完了の登録は状況を確認してから対応してください。'
+    : '社員登録は安全性・復旧手順の確認まで停止中です。既存社員の編集は利用できます。';
+  for (const el of [employeeDepartment, employeeActive, employeeAdminScope]) el.disabled = !all;
+  deleteEmployeeButton.hidden = true;
+  deleteEmployeeButton.disabled = true;
+}
+
+async function refreshEmployeeManagement() {
+  employeeEditAccess = await employeeManagementRpc('employee_edit_context');
+  applyEmployeeEditAccess();
+  await loadEmployees();
+}
+async function showEmployeeCreationStatus() {
+  const message = document.getElementById('employeeCreationStatusMessage');
+  const list = document.getElementById('employeeCreationStatusList');
+  list.replaceChildren();
+  message.textContent = '登録状況を確認しています…';
+  try {
+    const response = await portalFetch(`${SUPABASE_URL}/functions/v1/bright-service`, {
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'creation_status'})
+    });
+    const data = await response.json();
+    if (!response.ok || !Array.isArray(data.operations)) throw Error('登録状況を確認できません。再登録せず管理者へ連絡してください。');
+    for (const row of data.operations) {
+      const item = document.createElement('li');
+      const labels = {completed:'登録完了',employee_created:'処理中または中断・要確認',recovery_required:'復旧確認が必要'};
+      item.textContent = `社員ID ${row.employee_id} ／ ${labels[row.state] || '状態要確認'} ／ 操作ID ${row.operation_id}`;
+      list.append(item);
+    }
+    message.textContent = '最新50件です。未完了の登録は別の操作として作り直さず、操作IDを管理者へ連絡してください。';
+    if (localStorage.getItem('employeeCreationPendingOperation')) message.textContent += ' このブラウザーには旧方式の未完了操作IDも残っています。削除せず確認してください。';
+  } catch (error) { message.textContent = error.message; }
+}
+document.getElementById('employeeCreationStatusButton').addEventListener('click', showEmployeeCreationStatus);
+
 function isAllEmployeeAdministrator() {
-  return getLoginUser()?.adminScope === "all";
+  return employeeEditAccess?.all === true;
 }
 
 
@@ -530,6 +568,7 @@ function createEmployeeCard(
       ".edit-schedule-button"
     );
 
+  editButton.disabled = !employeeEditAccess?.editable_ids?.some(id => String(id) === String(employee.id));
   editButton.addEventListener(
     "click",
     () => {
@@ -548,6 +587,8 @@ function createEmployeeCard(
 ========================================= */
 
 function startNewEmployeeRegistration() {
+  if (!isAllEmployeeAdministrator() || employeeEditAccess?.creation_enabled !== true) { showMessage('社員登録は停止中です。登録状況を確認してください。'); return; }
+  applyEmployeeEditAccess();
   window.EmployeeVehicleAdmin?.close();
   window.EmployeeFuelReceiptRole?.close();
   editingEmployeeId.value =
@@ -619,6 +660,12 @@ function startNewEmployeeRegistration() {
 function startEmployeeEdit(
   employee
 ) {
+  if (!employeeEditAccess?.editable_ids?.some(id => String(id) === String(employee.id))) {
+    showMessage('この社員は編集対象外です。追加管理権限または担当部署を確認してください。');
+    return;
+  }
+  applyEmployeeEditAccess();
+
   window.EmployeeVehicleAdmin?.open(employee.id);
   window.EmployeeFuelReceiptRole?.open(employee.id);
   editingEmployeeId.value =
@@ -689,8 +736,8 @@ function startEmployeeEdit(
     既存社員編集時のみ完全削除を表示
   */
 
-  deleteEmployeeButton.hidden =
-    false;
+  deleteEmployeeButton.hidden = true;
+  deleteEmployeeButton.disabled = true;
 
   employeeEditSection.hidden =
     false;
@@ -838,12 +885,16 @@ function validateEmployee(
 async function createNewEmployeeAccount(
   updateData
 ) {
+  if (!isAllEmployeeAdministrator() || employeeEditAccess?.creation_enabled !== true) throw new Error('社員登録は停止中です。登録状況を確認してください。');
+  const operation = await EmployeeCreationState.acquire(employeeEditAccess.actor_id, updateData);
+  const operationId = operation.operationId;
   const url =
     `${SUPABASE_URL}` +
     `/functions/v1/bright-service`;
 
-  const response =
-    await portalFetch(
+  let response;
+  try {
+    response = await portalFetch(
       url,
       {
         method: "POST",
@@ -856,6 +907,7 @@ async function createNewEmployeeAccount(
         body:
           JSON.stringify({
             action: "create",
+            operationId,
 
             ...updateData,
 
@@ -864,6 +916,9 @@ async function createNewEmployeeAccount(
           })
       }
     );
+  } catch {
+    throw new Error('登録結果を確認できません。再登録前に操作IDを確認してください: ' + operationId);
+  }
 
   const responseData =
     await response.json()
@@ -871,10 +926,9 @@ async function createNewEmployeeAccount(
         () => ({})
       );
 
+  await EmployeeCreationState.record(operation, responseData);
   if (!response.ok) {
-    console.error(
-      responseData
-    );
+    responseData.error = (responseData.error || "登録結果を確認できません") + " 操作ID: " + operationId;
 
     throw new Error(
       responseData.error ||
@@ -883,6 +937,7 @@ async function createNewEmployeeAccount(
     );
   }
 
+  if (responseData.success !== true) throw new Error('登録完了を確認できません。操作ID: ' + operationId);
   return responseData;
 }
 
@@ -891,51 +946,17 @@ async function createNewEmployeeAccount(
    既存社員情報更新
 ========================================= */
 
-async function updateExistingEmployee(
-  employeeId,
-  updateData
-) {
-  const url =
-    `${SUPABASE_URL}/rest/v1/employees` +
-    `?id=eq.${employeeId}`;
-
-  const response =
-    await portalFetch(
-      url,
-      {
-        method: "PATCH",
-
-        headers: {
-          "Content-Type":
-            "application/json",
-
-          Prefer:
-            "return=minimal"
-        },
-
-        body:
-          JSON.stringify(
-            updateData
-          )
-      }
-    );
-
-  if (!response.ok) {
-    const errorText =
-      await response.text();
-
-    console.error(errorText);
-
-    throw new Error(
-      "社員情報を保存できませんでした"
-    );
-  }
+async function updateExistingEmployee(employeeId, updateData) {
+  const all = isAllEmployeeAdministrator();
+  const keys = all ? employeeAdminKeys : employeeEditKeys;
+  const old = employeeRecords.find(e => String(e.id) === String(employeeId));
+  if (!old) throw new Error('社員情報を読み込み直してください。');
+  const expected = Object.fromEntries(keys.map(k => [k, old[k] ?? null]));
+  const data = Object.fromEntries(keys.map(k => [k, updateData[k]]));
+  return employeeManagementRpc(all ? 'admin_edit_employee' : 'department_edit_employee', {
+    p_id:Number(employeeId), p_data:data, p_expected:expected
+  });
 }
-
-
-/* =========================================
-   全体管理者によるプロフィール更新
-========================================= */
 
 async function updateEmployeeProfileAsAdmin(
   employeeId
@@ -1098,141 +1119,7 @@ async function resetEmployeePassword() {
 ========================================= */
 
 async function deleteEmployeeAccount() {
-  const employeeId =
-    editingEmployeeId.value;
-
-  if (!employeeId) {
-    return;
-  }
-
-  const loginUser =
-    getLoginUser();
-
-  /*
-    自分自身は削除不可
-  */
-
-  if (
-    loginUser &&
-    String(loginUser.id) ===
-      String(employeeId)
-  ) {
-    alert(
-      "現在ログイン中の自分自身は削除できません。"
-    );
-
-    return;
-  }
-
-
-  /*
-    1回目の確認
-  */
-
-  const firstConfirmed =
-    window.confirm(
-      `${employeeName.value}さんを完全削除しますか？\n\n` +
-      "通常の退職者は「使用停止」を使用してください。"
-    );
-
-  if (!firstConfirmed) {
-    return;
-  }
-
-
-  /*
-    2回目の確認
-  */
-
-  const secondConfirmed =
-    window.confirm(
-      "本当に完全削除しますか？\n\n" +
-      "社員情報とログインアカウントの両方を削除します。\n" +
-      "この操作は元に戻せません。"
-    );
-
-  if (!secondConfirmed) {
-    return;
-  }
-
-
-  deleteEmployeeButton.disabled =
-    true;
-
-  deleteEmployeeButton.textContent =
-    "削除中...";
-
-
-  try {
-    const url =
-      `${SUPABASE_URL}` +
-      `/functions/v1/bright-service`;
-
-    const response =
-      await portalFetch(
-        url,
-        {
-          method: "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json"
-          },
-
-          body:
-            JSON.stringify({
-              action: "delete",
-
-              employeeId:
-                Number(employeeId)
-            })
-        }
-      );
-
-    const responseData =
-      await response.json()
-        .catch(
-          () => ({})
-        );
-
-    if (!response.ok) {
-      console.error(
-        responseData
-      );
-
-      throw new Error(
-        responseData.error ||
-        responseData.message ||
-        "社員を完全削除できませんでした"
-      );
-    }
-
-    closeEmployeeEdit();
-
-    await loadEmployees();
-
-    alert(
-      "社員情報とログインアカウントを完全削除しました。"
-    );
-
-    showMessage(
-      "社員を完全削除しました"
-    );
-
-  } catch (error) {
-    console.error(error);
-
-    alert(
-      error.message
-    );
-
-  } finally {
-    deleteEmployeeButton.disabled =
-      false;
-
-    deleteEmployeeButton.textContent =
-      "完全削除";
-  }
+  showMessage('完全削除は安全性確認まで停止中です。退職者は使用停止にしてください。');
 }
 
 
@@ -1298,20 +1185,17 @@ async function saveEmployee() {
     */
 
     if (isNewEmployee) {
-      await createNewEmployeeAccount(
-        updateData
-      );
-
-      await loadEmployees();
+      const creationResult = await createNewEmployeeAccount(updateData);
+      await refreshEmployeeManagement();
 
       closeEmployeeEdit();
 
       alert(
-        "新規社員を登録しました。\n\nログイン可能です。"
+        creationResult.replayed ? '登録済みの操作結果を確認しました。初期パスワードは変更していません。' : '新規社員を登録しました。使用中の場合はログイン可能です。'
       );
 
       showMessage(
-        "新規社員を登録しました。ログイン可能です。"
+        creationResult.replayed ? '登録済みの操作結果を確認しました。' : '新規社員を登録しました。'
       );
 
       return;
@@ -1322,34 +1206,12 @@ async function saveEmployee() {
       既存社員
     */
 
-    let savedData =
-      updateData;
-
-    if (isAllEmployeeAdministrator()) {
-      const updatedProfile =
-        await updateEmployeeProfileAsAdmin(
-          employeeId
-        );
-
-      const administrativeData =
-        createEmployeeAdministrativeData();
-
-      await updateExistingEmployee(
-        employeeId,
-        administrativeData
-      );
-
-      savedData = {
-        ...updatedProfile,
-        ...administrativeData
-      };
-
-    } else {
-      await updateExistingEmployee(
-        employeeId,
-        updateData
-      );
-    }
+    const savedData = await updateExistingEmployee(employeeId, {
+      ...updateData,
+      job_title: employeeJobTitle.value,
+      profile_email: employeeProfileEmail.value,
+      phone_number: employeePhoneNumber.value
+    });
 
     const recordIndex =
       employeeRecords.findIndex(
@@ -1504,7 +1366,12 @@ async function initializeEmployeeAdmin() {
     return;
   }
 
-  await loadEmployees();
+  try {
+    await refreshEmployeeManagement();
+  } catch (error) {
+    newEmployeeButton.hidden = true;
+    showMessage(error.message);
+  }
 }
 
 

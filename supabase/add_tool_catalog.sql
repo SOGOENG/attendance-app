@@ -124,7 +124,19 @@ create policy tool_catalog_read
 on public.tool_catalog
 for select
 to authenticated
-using (true);
+using (
+  exists (select 1 from public.employees e
+    where e.auth_user_id = auth.uid() and e.active = true)
+);
+
+-- A permissive policy added elsewhere must not bypass the employee check.
+drop policy if exists tool_catalog_active_employee_read_guard on public.tool_catalog;
+create policy tool_catalog_active_employee_read_guard
+on public.tool_catalog as restrictive for select to authenticated
+using (
+  exists (select 1 from public.employees e
+    where e.auth_user_id = auth.uid() and e.active = true)
+);
 
 
 /* =========================================

@@ -73,6 +73,7 @@
 
         <button
           id="newEmployeeButton"
+          hidden
           type="button"
           class="admin-primary-button"
         >
@@ -81,6 +82,12 @@
 
       </div>
 
+      <section id="employeeCreationRecovery" hidden>
+        <p id="employeeCreationNotice" class="schedule-message"></p>
+        <button id="employeeCreationStatusButton" type="button" class="admin-secondary-button">登録状況を確認</button>
+        <p id="employeeCreationStatusMessage" class="schedule-message" aria-live="polite"></p>
+        <ul id="employeeCreationStatusList"></ul>
+      </section>
       <label class="admin-form-label">
 
         部署で絞り込み
@@ -461,11 +468,12 @@
 
         <button
           id="deleteEmployeeButton"
+          disabled
           type="button"
           class="admin-secondary-button"
           hidden
         >
-          完全削除
+          完全削除（停止中）
         </button>
 
       </div>
@@ -533,7 +541,8 @@
 
   <script src="portal-auth.js"></script>
   <script src="employee-default-vehicle-admin.js?v=2"></script>
-  <script src="employee-admin.js?v=12"></script>
+  <script src="employee-creation-state.js?v=1"></script>
+  <script src="employee-admin.js?v=14"></script>
   <script src="fuel-receipts.js?v=2"></script>
   <script src="fuel-receipt-roles-admin.js?v=2"></script>
 

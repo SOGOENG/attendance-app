@@ -104,7 +104,7 @@ Deno.serve(async (request: Request) => {
 
   const { data: employees, error: employeeError } = await supabase
     .from("employees")
-    .select("id")
+    .select("id,active")
     .eq("auth_user_id", user.id)
     .limit(2);
 
@@ -122,17 +122,27 @@ Deno.serve(async (request: Request) => {
     return jsonResponse({ success: false, error: "社員情報を一意に特定できません。" }, 409);
   }
 
+  if (employees[0].active !== true) {
+    return jsonResponse({ success: false, error: "使用停止中の社員はプロフィールを変更できません。" }, 403);
+  }
+
   const { data: updatedEmployee, error: updateError } = await supabase
     .from("employees")
     .update(updates)
     .eq("id", employees[0].id)
     .eq("auth_user_id", user.id)
+    .eq("active", true)
     .select("profile_email, phone_number")
-    .single();
+    .maybeSingle();
 
   if (updateError) {
     console.error("Failed to update employee profile:", updateError.message);
     return jsonResponse({ success: false, error: "プロフィールの保存に失敗しました。" }, 500);
+  }
+
+  // Recheck in UPDATE: the employee may have been disabled after the lookup.
+  if (!updatedEmployee) {
+    return jsonResponse({ success: false, error: "社員情報が変更されたため保存できません。使用状態を確認してください。" }, 403);
   }
 
   return jsonResponse({

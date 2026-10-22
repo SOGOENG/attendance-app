@@ -29,6 +29,7 @@ try {
  const vehicles=[{id:1,vehicle_number:'名古屋 400 あ 12-34',vehicle_name:'ハイエース',active:true},{id:2,vehicle_number:'名古屋 400 あ 56-78',vehicle_name:'バン',active:true}];
  const assignments=()=>employees.filter(e=>e.default_vehicle_id!=null).map(e=>({employee_id:e.id,vehicle_id:e.default_vehicle_id}));
  await page.route('**/rest/v1/**',async route=>{const req=route.request(),url=new URL(req.url()),name=url.pathname.split('/').at(-1),body=req.postData()?req.postDataJSON():null;calls.push({name,method:req.method(),body});
+  if(name==='employee_edit_context')return route.fulfill({json:{all:true,actor_id:1,creation_enabled:true,editable_ids:employees.map(e=>e.id)}});
   if(name==='employees')return route.fulfill({json:employees});
   if(name==='admin_get_vehicle_master')return route.fulfill(failLoad?{status:403,json:{message:'application_admin_required'}}:{json:{vehicles,employees,assignments:assignments()}});
   if(name==='admin_set_employee_managed_vehicle'){

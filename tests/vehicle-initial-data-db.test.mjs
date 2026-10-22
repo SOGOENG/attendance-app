@@ -40,7 +40,42 @@ try{
    assert.equal(result.required_columns.filter(r=>r.status!=='OK').length,0);
    assert.equal(result.required_functions.find(f=>f.signature==='public.get_vehicle_initial_data(bigint,date)').exists,false);
  });
- await db.exec(migration);
+ const meterSignature='public.previous_vehicle_end_odometer(bigint,date)';
+ const newSignatures=['public.my_initial_data_vehicles()','public.can_use_vehicle_initial_data(bigint)',
+   'public.get_vehicle_initial_data(bigint,date)',
+   'public.save_vehicle_initial_data(bigint,date,numeric,date,numeric,numeric,text,text,bigint)'];
+ const checkAcl=async()=>{
+   for(const signature of [...newSignatures,meterSignature]){
+     for(const role of ['anon','authenticated','service_role']){
+       assert.equal((await q('select has_function_privilege($1,$2,\'EXECUTE\') ok',[role,signature]))[0].ok,
+         role==='authenticated'||(role==='service_role'&&signature===meterSignature),`${role}: ${signature}`);
+     }
+   }
+   assert.equal((await q(`select count(*)::int n from pg_proc p,
+     lateral aclexplode(p.proacl) a where p.oid=any($1::regprocedure[]) and a.grantee=0
+     and a.privilege_type='EXECUTE'`,[[...newSignatures,meterSignature]]))[0].n,0);
+ };
+ await test('existing explicit service EXECUTE and grant option survive replacement',async()=>{
+   await db.exec(await readFile(new URL('../supabase/add_previous_vehicle_end_odometer.sql',import.meta.url),'utf8'));
+   await db.exec(`grant execute on function ${meterSignature} to service_role with grant option`);
+   await db.exec(migration);await checkAcl();
+   assert.equal((await q(`select has_function_privilege('service_role',$1,'EXECUTE WITH GRANT OPTION') ok`,[meterSignature]))[0].ok,true);
+   await actor(null,'service_role');
+   await assert.rejects(meter(),/active_employee_required/);
+   await assert.rejects(get(),/permission denied/);
+   await actor(null,'postgres');
+ });
+ await test('PUBLIC-only and absent service grants become explicit EXECUTE; new RPC grants removed',async()=>{
+   for(const publicAccess of [true,false]){
+     await db.exec(`revoke all on function ${meterSignature} from service_role;
+       ${publicAccess?'grant execute':'revoke all'} on function ${meterSignature} ${publicAccess?'to':'from'} public;
+       grant execute on function ${newSignatures.join(',')} to public,anon,service_role`);
+     await db.exec(migration);await checkAcl();
+     assert((await q(`select 1 from pg_proc p, lateral aclexplode(p.proacl) a
+       where p.oid=$1::regprocedure and a.grantee=(select oid from pg_roles where rolname='service_role')
+       and a.privilege_type='EXECUTE'`,[meterSignature])).length===1);
+   }
+ });
  await test('real application admin helper: all only, active Auth link required',async()=>{
    for(const [id,expected] of [[1,false],[3,true],[4,false],[5,false],[6,false],[7,false],[99,false],[null,false]]){
      await actor(id);assert.equal((await q('select public.is_application_admin() ok'))[0].ok,expected);
@@ -81,11 +116,13 @@ try{
  await test('reapply twice preserves seeds, revisions, reports, refuels and effective ACL',async()=>{
    await actor(null,'postgres');
    const snapshot=async()=>JSON.stringify(await q(`select (select jsonb_agg(to_jsonb(v) order by vehicle_id) from public.vehicle_initial_data v) seeds,
+     (select jsonb_agg(to_jsonb(e) order by id) from public.employees e) employees,
+     (select jsonb_agg(to_jsonb(v) order by id) from public.vehicles v) vehicles,
      (select jsonb_agg(to_jsonb(r) order by id) from public.driving_reports r) reports,
      (select jsonb_agg(to_jsonb(f) order by id) from public.driving_refuels f) refuels,
      has_function_privilege('anon','public.save_vehicle_initial_data(bigint,date,numeric,date,numeric,numeric,text,text,bigint)','execute') anon,
      has_table_privilege('authenticated','public.vehicle_initial_data','update') direct_update`));
-   const before=await snapshot();await db.exec(migration);await db.exec(migration);assert.equal(await snapshot(),before);
+   const before=await snapshot();await db.exec(migration);await checkAcl();await db.exec(migration);await checkAcl();assert.equal(await snapshot(),before);
    await actor(3);assert.equal((await get()).initial.revision,4);assert.equal(Number(await meter(3)),1);
  });
  await test('incompatible same-name schema stops and rolls back without touching rows',async()=>{
