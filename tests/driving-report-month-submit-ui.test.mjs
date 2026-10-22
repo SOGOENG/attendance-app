@@ -50,6 +50,7 @@ try {
   }
   if(table==='driving_reports'&&method!=='GET'&&conflictSave)return respond({code:'55P03',message:'driving_month_busy_retry'},409);
   if(table==='fuel-receipts')return respond([]);
+  if(table==='get_vehicle_initial_data')return respond({initial:null,has_history:false,can_edit:true,previous_refuel:null});
   if(table==='previous_vehicle_end_odometer') {
    const value=previousMeter,fail=failMeter,delay=meterDelay;
    if(denyMeter)return respond({code:'42501',message:'vehicle_odometer_access_denied'},403);

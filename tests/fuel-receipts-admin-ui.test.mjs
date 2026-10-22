@@ -49,6 +49,7 @@ try {
    if(action==='archive'){adminRow.state='archived';job.candidates=[];return respond(d.ids.map(id=>({id,success:true})));}
    return respond({});
   }
+  if(table==='get_vehicle_initial_data')return respond({initial:null,has_history:false,can_edit:true,previous_refuel:null});
   if(table==='previous_vehicle_end_odometer') {
    const value=previousMeter,fail=failMeter,delay=meterDelay;
    if(denyMeter)return respond({code:'42501',message:'vehicle_odometer_access_denied'},403);

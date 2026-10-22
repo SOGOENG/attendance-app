@@ -1,0 +1,6 @@
+# Local driving report verification artifacts (including personal data)
+/local-test-data/
+**/TEST_DRAFT*
+**/draft-test*.json
+**/draft-test*.csv
+**/draft-test*.zip

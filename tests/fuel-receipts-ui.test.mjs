@@ -46,6 +46,7 @@ try {
    if(body.action==='remove'){const c=receiptItems.find(x=>x.id===body.data.id);if(c)c.state='removed';return respond(c);}
    return respond({});
   }
+  if(table==='get_vehicle_initial_data')return respond({initial:null,has_history:false,can_edit:true,previous_refuel:null});
   if(table==='previous_vehicle_end_odometer') {
    const value=previousMeter,fail=failMeter,delay=meterDelay;
    if(denyMeter)return respond({code:'42501',message:'vehicle_odometer_access_denied'},403);

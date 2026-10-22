@@ -12,6 +12,11 @@
     <a href="driving-report-month.html" class="logout-button driving-back">〈 月別一覧</a></header>
   <p id="drivingIntro" class="driving-intro">帰着メーターが空欄なら下書き保存、入力済みなら提出します。運転なしの日報はメーター入力なしで提出できます。</p>
   <p id="drivingMessage" class="driving-message" role="status" aria-live="polite">読み込み中…</p>
+  <section id="initialDataNotice" class="card" hidden>
+    <p id="initialDataHint" class="driving-help" role="status" aria-live="polite"></p>
+    <a id="initialDataLink" href="driving-initial-data.html" target="_blank" rel="noopener">初回データ登録・確認／訂正（別画面）</a>
+    <p id="previousFuelHint" class="driving-help"></p>
+  </section>
   <form id="drivingForm" novalidate>
     <section class="card"><label for="reportDate">1. 日付</label><input id="reportDate" type="date" required disabled>
       <p class="driving-help">日本時間の日付です。過去の日付も入力できます。</p>
@@ -73,6 +78,6 @@
   </form>
   <noscript><p>入力するにはJavaScriptを有効にしてください。</p></noscript>
 </main>
-<script src="portal-auth.js"></script><script src="side-menu.js?v=1"></script><script src="driving-alcohol.js?v=1"></script><script src="fuel-receipts.js?v=2"></script><script src="driving-report-period.js?v=1"></script><script src="driving-report-month-mode.js?v=2"></script><script src="driving-report.js?v=15"></script>
+<script src="portal-auth.js"></script><script src="side-menu.js?v=1"></script><script src="driving-alcohol.js?v=1"></script><script src="fuel-receipts.js?v=2"></script><script src="driving-report-period.js?v=1"></script><script src="driving-report-month-mode.js?v=2"></script><script src="driving-initial-notice.js?v=1"></script><script src="driving-report.js?v=16"></script>
 </body>
 </html>

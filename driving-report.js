@@ -83,6 +83,7 @@
   }
   async function suggestStartOdometer() {
     const token = ++odometerRequest;
+    window.DrivingInitialNotice?.refresh(status()==='no_driving'?null:$('vehicleId').value,loadedDate);
     if (isReadOnly() || startManuallyEdited ||
       ($('startOdometer').value !== '' && $('startOdometer').value !== suggestedStart)) return;
     const reportId = report?.id ?? null;
@@ -110,7 +111,7 @@
       }
       $('startOdometer').value = value;
       suggestedStart = $('startOdometer').value;
-      $('odometerHint').textContent = '同じ車両の直近の過去日報から入力しました。手動で修正できます。';
+      $('odometerHint').textContent = '同じ車両の前回メーター（保存済み日報を優先、履歴がなければ初期値）を入力しました。手動で修正できます。';
       dirty = true;
       updateDistance();
     } catch (error) {
@@ -552,6 +553,7 @@
   document.querySelectorAll('[name="drivingStatus"]').forEach(control => control.addEventListener('change', () => {
     ++odometerRequest;
     $('odometerHint').textContent = '';
+    window.DrivingInitialNotice?.refresh(status()==='no_driving'?null:$('vehicleId').value,loadedDate);
   }));
   $('drivingForm').addEventListener('submit', save);
   $('drivingEditor').addEventListener('input', () => { dirty = true; });
