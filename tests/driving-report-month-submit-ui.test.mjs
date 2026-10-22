@@ -179,7 +179,7 @@ try {
  assert.equal((await styles(holidayLink)).color,'rgb(216, 27, 96)');
  checkIssues=[{date:'2026-10-19',code:'report_missing'},{date:'2026-10-19',code:'report_missing'},{date:'2026-10-20',code:'work_unconfirmed'}];
  await page.locator('#reloadMonth').click();await page.waitForFunction(()=>!document.getElementById('reloadMonth').disabled);
- assert((await page.locator('#monthSubmitSummary').innerText()).includes('未入力・要確認：2日'));
+ assert((await page.locator('#monthSubmitSummary').innerText()).includes('提出時の全期間確認：2日'));
  assert((await page.locator('#monthSubmitSummary').innerText()).includes('未入力 1日／未完了・要確認 1日'));
  assert.equal(await page.locator('#monthSubmitDetails').evaluate(n=>n.open),false);
  assert.equal(await page.locator('#monthSubmitIssues:visible').count(),0);

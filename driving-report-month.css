@@ -45,3 +45,10 @@ html[data-portal-theme="dark"] .monthly-day.is-company-holiday strong { color:#D
 #monthSubmitDetails summary { cursor:pointer; padding:8px 0; }
 #monthSubmitDetails[hidden] { display:none; }
 #monthSubmitIssues li { margin:6px 0; }
+.monthly-filter { display:flex; align-items:center; gap:8px; min-height:44px; }
+.monthly-filter input { width:20px; height:20px; margin:0; flex-shrink:0; }
+#monthlyFollowupCounts,#monthlyFilterMessage { overflow-wrap:anywhere; line-height:1.6; }
+.monthly-day[hidden] { display:none; }
+.monthly-followup { font-size:14px; line-height:1.6; overflow-wrap:anywhere; }
+.monthly-day[data-action="true"] .monthly-followup { color:#b91c1c; font-weight:bold; }
+html[data-portal-theme="dark"] .monthly-day[data-action="true"] .monthly-followup { color:#fda4af; }

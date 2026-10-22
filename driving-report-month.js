@@ -1,7 +1,7 @@
 (() => {
  'use strict';
  const $=id=>document.getElementById(id),period=DrivingReportPeriod,monthly=DrivingReportMonthMode;
- let employeeId=null,requestNumber=0,submitBusy=false,currentCheck=null;
+ let employeeId=null,requestNumber=0,submitBusy=false,currentCheck=null,displayedRows=new Map();
  const text=(tag,value)=>{const node=document.createElement(tag);node.textContent=value;return node;};
  function message(value,error=false){$('monthlyMessage').textContent=value;$('monthlyMessage').classList.toggle('is-error',error);}
  async function request(path,options){const response=await portalFetch(`${PORTAL_SUPABASE_URL}/rest/v1/${path}`,options);if(!response.ok)throw Error('本人の日報を取得できません。再読み込みしてください。');return response.json();}
@@ -20,21 +20,41 @@
  function controls(loading){for(const id of ['closingMonth','reloadMonth'])$(id).disabled=loading||submitBusy||employeeId===null;
   $('submitMonth').disabled=loading||submitBusy||!monthly.enabled||!currentCheck||currentCheck.already_submitted||!currentCheck.eligible||(monthly.firstMonth&&$('closingMonth').value<monthly.firstMonth)||period.today()<period.range($('closingMonth').value).endExclusive;
  }
- const issueLabels={report_missing:'日報がありません',work_unconfirmed:'勤務実績を確認してください',calendar_unconfirmed:'休日設定を確認してください',half_or_ambiguous_leave:'休暇・勤務実績を確認してください',work_leave_conflict:'勤務と休暇の情報が一致しません',holiday_work_attendance_conflict:'休日出勤と出勤簿を確認してください',receipt_upload_pending:'領収書の処理が完了していません',driving_submission_fields_required:'経路・車両・メーターが未完了です',all_13_official_inspections_required:'点検13項目が未完了です',both_pre_drive_alcohol_checks_required:'アルコールチェックが未完了です'};
- Object.assign(issueLabels,{end_odometer_before_start:'帰着メーターが出発メーターより小さくなっています',accident_violation_note_required:'事故・違反の詳細を入力してください',before_and_after_alcohol_checks_required:'朝・帰着後のアルコールチェックが未完了です',no_driving_must_not_have_driving_data:'運転なしの日報に運転・給油記録が残っています',invalid_driving_status:'運転あり・運転なしを確認してください',own_report_required:'本人の日報か確認し、再読み込みしてください'});
+ const issueLabels=DrivingReportMonthFollowup.labels;
+ function filterDays(){
+  const only=$('onlyActionNeeded').checked&&!$('onlyActionNeeded').disabled;
+  const rows=[...$('monthlyDays').children];
+  for(const row of rows)row.hidden=only&&row.dataset.action!=='true';
+  $('monthlyFilterMessage').textContent=only?`要対応 ${rows.filter(row=>!row.hidden).length}日（昨日以前）`:'';
+ }
+ $('onlyActionNeeded').onchange=filterDays;
+ function refreshFollowups(checked,now){
+  const counts={missing:0,incomplete:0,review:0},days=new Map((checked?.days||[]).map(day=>[day.date,day]));
+  const labels={missing:'未入力',incomplete:'入力未完了',review:'勤務等の要確認',today:'本日',future:'対象外',complete:'確認済み',exempt:'入力不要',ready:'入力完了',unavailable:'未判定'};
+  for(const item of $('monthlyDays').children){
+   const result=DrivingReportMonthFollowup.classify(item.dataset.date,now,days.get(item.dataset.date),checked?.errors||[],displayedRows.get(item.dataset.date),checked?.already_submitted);
+   item.dataset.followup=result.kind;item.dataset.action=String(result.action);
+   item.querySelector('.monthly-followup').textContent=`${labels[result.kind]}：${result.reason}`;
+   if(result.action)counts[result.kind]++;
+  }
+  $('onlyActionNeeded').disabled=!checked;
+  $('monthlyFollowupCounts').textContent=checked?`記入忘れ ${counts.missing+counts.incomplete}日（未入力 ${counts.missing}日／入力未完了 ${counts.incomplete}日）／勤務等の要確認 ${counts.review}日（昨日以前）`:'記入忘れは未判定です（月別確認を利用できません）。';
+  filterDays();
+ }
  function submissionInfo(checked,showIssues=false){
   $('monthSubmitIssues').replaceChildren();
   const issues=checked.already_submitted?[]:[...new Map(checked.errors.map(issue=>[issue.date+':'+issue.code,issue])).values()];
-  for(const issue of issues){const item=text('li',`${issue.date}：${issueLabels[issue.code]||'日報の入力内容を確認してください'}`);$('monthSubmitIssues').append(item);}
+  for(const issue of issues){const item=text('li',''),link=text('a',`${issue.date}：${issueLabels[issue.code]||'日報の入力内容を確認してください'}`);if(issue.date<=period.today()){link.href=monthly.link(issue.date);item.append(link);}else item.textContent=link.textContent+'（未来日）';$('monthSubmitIssues').append(item);}
   const perDay=new Map();
   for(const issue of issues){if(!perDay.has(issue.date))perDay.set(issue.date,new Set());perDay.get(issue.date).add(issue.code);}
   const missing=[...perDay.values()].filter(codes=>codes.size===1&&codes.has('report_missing')).length;
-  $('monthSubmitSummary').textContent=checked.already_submitted?'':`未入力・要確認：${perDay.size}日（未入力 ${missing}日／未完了・要確認 ${perDay.size-missing}日）`;
+  $('monthSubmitSummary').textContent=checked.already_submitted?'':`提出時の全期間確認：${perDay.size}日（未入力 ${missing}日／未完了・要確認 ${perDay.size-missing}日）`;
   $('monthSubmitDetails').hidden=perDay.size===0;
   if(showIssues&&perDay.size)$('monthSubmitDetails').open=true;
   $('submitMonth').textContent=checked.already_submitted?'月別提出済み':`${Number($('closingMonth').value.slice(5))}月分をまとめて提出`;
   $('monthSubmitMessage').textContent=checked.already_submitted?'この月は提出済みです。日報の追加・変更はできません。':!checked.eligible||period.today()<period.range($('closingMonth').value).endExclusive?'締め日の翌21日から提出できます。':checked.valid?'提出前に保存内容を確認してください。提出後は編集できません。':'不足日報・未完了・要確認の日があります。内容を確認してください。';
   if(!checked.already_submitted&&monthly.firstMonth&&$('closingMonth').value<monthly.firstMonth)$('monthSubmitMessage').textContent='月別提出は2026年10月分（9/21〜10/20）から利用できます。';
+  if($('monthlyDays').children.length)refreshFollowups(checked,period.today());
  }
  $('submitMonth').onclick=async()=>{
   if(submitBusy||!monthly.enabled||!currentCheck||currentCheck.already_submitted)return;
@@ -59,7 +79,7 @@
  };
 
  async function load(){
-  const version=++requestNumber;currentCheck=null;controls(true);$('monthSubmitIssues').replaceChildren();$('monthSubmitDetails').open=false;$('monthSubmitDetails').hidden=true;$('monthSubmitSummary').textContent='';$('submitMonth').textContent=monthly.enabled?'確認中…':'準備中';$('monthSubmitMessage').textContent=monthly.enabled?'月別提出状態を確認中…':'この接続先では月別提出を利用できません。';$('monthlyCounts').textContent='';$('monthlyDays').replaceChildren();message('日報を読み込み中…');
+  const version=++requestNumber;currentCheck=null;controls(true);$('monthSubmitIssues').replaceChildren();$('monthSubmitDetails').open=false;$('monthSubmitDetails').hidden=true;$('monthSubmitSummary').textContent='';$('submitMonth').textContent=monthly.enabled?'確認中…':'準備中';$('monthSubmitMessage').textContent=monthly.enabled?'月別提出状態を確認中…':'この接続先では月別提出を利用できません。';$('monthlyCounts').textContent='';$('monthlyFollowupCounts').textContent='';$('onlyActionNeeded').disabled=true;$('monthlyFilterMessage').textContent='';$('monthlyDays').replaceChildren();message('日報を読み込み中…');
   try{
    const month=$('closingMonth').value,span=period.range(month),now=period.today();
    const crossYear=span.start.slice(0,4)!==span.end.slice(0,4);
@@ -89,14 +109,15 @@
     const checkedDay=currentCheck?.days.find(day=>day.date===date);
     const assessment=checkedDay?DrivingReportWorkday.fromCheck(checkedDay,now,row):DrivingReportWorkday.assess(date,now,row,attendance,applications),work=text('p',assessment.text);work.className='monthly-work';item.dataset.work=assessment.state;
     calendar.hidden=true;work.hidden=true;
+    const followup=text('p','');followup.className='monthly-followup';info.append(followup);
     const holiday=Array.isArray(holidays)&&holidays.filter(h=>h.date===date).length===1&&holidays.some(h=>h.date===date&&['休日','祝日'].includes(h.day_type));
     item.classList.toggle('is-company-holiday',holiday);info.append(calendar,work);item.append(info);
     if(future||currentCheck?.already_submitted&&!row)item.append(text('span',future?'入力不可':'月別提出済み'));
     else{const link=text('a',state==='submitted'||currentCheck?.already_submitted?'詳細確認':state==='draft'?'続きから入力':holiday?'休日出勤':'新規入力');if(link.textContent==='休日出勤')link.classList.add('monthly-holiday-work');link.href=monthly.link(date);item.append(link);}
     fragment.append(item);
    }
-   $('monthlyDays').replaceChildren(fragment);$('monthlyCounts').textContent=`提出済み ${counts.submitted}件 ／ 下書き ${counts.draft}件 ／ 記録なし ${counts.missing}件（本日を含む・未来日を除く）`;message([holidays,attendance,applications].some(source=>source===null)?'本人の日報を表示しました。一部の休日・勤務・休暇情報は取得できません。':'本人の日報を表示しました。');
-  }catch(error){if(version===requestNumber){currentCheck=null;$('monthlyDays').replaceChildren();$('monthlyCounts').textContent='件数を確認できません';message(error.message,true);$('monthSubmitMessage').textContent=monthly.enabled?'月別提出状態を確認できません。再読み込みしてください。':'月別提出は準備中です。';}}
+   displayedRows=byDate;$('monthlyDays').replaceChildren(fragment);refreshFollowups(currentCheck,now);$('monthlyCounts').textContent=`提出済み ${counts.submitted}件 ／ 下書き ${counts.draft}件 ／ 記録なし ${counts.missing}件（本日を含む・未来日を除く）`;message([holidays,attendance,applications].some(source=>source===null)?'本人の日報を表示しました。一部の休日・勤務・休暇情報は取得できません。':'本人の日報を表示しました。');
+  }catch(error){if(version===requestNumber){currentCheck=null;$('monthlyDays').replaceChildren();$('monthlyCounts').textContent='件数を確認できません';$('monthlyFollowupCounts').textContent='記入忘れ件数を確認できません';$('onlyActionNeeded').disabled=true;$('monthlyFilterMessage').textContent='';message(error.message,true);$('monthSubmitMessage').textContent=monthly.enabled?'月別提出状態を確認できません。再読み込みしてください。':'月別提出は準備中です。';}}
   finally{if(version===requestNumber)controls(false);}
  }
  $('closingMonth').onchange=load;$('reloadMonth').onclick=load;

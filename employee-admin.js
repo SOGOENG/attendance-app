@@ -210,7 +210,7 @@ function checkAdminAccess() {
 
 let employeeEditAccess = null;
 const employeeEditKeys = ['name','attendance_required','improvement_required','near_miss_required'];
-const employeeAdminKeys = [...employeeEditKeys,'department','active','admin_scope','job_title','profile_email','phone_number'];
+const employeeAdminKeys = [...employeeEditKeys,'department','active','admin_scope','job_title','profile_email','phone_number','driving_report_required'];
 async function employeeManagementRpc(name, body = {}) {
   const response = await portalFetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
     method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
@@ -225,11 +225,12 @@ function applyEmployeeEditAccess() {
   const all = employeeEditAccess?.all === true;
   newEmployeeButton.hidden = !all;
   newEmployeeButton.disabled = !all || employeeEditAccess?.creation_enabled !== true;
-  document.getElementById('employeeCreationRecovery').hidden = !all;
+  document.getElementById('employeeCreationRecovery').hidden = !all || employeeEditAccess?.creation_management_enabled !== true;
   document.getElementById('employeeCreationNotice').textContent = employeeEditAccess?.creation_enabled === true
     ? '未完了の登録は状況を確認してから対応してください。'
     : '社員登録は安全性・復旧手順の確認まで停止中です。既存社員の編集は利用できます。';
-  for (const el of [employeeDepartment, employeeActive, employeeAdminScope]) el.disabled = !all;
+  document.getElementById('employeeDrivingRequiredField').hidden = !all;
+  for (const el of [employeeDepartment, employeeActive, employeeAdminScope, document.getElementById('employeeDrivingRequired')]) el.disabled = !all;
   deleteEmployeeButton.hidden = true;
   deleteEmployeeButton.disabled = true;
 }
@@ -240,6 +241,7 @@ async function refreshEmployeeManagement() {
   await loadEmployees();
 }
 async function showEmployeeCreationStatus() {
+  if (employeeEditAccess?.creation_management_enabled !== true) return;
   const message = document.getElementById('employeeCreationStatusMessage');
   const list = document.getElementById('employeeCreationStatusList');
   list.replaceChildren();
@@ -591,6 +593,7 @@ function startNewEmployeeRegistration() {
   applyEmployeeEditAccess();
   window.EmployeeVehicleAdmin?.close();
   window.EmployeeFuelReceiptRole?.close();
+  document.getElementById('employeeDrivingRequiredField').hidden = true;
   editingEmployeeId.value =
     "";
 
@@ -674,6 +677,7 @@ function startEmployeeEdit(
   employeeFormTitle.textContent =
     "社員情報の修正";
 
+  document.getElementById('employeeDrivingRequired').value = String(employee.driving_report_required === true);
   employeeName.value =
     employee.name || "";
 
@@ -1208,6 +1212,7 @@ async function saveEmployee() {
 
     const savedData = await updateExistingEmployee(employeeId, {
       ...updateData,
+      driving_report_required: document.getElementById('employeeDrivingRequired').value === 'true',
       job_title: employeeJobTitle.value,
       profile_email: employeeProfileEmail.value,
       phone_number: employeePhoneNumber.value

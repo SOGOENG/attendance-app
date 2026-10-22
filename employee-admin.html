@@ -82,8 +82,8 @@
 
       </div>
 
+      <p id="employeeCreationNotice" class="schedule-message" aria-live="polite"></p>
       <section id="employeeCreationRecovery" hidden>
-        <p id="employeeCreationNotice" class="schedule-message"></p>
         <button id="employeeCreationStatusButton" type="button" class="admin-secondary-button">登録状況を確認</button>
         <p id="employeeCreationStatusMessage" class="schedule-message" aria-live="polite"></p>
         <ul id="employeeCreationStatusList"></ul>
@@ -438,6 +438,12 @@
       </label>
 
 
+      <label id="employeeDrivingRequiredField" class="admin-form-label" hidden>運転日報対象
+        <select id="employeeDrivingRequired" class="admin-form-control" disabled>
+          <option value="false">OFF（対象外）</option><option value="true">ON（対象）</option>
+        </select>
+        <span>全体管理者のみ設定できます。初期値はOFFです。対象者を確認して設定してください。</span>
+      </label>
       <div id="fuelReceiptRoleField" hidden>
         <label class="admin-form-label">給油領収書管理権限
           <select id="employeeFuelReceiptRole" class="admin-form-control" disabled>
@@ -542,7 +548,7 @@
   <script src="portal-auth.js"></script>
   <script src="employee-default-vehicle-admin.js?v=2"></script>
   <script src="employee-creation-state.js?v=1"></script>
-  <script src="employee-admin.js?v=14"></script>
+  <script src="employee-admin.js?v=16"></script>
   <script src="fuel-receipts.js?v=2"></script>
   <script src="fuel-receipt-roles-admin.js?v=2"></script>
 

@@ -1,0 +1,10 @@
+.status-scroll { overflow-x:auto; max-width:100%; }
+.status-scroll table { width:100%; border-collapse:collapse; min-width:760px; }
+.status-scroll th,.status-scroll td { text-align:left; padding:10px; border-bottom:1px solid #cbd5e1; }
+.status-scroll caption { text-align:left; padding:10px 0; }
+#statusDays { padding-left:20px; }
+#statusDays li { padding:10px 0; border-bottom:1px solid #cbd5e1; overflow-wrap:anywhere; }
+#statusMessage,#statusDetailMessage { overflow-wrap:anywhere; }
+.driving-month { min-width:0; }
+.driving-month button { min-height:44px; margin:6px; }
+#statusDetail[hidden] { display:none; }

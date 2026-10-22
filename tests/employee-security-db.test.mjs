@@ -10,7 +10,7 @@ const sql=async f=>readFile(new URL('../supabase/'+f,import.meta.url),'utf8');
 const actor=async(n,role='authenticated')=>{await db.exec('reset role');await q("select set_config('request.jwt.claim.sub',$1,false)",[n?uid(n):'']);await db.exec('set role '+role);};
 let groups=0;const test=async(name,fn)=>{await fn();groups++;console.log('PASS '+name);};
 const deptKeys=['name','attendance_required','improvement_required','near_miss_required'];
-const adminKeys=[...deptKeys,'department','active','admin_scope','job_title','profile_email','phone_number'];
+const adminKeys=[...deptKeys,'department','active','admin_scope','job_title','profile_email','phone_number','driving_report_required'];
 async function edit(id,all,change={},expected){
  const keys=all?adminKeys:deptKeys;
  // Fixture snapshot is read as owner; employee RPC caller has no table SELECT.
@@ -59,13 +59,14 @@ try {
   await edit(3,false,{name:'Renamed',attendance_required:false});
   for(const id of [1,2,4,5,6,7])await assert.rejects(edit(id,false,{name:'Attack'}),/department_employee_required/);
   await assert.rejects(edit(3,false,{admin_scope:'all'}),/invalid_employee_values/);
+  await assert.rejects(edit(3,false,{driving_report_required:true}),/invalid_employee_values/);
  });
  await test('general, tool, inactive, unlinked and anonymous cannot manage',async()=>{
   for(const id of [3,7,8,99,null]){await actor(id);await assert.rejects(q('select public.employee_edit_context()'),/employee_manager_required/);await assert.rejects(edit(3,true,{name:'Attack'}),/employee_manager_required/);}
   await actor(null,'anon');await assert.rejects(q('select public.employee_edit_context()'),/permission denied/);
  });
  await test('admin edits all and self; identity and vehicle over-posting rejected; conflicts rejected',async()=>{
-  await actor(1);await edit(1,true,{name:'Self'});await edit(5,true,{active:false,name:'Leave updated'});
+  await actor(1);await edit(1,true,{name:'Self',driving_report_required:true});await edit(5,true,{active:false,name:'Leave updated'});
   for(const key of ['auth_user_id','id','default_vehicle_id','is_leave_manager'])await assert.rejects(edit(3,true,{[key]:1}),/invalid_employee_values/);
   await assert.rejects(edit(3,true,{active:null}),/invalid_employee_values/);
   await assert.rejects(edit(3,true,{name:'Conflict'},{...Object.fromEntries(adminKeys.map(k=>[k,null])),name:'stale'}),/employee_edit_conflict/);

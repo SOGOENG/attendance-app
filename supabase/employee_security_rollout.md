@@ -1,6 +1,14 @@
 # employees書き込み保護（ローカル準備・本番未適用）
 
-## 現在の公開判断
+## 今回の分離導入（優先する手順）
+
+今回の適用手順は **admin_driving_month_status_notes.md** の「本番適用に必要な順序」を正とする。社員作成操作管理・補償・復旧機能は今回導入しない。add_employee_creation_operations.sqlは不要。index.tsはpaused-handler.mjsをimportし、社員登録・完全削除・操作管理照会を停止する。handler.mjsとその実験的テストは保存するが本番入口では使用しない。
+
+社員管理はadd_employee_management_rpc.sqlで新規導入し、対象列driving_report_requiredは初期OFF。creation_management_enabled=falseで登録状況UIも非表示。RPC版画面/停止版Edgeの確認後にrestrict_employee_direct_writes.sqlを適用する。社員管理の本番画面・既存書き込みRPC・Edge配備状況が未確認のため、本番作業前に確認すること。
+
+以下は従来の操作管理を含む計画・検証履歴。今回の本番SQL一覧として使わない。
+
+## 従来の公開判断
 
 社員登録・完全削除はサーバーと画面で停止する。未紐付けAuthにも許可される読取RLSがあるため、登録再開は未承認。社員編集と直接書込保護を先行する場合は、登録停止の機能制限を含めて適用判断する。詳細はemployee_creation_recovery.md。
 

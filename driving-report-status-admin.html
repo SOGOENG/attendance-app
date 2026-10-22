@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>運転日報 月別提出状況</title>
+<link rel="stylesheet" href="style.css?v=25"><link rel="stylesheet" href="driving-report-month.css?v=10"><link rel="stylesheet" href="driving-report-status-admin.css?v=1"></head>
+<body><main class="home-page driving-month"><header><h1>運転日報 月別提出状況</h1><a href="settings-admin.html">設定へ戻る</a></header>
+<section class="card"><label>対象月 <input id="statusMonth" type="month" disabled></label><button id="reloadStatus" type="button" disabled>再読み込み</button><button id="viewOwnStatus" type="button" disabled>自分の日別状況</button>
+<p id="statusPeriod"></p><p>対象設定は初期OFFです。全体管理者が社員管理で確認してONにしてください。現在の対象設定による一覧です。</p><a href="employee-admin.html">社員管理で対象設定を確認</a>
+<p id="statusMessage" role="status" aria-live="polite">権限を確認しています…</p><div class="status-scroll"><table><caption>対象社員の提出状況（不足件数は昨日以前）</caption><thead><tr><th>社員</th><th>状態</th><th>提出日時</th><th>記入忘れ</th><th>未入力</th><th>入力未完了</th><th>勤務等の要確認</th><th>詳細</th></tr></thead><tbody id="statusEmployees"></tbody></table></div></section>
+<section id="statusDetail" class="card" hidden><h2 id="statusDetailTitle"></h2><p>閲覧専用です。代理編集・代理提出はできません。本日は入力待ち、未来日は集計対象外です。</p><p id="statusDetailMessage" role="status"></p><ul id="statusDays"></ul></section>
+</main><script src="portal-auth.js"></script><script src="driving-report-period.js?v=1"></script><script src="driving-report-month-followup.js?v=1"></script><script src="driving-report-status-admin.js?v=1"></script></body></html>

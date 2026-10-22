@@ -189,6 +189,9 @@
 
     </section>
 
+    <section id="drivingStatusMenu" class="admin-section-card" hidden>
+      <a href="driving-report-status-admin.html" class="admin-menu-card"><div><h3>運転日報 月別提出状況</h3><p>対象社員の提出・記入忘れを確認（全体管理者）</p></div></a>
+    </section>
   </main>
 
 
@@ -231,6 +234,16 @@
   }
 </script>  
 
+<script>
+(async () => {
+  try {
+    const response = await portalFetch(`${PORTAL_SUPABASE_URL}/rest/v1/rpc/is_application_admin`, {
+      method:'POST', headers:{'Content-Type':'application/json'}, body:'{}'
+    });
+    if (response.ok && await response.json() === true) document.getElementById('drivingStatusMenu').hidden = false;
+  } catch { /* The new menu stays hidden if authorization cannot be checked. */ }
+})();
+</script>
 </body>
 
 </html>
