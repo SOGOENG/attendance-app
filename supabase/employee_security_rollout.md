@@ -1,5 +1,7 @@
 # employees書き込み保護（ローカル準備・本番未適用）
 
+2026-10-23更新：登録継続を必須とする運用方針の実装・公開手順は **employee_safe_registration_rollout.md** を参照。以下の登録停止を最終構成とする分離導入は履歴であり、新しい公開判断には使用しない。
+
 ## 今回の分離導入（優先する手順）
 
 今回の適用手順は **admin_driving_month_status_notes.md** の「本番適用に必要な順序」を正とする。社員作成操作管理・補償・復旧機能は今回導入しない。add_employee_creation_operations.sqlは不要。index.tsはpaused-handler.mjsをimportし、社員登録・完全削除・操作管理照会を停止する。handler.mjsとその実験的テストは保存するが本番入口では使用しない。

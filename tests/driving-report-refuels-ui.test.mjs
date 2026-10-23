@@ -79,13 +79,21 @@ try {
  });
  const base='http://127.0.0.1:'+server.address().port;
  const waitReady=()=>page.waitForFunction(()=>!document.getElementById('reportDate').disabled&&!document.getElementById('drivingEditor').disabled);
- const save=async()=>{await page.locator('#saveDraft').click();await page.waitForFunction(()=>document.getElementById('drivingMessage').textContent.includes('下書き保存しました。'));};
+ const save=async()=>{
+  const beforeSave=calls.length;
+  await page.locator('#saveDraft').click();
+  try{await page.waitForFunction(()=>document.getElementById('drivingMessage').textContent.includes('下書き保存しました。'),null,{timeout:10000});}
+  catch(error){throw new Error(`Refuel draft save failed: ${await page.locator('#drivingMessage').textContent()} / ${JSON.stringify(calls.slice(beforeSave))} / ${errors.join(';')}`,{cause:error});}
+ };
  await page.clock.install({time:new Date('2026-10-16T15:05:42Z')});
  const rows=page.locator('.driving-refuel-row');
  const add=page.locator('#addRefuel'), choice=page.locator('#refuelChoice');
  const fillFuel=async(index,liters,meter)=>{
   await rows.nth(index).locator('[data-refuel="liters"]').fill(liters);
   await rows.nth(index).locator('[data-refuel="meter"]').fill(meter);
+   // Commit native number editing before section screenshots scroll the page.
+   // Otherwise Chrome can restore the focused input's scroll on pointerdown.
+   await rows.nth(index).locator('[data-refuel="meter"]').press('Tab');
  };
  await page.goto(base+'/driving-report.html');await waitReady();
  const today=await page.locator('#reportDate').inputValue();

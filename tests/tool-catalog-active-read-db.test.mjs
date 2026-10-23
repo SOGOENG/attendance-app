@@ -5,7 +5,7 @@ import {pathToFileURL} from 'node:url';
 const {PGlite}=await import(process.env.PGLITE_MODULE?pathToFileURL(process.env.PGLITE_MODULE).href:'@electric-sql/pglite');
 const db=await PGlite.create(),q=async(s,a=[])=>(await db.query(s,a)).rows;
 const uid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
-const read=f=>readFile(new URL('../supabase/'+f,import.meta.url),'utf8');
+const read=async f=>(await readFile(new URL('../supabase/'+f,import.meta.url),'utf8')).replace(/\r\n/g,'\n');
 const actor=async(n,role='authenticated')=>{await db.exec('reset role');await q("select set_config('request.jwt.claim.sub',$1,false)",[n?uid(n):'']);await db.exec('set role '+role);};
 let count=0;async function test(name,fn){await fn();count++;console.log('PASS '+name);}
 try{

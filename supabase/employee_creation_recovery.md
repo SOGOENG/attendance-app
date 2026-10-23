@@ -1,5 +1,7 @@
 # 社員登録の停止・照会・復旧判定
 
+2026-10-23更新：以下はprotocol 1の調査履歴。protocol 2の隔離・限定復旧実装と登録再開の条件は **employee_safe_registration_rollout.md** を参照。新しい本番反映はまだ実施していない。
+
 現時点の本番用起動コードはcreationEnabled=false、employee_edit_contextもcreation_enabled=false。環境変数・リクエストで解除できない。完全削除も停止する。既存社員の編集・車両管理・プロフィール等は停止しない。登録成功経路は模擬API／隔離DBだけで検証し、本番の登録再開を承認したものではない。
 
 ## 調査で判明した認可の限界

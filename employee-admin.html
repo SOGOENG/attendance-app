@@ -84,6 +84,8 @@
 
       <p id="employeeCreationNotice" class="schedule-message" aria-live="polite"></p>
       <section id="employeeCreationRecovery" hidden>
+        <label class="admin-form-label" for="employeeCreationOperationId">操作IDで照会（空欄は最新50件）</label>
+        <input id="employeeCreationOperationId" class="admin-form-control" type="text" maxlength="36" autocomplete="off" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
         <button id="employeeCreationStatusButton" type="button" class="admin-secondary-button">登録状況を確認</button>
         <p id="employeeCreationStatusMessage" class="schedule-message" aria-live="polite"></p>
         <ul id="employeeCreationStatusList"></ul>
@@ -302,7 +304,7 @@
           class="admin-form-control"
           minlength="6"
           autocomplete="new-password"
-          placeholder="6文字以上"
+          placeholder="8文字以上"
         >
 
       </label>
@@ -548,7 +550,7 @@
   <script src="portal-auth.js"></script>
   <script src="employee-default-vehicle-admin.js?v=2"></script>
   <script src="employee-creation-state.js?v=1"></script>
-  <script src="employee-admin.js?v=16"></script>
+  <script src="employee-admin.js?v=18"></script>
   <script src="fuel-receipts.js?v=2"></script>
   <script src="fuel-receipt-roles-admin.js?v=2"></script>
 

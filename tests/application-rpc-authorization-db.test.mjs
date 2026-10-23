@@ -4,7 +4,8 @@ import {readFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
 const {PGlite}=await import(process.env.PGLITE_MODULE?pathToFileURL(process.env.PGLITE_MODULE).href:'@electric-sql/pglite');
 const db=await PGlite.create(),q=async(s,a=[])=>(await db.query(s,a)).rows;
-const read=f=>readFile(new URL('../'+f,import.meta.url),'utf8');
+// Fixtures start as LF; tests explicitly construct the production CRLF variant.
+const read=async f=>(await readFile(new URL('../'+f,import.meta.url),'utf8')).replace(/\r\n/g,'\n');
 const uid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const actor=async(n,role='authenticated')=>{await db.exec('reset role');await q("select set_config('request.jwt.claim.sub',$1,false)",[n?uid(n):'']);await db.exec('set role '+role);};
 let groups=0;const test=async(name,fn)=>{await fn();console.log('PASS '+name);groups++;};
@@ -123,6 +124,21 @@ try{
   await db.exec('grant postgres to authenticated');
   await assert.rejects(db.exec(migration),/inherited_execute_requires_review/);await db.exec('rollback');await db.exec('revoke postgres from authenticated');
   assert.deepEqual(await snapshot(),before);
+ });
+ await test('safe employee registration/ACL migration preserves actual application cancellation and ownership checks',async()=>{
+  await actor(null,'postgres');
+  const definitions=await snapshot();
+  await db.exec(`create table auth.users(id uuid primary key,email text,raw_app_meta_data jsonb,banned_until timestamptz,email_confirmed_at timestamptz);
+   alter table public.employees add column name text default '社員',add column department text default '工事部',
+    add column job_title text,add column profile_email text,add column phone_number text,
+    add column attendance_required boolean default true,add column improvement_required boolean default true,add column near_miss_required boolean default true;
+   create table public.fuel_receipt_roles(employee_id bigint primary key);`);
+  for(const file of ['add_employee_management_rpc.sql','add_employee_creation_operations.sql','add_employee_safe_registration.sql','restrict_employee_direct_writes.sql'])await db.exec(await read('supabase/'+file));
+  assert.deepEqual(await snapshot(),definitions);
+  const id=await make('submitted');
+  await actor(2);await assert.rejects(call('cancel_application',id),/forbidden/);
+  await actor(1);await call('cancel_application',id);
+  assert.equal(await state(id),'cancelled');
  });
  console.log(`Application RPC authorization: ${groups} groups passed.`);
 }catch(e){console.error(e.message,e.code,e.where||'');process.exitCode=1;}finally{await db.close();}

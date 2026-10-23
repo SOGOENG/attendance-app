@@ -316,5 +316,25 @@ try {
     await fail("select admin_set_employee_managed_vehicle(2,'x','x','[]',null)",/permission denied/);
     await fail('select driving_report_vehicle_snapshot_prepare()',/permission denied/);
   });
+  await test('safe registration guard preserves actual managed-vehicle RPC and historical reports',async()=>{
+    await actor(1,'postgres');
+    const reports=await q('select to_jsonb(r) r from public.driving_reports r order by id');
+    await db.exec(`create role service_role;
+      create table auth.users(id uuid primary key,email text,raw_app_meta_data jsonb,banned_until timestamptz,email_confirmed_at timestamptz);
+      alter table public.employees add column is_leave_manager boolean not null default false,
+       add column attendance_required boolean default true,add column improvement_required boolean default true,add column near_miss_required boolean default true;
+      create table public.fuel_receipt_roles(employee_id bigint primary key);
+      update public.employees set department='総務部' where id=1;`);
+    await db.exec(await read('add_employee_management_rpc.sql'));
+    await db.exec(await read('add_employee_creation_operations.sql'));
+    await db.exec(await read('add_employee_safe_registration.sql'));
+    await db.exec(await read('restrict_employee_direct_writes.sql'));
+    await actor(1);
+    const s=await snapshot();
+    const car=(await q("select public.admin_set_employee_managed_vehicle(2,'SAFE-NEW','登録継続車両',$1,null) id",[s.assignments]))[0].id;
+    assert.equal((await snapshot()).employees.find(e=>e.id===2).default_vehicle_id,car);
+    await actor(1,'postgres');
+    assert.deepEqual(await q('select to_jsonb(r) r from public.driving_reports r order by id'),reports);
+  });
   console.log('PASS '+count+' employee-centered DB groups; no production access.');
 } finally { await db.close(); }

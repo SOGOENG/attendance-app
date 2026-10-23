@@ -1,5 +1,7 @@
 # 管理者用月別提出状況（ローカル実装・本番未適用）
 
+2026-10-23更新：社員登録を継続するprotocol 2の移行は **employee_safe_registration_rollout.md** を参照。以下の社員登録停止版Edgeを前提とする手順は当時の分離導入履歴であり、新しい社員登録の公開手順としては使用しない。月別提出状況そのもののSQLは別の適用対象。
+
 ## 対象設定
 
 employees.driving_report_requiredをboolean NOT NULL DEFAULT falseで追加する。既存社員もOFFから開始し、出勤簿対象・所属・通常車両・過去日報から推測しない。既存の列がある場合は値を上書きせず、型/既定値/NOT NULLが異なれば適用を停止する。

@@ -1,260 +1,64 @@
-/* =========================================
-   Supabase接続設定
-========================================= */
+// No pre-auth employee lookup. The internal email format matches existing accounts.
+const SUPABASE_URL = PORTAL_SUPABASE_URL;
+const SUPABASE_KEY = PORTAL_SUPABASE_KEY;
+const loginEmployee = document.getElementById("loginEmployee");
+const loginPassword = document.getElementById("loginPassword");
+const loginButton = document.getElementById("loginButton");
+const loginMessage = document.getElementById("loginMessage");
+const loginForm = document.getElementById("loginForm");
+const LOGIN_FAILURE = "ログインできませんでした。社員IDとパスワードを確認し、時間をおいて再度お試しください。";
+let loginInProgress = false;
 
-const SUPABASE_URL =
-  "https://fgmvmbjnoyagnpygcbky.supabase.co";
-
-const SUPABASE_KEY =
-  "sb_publishable_pePa2xjccUZB6xpneNhCRQ_pJJ5fn6h";
-
-
-/* =========================================
-   HTML要素
-========================================= */
-
-const loginEmployee =
-  document.getElementById(
-    "loginEmployee"
-  );
-
-const loginPassword =
-  document.getElementById(
-    "loginPassword"
-  );
-
-const loginButton =
-  document.getElementById(
-    "loginButton"
-  );
-
-const loginMessage =
-  document.getElementById(
-    "loginMessage"
-  );
-
-
-/* =========================================
-   読み込んだ社員データ
-========================================= */
-
-let employees = [];
-
-
-/* =========================================
-   Supabase共通ヘッダー
-========================================= */
-
-function supabaseHeaders() {
-  return {
-    apikey:
-      SUPABASE_KEY,
-
-    Authorization:
-      `Bearer ${SUPABASE_KEY}`
-  };
+async function loginRequest(url, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 20000);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal, cache: "no-store" });
+  } finally { clearTimeout(timeout); }
 }
 
-
-/* =========================================
-   社員一覧読込
-========================================= */
-
-async function loadEmployees() {
-  loginMessage.textContent = "";
-
-  loginEmployee.disabled = true;
-  loginButton.disabled = true;
-
-  loginEmployee.innerHTML =
-    '<option value="">' +
-    '社員一覧を読み込み中...' +
-    '</option>';
-
-  const url =
-    `${SUPABASE_URL}/rest/v1/employees` +
-    `?select=` +
-    `id,name,department,active,admin_scope,is_leave_manager,auth_user_id` +
-    `&active=eq.true` +
-    `&order=department.asc,id.asc`;
-
-  const response =
-    await fetch(url, {
-      headers:
-        supabaseHeaders()
-    });
-
-  if (!response.ok) {
-    const errorText =
-      await response.text();
-
-    console.error(errorText);
-
-    throw new Error(
-      "社員一覧の読み込みに失敗しました"
-    );
-  }
-
-  employees =
-    await response.json();
-
-  makeEmployeeOptions();
-
-  loginEmployee.disabled = false;
-  loginButton.disabled = false;
-
-  loginButton.textContent =
-    "ログイン";
-}
-
-
-/* =========================================
-   氏名プルダウン作成
-========================================= */
-
-function makeEmployeeOptions() {
-  loginEmployee.innerHTML =
-    '<option value="">' +
-    '氏名を選択してください' +
-    '</option>';
-
-  let currentDepartment = "";
-
-  employees.forEach(employee => {
-    /*
-      部署が変わったら、
-      プルダウン内に部署見出しを作る。
-    */
-
-    if (
-      employee.department !==
-      currentDepartment
-    ) {
-      currentDepartment =
-        employee.department;
-
-      const group =
-        document.createElement(
-          "optgroup"
-        );
-
-      group.label =
-        currentDepartment || "部署未設定";
-
-      group.dataset.department =
-        currentDepartment || "";
-
-      loginEmployee.appendChild(
-        group
-      );
-    }
-
-    const option =
-      document.createElement(
-        "option"
-      );
-
-    option.value =
-      String(employee.id);
-
-    option.textContent =
-      employee.name;
-
-    const currentGroup =
-      loginEmployee.querySelector(
-        `optgroup[data-department="${CSS.escape(
-          currentDepartment || ""
-        )}"]`
-      );
-
-    if (currentGroup) {
-      currentGroup.appendChild(
-        option
-      );
-
-    } else {
-      loginEmployee.appendChild(
-        option
-      );
-    }
+async function signInWithPassword(employeeId, password) {
+  const response = await loginRequest(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: "POST",
+    headers: { apikey: SUPABASE_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ email: `employee-${employeeId}@staff-portal.local`, password })
   });
-}
-
-
-/* =========================================
-   選択した社員情報取得
-========================================= */
-
-function getSelectedEmployee() {
-  const employeeId =
-    Number(loginEmployee.value);
-
-  if (!employeeId) {
-    return null;
+  // Never display or log Auth error bodies (banned/unconfirmed/missing accounts).
+  if (!response.ok) throw new Error(LOGIN_FAILURE);
+  const auth = await response.json();
+  if (typeof auth.access_token !== "string" || !auth.access_token ||
+      typeof auth.refresh_token !== "string" || !auth.refresh_token ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(auth.user?.id || "")) {
+    throw new Error(LOGIN_FAILURE);
   }
-
-  return (
-    employees.find(
-      employee =>
-        Number(employee.id) ===
-        employeeId
-    ) || null
-  );
+  return auth;
 }
 
+async function loadAuthenticatedEmployee(employeeId, auth) {
+  const params = new URLSearchParams({
+    select: "id,name,department,active,admin_scope,is_leave_manager,auth_user_id",
+    auth_user_id: `eq.${auth.user.id}`, limit: "2"
+  });
+  // JWT is taken directly from Auth; local administrator information is never used.
+  const response = await loginRequest(`${SUPABASE_URL}/rest/v1/employees?${params}`, {
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${auth.access_token}` }
+  });
+  if (!response.ok) throw new Error(LOGIN_FAILURE);
+  const rows = await response.json();
+  if (!Array.isArray(rows) || rows.length !== 1 ||
+      String(rows[0].id) !== employeeId || rows[0].auth_user_id !== auth.user.id ||
+      rows[0].active !== true) throw new Error(LOGIN_FAILURE);
+  return rows[0];
+}
 
-/* =========================================
-   Supabase Authでログイン
-========================================= */
-
-async function signInWithPassword(
-  email,
-  password
-) {
-  const url =
-    `${SUPABASE_URL}/auth/v1/token` +
-    `?grant_type=password`;
-
-  const response =
-    await fetch(url, {
-      method:
-        "POST",
-
-      headers: {
-        apikey:
-          SUPABASE_KEY,
-
-        "Content-Type":
-          "application/json"
-      },
-
-      body:
-        JSON.stringify({
-          email,
-          password
-        })
+async function discardUnverifiedSession(auth) {
+  if (!auth?.access_token) return;
+  try {
+    await loginRequest(`${SUPABASE_URL}/auth/v1/logout?scope=local`, {
+      method: "POST", headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${auth.access_token}` }
     });
-
-  const responseData =
-    await response.json();
-
-  if (!response.ok) {
-    console.error(
-      responseData
-    );
-
-    throw new Error(
-      "氏名またはパスワードが違います"
-    );
-  }
-
-  return responseData;
+  } catch { /* Best effort. Never persist this session. */ }
 }
-
-
-/* =========================================
-   ログイン情報保存
-========================================= */
 
 function saveLoginInformation(
   employee,
@@ -302,193 +106,42 @@ function saveLoginInformation(
 }
 
 
-/* =========================================
-   保存済みログイン情報を削除
-========================================= */
-
-function clearLoginInformation() {
-  clearPortalLoginInformation();
-}
-
-
-/* =========================================
-   ログイン処理
-========================================= */
-
-async function login() {
+async function login(event) {
+  event?.preventDefault();
+  if (loginInProgress) return;
   loginMessage.textContent = "";
-
-  const employee =
-    getSelectedEmployee();
-
-  const password =
-    loginPassword.value;
-
-  if (!employee) {
-    loginMessage.textContent =
-      "氏名を選択してください";
-
-    loginEmployee.focus();
-
+  const enteredId = loginEmployee.value.trim().normalize("NFKC");
+  const numericId = Number(enteredId);
+  if (!/^[0-9]+$/.test(enteredId) || !Number.isSafeInteger(numericId) || numericId <= 0 || !loginPassword.value) {
+    loginMessage.textContent = LOGIN_FAILURE;
     return;
   }
-
-  if (!password) {
-    loginMessage.textContent =
-      "パスワードを入力してください";
-
-    loginPassword.focus();
-
-    return;
-  }
-
-  if (!employee.auth_user_id) {
-    loginMessage.textContent =
-      "ログインアカウントが未登録です。管理者へ連絡してください";
-
-    return;
-  }
-
-  loginButton.disabled = true;
-
-  loginEmployee.disabled = true;
-  loginPassword.disabled = true;
-
-  loginButton.textContent =
-    "ログイン中...";
-
-  clearLoginInformation();
-
+  const employeeId = String(numericId);
+  loginInProgress = true;
+  loginForm.setAttribute("aria-busy", "true");
+  loginButton.disabled = loginEmployee.disabled = loginPassword.disabled = true;
+  loginButton.textContent = "ログイン中...";
+  let auth;
   try {
-    /*
-      社員IDから内部メールを作成する。
-    */
-
-    const internalEmail =
-      `employee-${employee.id}` +
-      `@staff-portal.local`;
-
-    /*
-      Supabase Authで認証する。
-    */
-
-    const authData =
-      await signInWithPassword(
-        internalEmail,
-        password
-      );
-
-    /*
-      認証したAuthユーザーと、
-      employeesのauth_user_idが一致するか確認する。
-    */
-
-    if (
-      String(authData.user.id) !==
-      String(employee.auth_user_id)
-    ) {
-      clearLoginInformation();
-
-      throw new Error(
-        "社員情報とログイン情報が一致しません。管理者へ連絡してください"
-      );
-    }
-
-    /*
-      ログイン情報を保存する。
-    */
-
-    saveLoginInformation(
-      employee,
-      authData
-    );
-
-    /*
-      ホーム画面へ移動する。
-    */
-
-    window.location.href =
-      "home.html";
-
-  } catch (error) {
-    console.error(error);
-
-    clearLoginInformation();
-
-    loginMessage.textContent =
-      error.message;
-
+    clearPortalLoginInformation();
+    auth = await signInWithPassword(employeeId, loginPassword.value);
+    const employee = await loadAuthenticatedEmployee(employeeId, auth);
+    saveLoginInformation(employee, auth);
+    window.location.href = "home.html";
+  } catch {
+    clearPortalLoginInformation();
+    loginMessage.textContent = LOGIN_FAILURE;
+    await discardUnverifiedSession(auth);
   } finally {
-    loginButton.disabled = false;
-
-    loginEmployee.disabled = false;
-    loginPassword.disabled = false;
-
-    loginButton.textContent =
-      "ログイン";
+    loginPassword.value = "";
+    loginInProgress = false;
+    loginForm.setAttribute("aria-busy", "false");
+    loginButton.disabled = loginEmployee.disabled = loginPassword.disabled = false;
+    loginButton.textContent = "ログイン";
   }
 }
 
-
-/* =========================================
-   イベント設定
-========================================= */
-
-loginButton.addEventListener(
-  "click",
-  login
-);
-
-
-loginEmployee.addEventListener(
-  "change",
-  () => {
-    loginMessage.textContent = "";
-
-    if (loginEmployee.value) {
-      loginPassword.focus();
-    }
-  }
-);
-
-
-/*
-  パスワード欄でEnterを押しても
-  ログインする。
-*/
-
-loginPassword.addEventListener(
-  "keydown",
-  event => {
-    if (event.key === "Enter") {
-      login();
-    }
-  }
-);
-
-
-/* =========================================
-   初期読込
-========================================= */
-
-clearLoginInformation();
-
-loadEmployees()
-  .catch(error => {
-    console.error(error);
-
-    loginMessage.textContent =
-      error.message;
-
-    loginEmployee.innerHTML =
-      '<option value="">' +
-      '社員一覧を読み込めませんでした' +
-      '</option>';
-
-    loginEmployee.disabled = true;
-
-    loginButton.disabled = true;
-
-    loginButton.textContent =
-      "ログイン";
-  });
+loginForm.addEventListener("submit", login);
+loginEmployee.addEventListener("input", () => { loginMessage.textContent = ""; });
+// Initial load performs no Auth/REST/RPC request.
+clearPortalLoginInformation();

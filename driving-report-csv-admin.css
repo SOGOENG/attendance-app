@@ -1,10 +1,22 @@
 .csv-page{max-width:960px;margin:auto;padding:24px;color:var(--text-color,inherit)}
-.csv-page header,.csv-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .csv-page section{margin-top:24px;padding:24px;border:1px solid #aab5bf;border-radius:12px}
 .csv-page button,.csv-page input[type=month]{padding:10px;margin:6px 0;font:inherit}
 .csv-page button{cursor:pointer}.csv-page button:disabled{cursor:default;opacity:.55}
-.csv-roster{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;max-height:360px;overflow:auto;padding:8px}
-.csv-roster label,.csv-confirm{display:flex;gap:8px;align-items:flex-start}
+.csv-roster{max-height:480px;overflow:auto;padding:4px;min-width:0}
+.csv-department{min-width:0}
+.csv-roster .admin-department-title{margin:20px 0 8px;overflow-wrap:anywhere}
+.csv-department:first-child .admin-department-title{margin-top:4px}
+.csv-department-employees{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.csv-roster .csv-employee{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;min-width:0;min-height:56px;margin:0;padding:10px 12px;border:1px solid #dbe4f0;border-radius:10px;background:var(--card-bg,#fff)}
+.csv-employee-status{white-space:nowrap;font-size:13px;font-weight:bold}
+.csv-employee-status.is-submitted{color:#166534}
+.csv-employee-status.is-missing{color:#b91c1c}
+.csv-employee-status.is-unconfirmed{color:#475569}
+.csv-employee-text{display:flex;flex-direction:column;gap:4px;min-width:0}
+.csv-employee .employee-status-name{white-space:normal;word-break:normal;overflow-wrap:anywhere;line-height:1.5}
+.csv-employee-meta{font-size:12px;color:#64748b;white-space:nowrap}
+.csv-confirm{display:flex;gap:8px;align-items:center}
+.csv-page .csv-confirm input[type=checkbox]{width:20px;height:20px;flex:0 0 20px;margin:0;padding:0;accent-color:#2563eb}
 .csv-page .is-error{color:#b42318;font-weight:bold}.csv-page #csvSummary{font-weight:bold}
-.csv-page #csvWarnings{padding-left:24px}.csv-page fieldset{margin-top:12px}
-@media(max-width:600px){.csv-page{padding:12px}.csv-page section{padding:12px}.csv-page h1{font-size:1.4rem}.csv-roster{grid-template-columns:1fr}}
+.csv-page #csvWarnings{padding-left:24px}.csv-page fieldset{margin-top:12px;min-width:0}
+@media(max-width:600px){.csv-page{padding:12px}.csv-page section{padding:12px}.csv-department-employees{grid-template-columns:minmax(0,1fr)}}

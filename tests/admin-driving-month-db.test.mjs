@@ -5,7 +5,8 @@ import {pathToFileURL} from 'node:url';
 import vm from 'node:vm';
 const {PGlite}=await import(process.env.PGLITE_MODULE?pathToFileURL(process.env.PGLITE_MODULE).href:'@electric-sql/pglite');
 const db=await PGlite.create(),q=async(s,a=[])=>(await db.query(s,a)).rows;
-const read=f=>readFile(new URL('../'+f,import.meta.url),'utf8');
+// Normalize checkout line endings before expanding psql includes on Windows.
+const read=async f=>(await readFile(new URL('../'+f,import.meta.url),'utf8')).replace(/\r\n/g,'\n');
 const uid=n=>`00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
 const actor=async(n,role='authenticated')=>{await db.exec('reset role');await q("select set_config('request.jwt.claim.sub',$1,false)",[n?uid(n):'']);await db.exec('set role '+role);};
 const extract=(s,name)=>{const start=s.indexOf('create or replace function public.'+name+'(');assert(start>=0,name);return s.slice(start,s.indexOf('$$;',start)+3);};
@@ -195,6 +196,25 @@ try{
   await assert.rejects(q("update public.driving_reports set driving_status='driven' where employee_id=1"),/driving_month_already_submitted/);
   await actor(3);const summary=(await q('select public.admin_driving_month_status($1) c',[month+'-01']))[0].c.employees[0];
   assert.equal(summary.submitted,true);assert(summary.submitted_at);assert.equal(summary.missing+summary.incomplete+summary.review,0);
+ });
+ await test('safe registration migration preserves real month/submission data and administrator self editing',async()=>{
+  await actor(null,'postgres');
+  const history=await q('select to_jsonb(r) r from public.driving_report_month_submissions r order by id');
+  const reports=await q('select to_jsonb(r) r from public.driving_reports r order by id');
+  await db.exec('create table auth.users(id uuid primary key,email text,raw_app_meta_data jsonb,banned_until timestamptz,email_confirmed_at timestamptz)');
+  await db.exec(await read('supabase/add_employee_creation_operations.sql'));
+  await db.exec(await read('supabase/add_employee_safe_registration.sql'));
+  assert.deepEqual(await q('select to_jsonb(r) r from public.driving_report_month_submissions r order by id'),history);
+  assert.deepEqual(await q('select to_jsonb(r) r from public.driving_reports r order by id'),reports);
+  const e=(await q('select * from public.employees where id=3'))[0];
+  const keys=['name','department','active','admin_scope','job_title','profile_email','phone_number','attendance_required','improvement_required','near_miss_required','driving_report_required'];
+  const expected=Object.fromEntries(keys.map(k=>[k,e[k]]));
+  await actor(3);
+  assert((await q('select public.employee_edit_context() c'))[0].c.editable_ids.includes(3));
+  await q('select public.admin_edit_employee($1,$2,$3)',[3,{...expected,driving_report_required:!e.driving_report_required},expected]);
+  assert((await q('select public.admin_driving_month_status($1) c',[month+'-01']))[0].c);
+  await actor(1);const check=(await q('select public.check_driving_report_month($1) c',[month+'-01']))[0].c;
+  assert(check.already_submitted);
  });
  await test('unknown installed rule stops transaction; no mutation or proxy submission',async()=>{
   await actor(null,'postgres');const before=JSON.stringify(await q('select id,status from public.driving_reports order by id'));

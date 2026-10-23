@@ -2,21 +2,26 @@
   'use strict';
   const $=id=>document.getElementById(id),csv=DrivingReportCsv,period=DrivingReportPeriod;
   let busy=false,authorized=false,result=null,loadedMonth=null;
-  const selected=new Set();
   function message(text,error=false){$('csvMessage').textContent=text;$('csvMessage').classList.toggle('is-error',error);}
   function controls(){
     for(const key of ['closingMonth','reloadCsv'])$(key).disabled=busy||!authorized;
-    for(const key of ['selectAll','clearSelection','confirmRoster'])$(key).disabled=busy;
-    for(const box of $('csvRoster').querySelectorAll('input'))box.disabled=busy||box.dataset.submitted==='true';
+    $('confirmRoster').disabled=busy||!result;
     $('downloadCsvZip').disabled=busy||!result||!result.submittedEmployeeIds.length||loadedMonth!==$('closingMonth').value||!$('confirmRoster').checked;
   }
-  function missing(){return result?result.employees.filter(e=>selected.has(String(e.id))&&!result.submittedEmployeeIds.includes(String(e.id))):[];}
+  function unconfirmedRoster(){
+    result=null;$('confirmRoster').checked=false;
+    for(const status of $('csvRoster').querySelectorAll('.csv-employee-status')){
+      status.textContent='未確認';status.className='csv-employee-status is-unconfirmed';
+    }
+    if($('csvRoster').children.length){
+      $('csvContent').hidden=false;
+      $('csvSummary').textContent='提出済み・提出記録なしの人数は未確認です。再読み込みしてください。';
+    }
+  }
   function summary(){
     if(!result)return;
-    const absent=missing();
-    $('csvSummary').textContent=`選択名簿の対象 ${selected.size}人 ／ 月別提出済み ${result.submittedEmployeeIds.length}人 ／ 未提出 ${absent.length}人。${absent.length?'提出済み分のみ出力します。':'選択対象者は全員提出済みです。'}会社全体の対象人数は名簿確認が必要です。`;
-    $('csvMissing').textContent=absent.length?'未提出：'+absent.map(e=>`${e.name}（ID ${e.id}）`).join('、'):'';
-    $('downloadCsvZip').textContent=absent.length?`提出済み${result.submittedEmployeeIds.length}人分のみZIPで出力`:'正式CSV 3種類をZIPで出力';
+    $('csvSummary').textContent=`一覧人数 ${result.employees.length}人 ／ 提出済み ${result.submittedEmployeeIds.length}人 ／ 提出記録なし ${result.employees.length-result.submittedEmployeeIds.length}人。`;
+    $('downloadCsvZip').textContent=`提出済み${result.submittedEmployeeIds.length}人分のみZIPで出力`;
     controls();
   }
   async function source(month){
@@ -36,15 +41,26 @@
   }
   function render(next){
     result=next;const official=new Set(next.submittedEmployeeIds);
-    for(const employeeId of [...selected])if(!next.employees.some(e=>String(e.id)===employeeId))selected.delete(employeeId);
-    for(const employeeId of official)selected.add(employeeId);
     $('csvRoster').replaceChildren();
+    const departments=new Map();
     for(const e of next.employees){
-      const employeeId=String(e.id),label=document.createElement('label'),box=document.createElement('input'),text=document.createElement('span');
-      box.type='checkbox';box.value=employeeId;box.checked=selected.has(employeeId);box.dataset.submitted=String(official.has(employeeId));
-      text.textContent=`${e.department||'所属未設定'} ／ ${e.name}（ID ${employeeId}）${official.has(employeeId)?' 月別提出済み':''}`;
-      box.onchange=()=>{if(box.checked)selected.add(employeeId);else selected.delete(employeeId);$('confirmRoster').checked=false;summary();};
-      label.append(box,text);$('csvRoster').append(label);
+      const department=e.department||'所属未設定';
+      if(!departments.has(department))departments.set(department,[]);
+      departments.get(department).push(e);
+    }
+    for(const [department,employees] of departments){
+      const group=document.createElement('div'),heading=document.createElement('h3'),list=document.createElement('div');
+      group.className='csv-department';heading.className='admin-department-title';heading.textContent=department;
+      list.className='csv-department-employees';group.append(heading,list);$('csvRoster').append(group);
+      for(const e of employees){
+      const employeeId=String(e.id),label=document.createElement('div'),text=document.createElement('span'),name=document.createElement('span'),meta=document.createElement('span'),status=document.createElement('span');
+      label.className='csv-employee';text.className='csv-employee-text';name.className='employee-status-name';meta.className='csv-employee-meta';
+      name.textContent=e.name;meta.textContent=`ID ${employeeId}`;text.append(name,meta);
+      // This set comes only from the validated monthly driving submissions.
+      status.textContent=official.has(employeeId)?'提出済み':'提出記録なし';
+      status.className=`csv-employee-status ${official.has(employeeId)?'is-submitted':'is-missing'}`;
+      label.append(text,status);list.append(label);
+      }
     }
     $('csvWarnings').replaceChildren();
     for(const warning of next.warnings){const item=document.createElement('li');item.textContent=warning;$('csvWarnings').append(item);}
@@ -56,8 +72,8 @@
     try{
       const span=period.range(month);$('csvPeriod').textContent=`対象期間：${span.start} 〜 ${span.end}`;message('提出状況とデータを確認中…');
       const data=await source(month),next=csv.build(data,month,crypto.randomUUID());loadedMonth=month;render(next);
-      message(`月別提出済み ${next.submittedEmployeeIds.length}人の日報 ${next.daily.length}行・給油 ${next.fuel.length}件を確認しました。対象者を確認してください。`);
-    }catch(error){result=null;message(error.message,true);}finally{busy=false;controls();}
+      message(`月別提出済み ${next.submittedEmployeeIds.length}人の日報 ${next.daily.length}行・給油 ${next.fuel.length}件を確認しました。提出状況を確認してください。`);
+    }catch(error){unconfirmedRoster();message('月別提出状況は未確認です。'+error.message,true);}finally{busy=false;controls();}
   }
   $('downloadCsvZip').onclick=async()=>{
     if(busy||!result||!result.submittedEmployeeIds.length||!$('confirmRoster').checked||loadedMonth!==$('closingMonth').value)return;
@@ -66,16 +82,13 @@
       message('出力時点のデータを確認中…');
       const exportId=crypto.randomUUID(),data=await source(month),next=csv.build(data,month,exportId);
       loadedMonth=month;render(next);
-      if(next.submittedEmployeeIds.slice().sort().join(',')!==oldSubmitted){$('confirmRoster').checked=false;message('提出者が変わりました。対象者を確認して、もう一度出力してください。');return;}
-      const absent=missing();
-      if(absent.length&&!window.confirm(`対象 ${selected.size}人のうち未提出 ${absent.length}人は含まれません。月別提出済み ${next.submittedEmployeeIds.length}人分のみ出力しますか？`)){message('出力を取り消しました。');return;}
+      if(next.submittedEmployeeIds.slice().sort().join(',')!==oldSubmitted){$('confirmRoster').checked=false;message('提出者が変わりました。提出状況を確認して、もう一度出力してください。');return;}
+      if(!window.confirm(`月別提出済み ${next.submittedEmployeeIds.length}人全員の提出済み分のみ出力します。提出記録なしの社員は含まれません。出力しますか？`)){message('出力を取り消しました。');return;}
       const blob=csv.zip(next.files),url=URL.createObjectURL(blob),link=document.createElement('a');
       link.href=url;link.download=`運転日報_正式_${month}_v1_${exportId}.zip`;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
       message(`3種類のCSVを含むZIPのダウンロードを開始しました（出力ID ${exportId}）。${next.warnings.length?'前回給油に要確認の車両があります。':''}`);
-    }catch(error){result=null;$('csvContent').hidden=true;message(error.message,true);}finally{busy=false;controls();}
+    }catch(error){unconfirmedRoster();message('月別提出状況は未確認です。'+error.message,true);}finally{busy=false;controls();}
   };
-  $('selectAll').onclick=()=>{if(!result)return;result.employees.forEach(e=>selected.add(String(e.id)));$('confirmRoster').checked=false;render(result);};
-  $('clearSelection').onclick=()=>{if(!result)return;selected.clear();$('confirmRoster').checked=false;render(result);};
   $('confirmRoster').onchange=controls;$('closingMonth').onchange=load;$('reloadCsv').onclick=load;
   (async()=>{
     try{

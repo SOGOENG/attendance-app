@@ -209,16 +209,47 @@ function checkAdminAccess() {
 
 
 let employeeEditAccess = null;
+let employeeReadOnly = false;
+const lockedEmployeeControls = new Map();
+function lockEmployeeEditing(locked) {
+  if (locked) {
+    employeeEditSection.hidden = true;
+    window.EmployeeVehicleAdmin?.close();
+    window.EmployeeFuelReceiptRole?.close();
+    for (const control of employeeEditSection.querySelectorAll('input,select,textarea,button')) {
+      if (!lockedEmployeeControls.has(control)) lockedEmployeeControls.set(control, control.disabled);
+      control.disabled = true;
+    }
+  } else {
+    for (const [control, disabled] of lockedEmployeeControls) control.disabled = disabled;
+    lockedEmployeeControls.clear();
+  }
+}
+function requireEmployeeEditing() {
+  if (employeeReadOnly || !employeeEditAccess) throw new Error('社員編集の権限を確認できません。閲覧専用では変更できません。');
+}
+function employeeRequestError(response, data) {
+  const code = typeof data?.code === 'string' ? data.code : '';
+  let message;
+  if (response.status === 401) message = '認証に失敗しました。ログイン状態を確認してください。';
+  else if (response.status === 403 || code === '42501') message = '社員情報を操作・取得する権限がありません。';
+  else if (response.status === 404 && code === 'PGRST202') message = '社員編集用RPCが未導入です。';
+  else if (data?.message?.includes('conflict')) message = '社員情報が変更されています。編集を開き直して確認してください。';
+  else message = '社員情報を保存・取得できません。接続先のRPCと依存関係を確認してください。';
+  const error = new Error(`${message}（HTTP ${response.status}${code ? ' / ' + code : ''}）`);
+  error.code = code; error.status = response.status;
+  return error;
+}
 const employeeEditKeys = ['name','attendance_required','improvement_required','near_miss_required'];
 const employeeAdminKeys = [...employeeEditKeys,'department','active','admin_scope','job_title','profile_email','phone_number','driving_report_required'];
 async function employeeManagementRpc(name, body = {}) {
+  if (name !== 'employee_edit_context') requireEmployeeEditing();
   const response = await portalFetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
     method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)
   });
-  const data = await response.json();
-  if (!response.ok) throw new Error(data?.message?.includes('conflict')
-    ? '社員情報が変更されています。編集を開き直して確認してください。'
-    : '社員情報を保存・取得できません。権限と最新の登録内容を確認してください。');
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw employeeRequestError(response, data);
+  if (!data || typeof data !== 'object') throw new Error('社員管理RPCの応答を確認できません。');
   return data;
 }
 function applyEmployeeEditAccess() {
@@ -226,7 +257,9 @@ function applyEmployeeEditAccess() {
   newEmployeeButton.hidden = !all;
   newEmployeeButton.disabled = !all || employeeEditAccess?.creation_enabled !== true;
   document.getElementById('employeeCreationRecovery').hidden = !all || employeeEditAccess?.creation_management_enabled !== true;
-  document.getElementById('employeeCreationNotice').textContent = employeeEditAccess?.creation_enabled === true
+  document.getElementById('employeeCreationNotice').textContent = employeeReadOnly
+    ? '閲覧専用です。社員の登録・編集・削除はできません。'
+    : employeeEditAccess?.creation_enabled === true
     ? '未完了の登録は状況を確認してから対応してください。'
     : '社員登録は安全性・復旧手順の確認まで停止中です。既存社員の編集は利用できます。';
   document.getElementById('employeeDrivingRequiredField').hidden = !all;
@@ -236,7 +269,23 @@ function applyEmployeeEditAccess() {
 }
 
 async function refreshEmployeeManagement() {
-  employeeEditAccess = await employeeManagementRpc('employee_edit_context');
+  clearMessage();
+  employeeEditAccess = null;
+  employeeReadOnly = false;
+  employeeRecords = [];
+  employeeList.replaceChildren();
+  lockEmployeeEditing(true);
+  applyEmployeeEditAccess();
+  try {
+    const context = await employeeManagementRpc('employee_edit_context');
+    if (typeof context.all !== 'boolean' || !Array.isArray(context.editable_ids)) throw new Error('社員編集権限の応答が不正です。');
+    employeeEditAccess = context;
+    lockEmployeeEditing(false);
+  } catch (error) {
+    if (error.status !== 404 || error.code !== 'PGRST202') throw error;
+    employeeReadOnly = true;
+    showMessage('社員編集用RPCが未導入のため閲覧専用です。社員情報・権限・管理車両の変更、登録・削除はできません。');
+  }
   applyEmployeeEditAccess();
   await loadEmployees();
 }
@@ -247,18 +296,47 @@ async function showEmployeeCreationStatus() {
   list.replaceChildren();
   message.textContent = '登録状況を確認しています…';
   try {
+    const operationId = document.getElementById('employeeCreationOperationId')?.value.trim();
     const response = await portalFetch(`${SUPABASE_URL}/functions/v1/bright-service`, {
-      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'creation_status'})
+      method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'creation_status',...(operationId ? {operationId} : {})})
     });
     const data = await response.json();
     if (!response.ok || !Array.isArray(data.operations)) throw Error('登録状況を確認できません。再登録せず管理者へ連絡してください。');
     for (const row of data.operations) {
       const item = document.createElement('li');
-      const labels = {completed:'登録完了',employee_created:'処理中または中断・要確認',recovery_required:'復旧確認が必要'};
+    const labels = {completed:'登録完了',employee_created:'旧方式・処理中または中断・要確認',recovery_required:'復旧確認が必要',auth_creating:'Auth作成中または結果未確認',auth_bound:'隔離・紐付け済み',releasing:'解放結果の確認待ち'};
       item.textContent = `社員ID ${row.employee_id} ／ ${labels[row.state] || '状態要確認'} ／ 操作ID ${row.operation_id}`;
+      if (['auth_creating','auth_bound','releasing'].includes(row.state)) {
+        const password = document.createElement('input');
+        password.type = 'password'; password.autocomplete = 'new-password';
+        password.placeholder = '初期パスワード（隔離済みAuthの解放時のみ必要）';
+        password.setAttribute('aria-label', `社員ID ${row.employee_id}の復旧用初期パスワード`);
+        password.minLength = 8; password.maxLength = 128;
+        const recover = document.createElement('button');
+        recover.type = 'button'; recover.textContent = '登録結果を照合・限定復旧';
+        recover.onclick = async () => {
+          if (!isAllEmployeeAdministrator() || employeeEditAccess?.creation_management_enabled !== true) return;
+          if (!window.confirm('同じ操作ID・既存Authを照合します。Authの再作成や完全削除は行いません。隔離済みの場合のみ入力した初期パスワードで解放します。よろしいですか？')) return;
+          recover.disabled = true;
+          try {
+            const initialPassword = password.value; password.value = '';
+            const response = await portalFetch(`${SUPABASE_URL}/functions/v1/bright-service`, {
+              method:'POST',headers:{'Content-Type':'application/json'},
+              body:JSON.stringify({action:'recover_creation',operationId:row.operation_id,initialPassword})
+            });
+            const result = await response.json();
+            if (!response.ok || result.success !== true) throw Error(result.error || '復旧結果を確認できません。別操作で再登録しないでください。');
+            await refreshEmployeeManagement();
+            await showEmployeeCreationStatus();
+            message.textContent = '登録完了を確認しました。社員・車両情報は保持されています。';
+          } catch (error) { message.textContent = error.message; }
+          finally { password.value = ''; recover.disabled = false; }
+        };
+        item.append(password, recover);
+      }
       list.append(item);
     }
-    message.textContent = '最新50件です。未完了の登録は別の操作として作り直さず、操作IDを管理者へ連絡してください。';
+    message.textContent = `${operationId ? '指定した操作IDの結果です。' : '最新50件です。'}未完了の登録は別の操作として作り直さず、操作IDで照合してください。`;
     if (localStorage.getItem('employeeCreationPendingOperation')) message.textContent += ' このブラウザーには旧方式の未完了操作IDも残っています。削除せず確認してください。';
   } catch (error) { message.textContent = error.message; }
 }
@@ -353,23 +431,20 @@ async function loadEmployees() {
       await portalFetch(url);
 
     if (!response.ok) {
-      const errorText =
-        await response.text();
-
-      console.error(errorText);
-
-      throw new Error(
-        "社員情報を読み込めませんでした"
-      );
+      const data = await response.json().catch(() => null);
+      throw employeeRequestError(response, data);
     }
 
-    employeeRecords =
-      await response.json();
+    const records = await response.json();
+    if (!Array.isArray(records)) throw new Error('社員一覧の応答が不正です。');
+    employeeRecords = records;
 
     displayEmployees();
 
   } catch (error) {
     console.error(error);
+    employeeRecords = [];
+    showMessage(error.message);
 
     employeeList.innerHTML =
       `
@@ -571,6 +646,7 @@ function createEmployeeCard(
     );
 
   editButton.disabled = !employeeEditAccess?.editable_ids?.some(id => String(id) === String(employee.id));
+  editButton.hidden = employeeReadOnly;
   editButton.addEventListener(
     "click",
     () => {
@@ -872,10 +948,10 @@ function validateEmployee(
     }
 
     if (
-      password.length < 6
+      password.length < 8
     ) {
       throw new Error(
-        "初期パスワードは6文字以上で入力してください"
+        "初期パスワードは8文字以上で入力してください"
       );
     }
   }
@@ -951,6 +1027,7 @@ async function createNewEmployeeAccount(
 ========================================= */
 
 async function updateExistingEmployee(employeeId, updateData) {
+  requireEmployeeEditing();
   const all = isAllEmployeeAdministrator();
   const keys = all ? employeeAdminKeys : employeeEditKeys;
   const old = employeeRecords.find(e => String(e.id) === String(employeeId));
@@ -965,6 +1042,7 @@ async function updateExistingEmployee(employeeId, updateData) {
 async function updateEmployeeProfileAsAdmin(
   employeeId
 ) {
+  requireEmployeeEditing();
   const response =
     await portalFetch(
       `${SUPABASE_URL}` +
@@ -1132,6 +1210,7 @@ async function deleteEmployeeAccount() {
 ========================================= */
 
 async function saveEmployee() {
+  if (employeeReadOnly || !employeeEditAccess) { showMessage('社員編集の権限を確認できません。閲覧専用では変更できません。'); return; }
   if (saveEmployeeButton.disabled) return;
   clearMessage();
 

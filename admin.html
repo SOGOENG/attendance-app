@@ -17,6 +17,22 @@
     rel="stylesheet"
     href="style.css?v=25"
   >
+  <style>
+    .driving-admin-menu { min-width: 0; }
+    .driving-admin-menu > summary { cursor: pointer; list-style: none; text-align: left; }
+    .driving-admin-menu > summary::-webkit-details-marker { display: none; }
+    .driving-admin-menu > summary:focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+    .driving-admin-menu > summary .admin-menu-card-arrow { transition: transform 0.15s; }
+    .driving-admin-menu[open] > summary .admin-menu-card-arrow { transform: rotate(90deg); }
+    .driving-admin-menu > nav { margin: 12px 0 0 24px; padding-left: 12px; border-left: 3px solid #bfdbfe; }
+    .driving-admin-menu > nav .admin-menu-card { min-height: 76px; box-shadow: none; }
+    .driving-admin-menu .admin-menu-card-text h3 { white-space: normal; word-break: normal; }
+    .driving-admin-menu .admin-menu-card-text p { overflow-wrap: anywhere; word-break: normal; }
+    #drivingAdminMenu[hidden], #drivingAdminMenu [hidden] { display: none; }
+    @media (max-width: 480px) {
+      .driving-admin-menu > nav { margin-left: 12px; }
+    }
+  </style>
 </head>
 
 
@@ -64,9 +80,9 @@
         管理メニュー
       </h2>
 
+      <p id="drivingAdminMessage" role="status" aria-live="polite" hidden></p>
+      <button id="retryDrivingAdminAccess" type="button" hidden>権限を再確認</button>
       <div class="admin-menu-list">
-        <a href="driving-report-csv-admin.html" class="admin-menu-card"><div class="admin-menu-card-text"><h3>運転日報CSV出力</h3><p>月別提出済みの日報・給油・前回給油を一括出力（全体管理者）</p></div><span class="admin-menu-card-arrow">〉</span></a>
-        <a href="fuel-receipts-admin.html" class="admin-menu-card"><div class="admin-menu-card-text"><h3>給油領収書管理</h3><p>領収書・原本受領・月別出力・画像整理</p></div><span class="admin-menu-card-arrow">〉</span></a>
 
         <a href="applications-admin.html" class="admin-menu-card">
           <div class="admin-menu-card-icon">
@@ -190,6 +206,22 @@
         </a>
 
 
+        <!-- 運転日報管理 -->
+        <details id="drivingAdminMenu" class="driving-admin-menu" aria-labelledby="drivingAdminTitle" hidden>
+          <summary class="admin-menu-card">
+            <div class="admin-menu-card-icon">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 10 7 4h10l2 6M3 10h18v9H3v-9Zm3 9v2m12-2v2M6 14h2m8 0h2M9 4v6m6-6v6"/></svg>
+            </div>
+            <div class="admin-menu-card-text"><h3 id="drivingAdminTitle">運転日報管理</h3><p>日報出力・給油領収書・提出状況</p></div>
+            <span class="admin-menu-card-arrow" aria-hidden="true">〉</span>
+          </summary>
+          <nav class="admin-menu-list" aria-label="運転日報管理">
+            <a href="driving-report-csv-admin.html" class="admin-menu-card" data-driving-access="admin" hidden><div class="admin-menu-card-text"><h3>運転日報CSV出力</h3><p>月別提出済みの日報・給油・前回給油を一括出力</p></div><span class="admin-menu-card-arrow" aria-hidden="true">〉</span></a>
+            <a href="fuel-receipts-admin.html" class="admin-menu-card" data-driving-access="receipts" hidden><div class="admin-menu-card-text"><h3>給油領収書管理</h3><p>領収書・原本受領・月別出力・画像整理</p></div><span class="admin-menu-card-arrow" aria-hidden="true">〉</span></a>
+            <a href="driving-report-status-admin.html" class="admin-menu-card" data-driving-access="admin" hidden><div class="admin-menu-card-text"><h3>月別提出状況</h3><p>対象社員の提出・記入忘れを確認</p></div><span class="admin-menu-card-arrow" aria-hidden="true">〉</span></a>
+          </nav>
+        </details>
+
         <!-- 予定管理 -->
         <a
           href="schedule-admin.html"
@@ -272,6 +304,7 @@
 
 
   <script src="portal-auth.js"></script>
+  <script src="driving-admin-menu.js?v=2"></script>
 
 </body>
 

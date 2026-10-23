@@ -77,7 +77,9 @@ async function run(){
       check(downloads.length===0,'download on error');
     }else{
       check(!$('csvContent').hidden,'source not loaded');
-      $('selectAll').click();check($('csvSummary').textContent.includes(scenario==='empty'?'未提出 2人':'未提出 1人'),'missing count');
+      check(!document.querySelector('#csvRoster input'),'employee selection remains');
+      check(!$('selectAll')&&!$('clearSelection'),'bulk selection remains');
+      check($('csvSummary').textContent.includes(scenario==='empty'?'提出記録なし 2人':'提出記録なし 1人'),'missing count');
       $('confirmRoster').checked=true;$('confirmRoster').dispatchEvent(new Event('change'));
       if(scenario==='empty'){check($('downloadCsvZip').disabled,'empty export enabled');}
       else{

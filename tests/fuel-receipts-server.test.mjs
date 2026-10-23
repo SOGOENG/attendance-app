@@ -3,6 +3,7 @@ import {writeFile,mkdtemp,readFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {execFileSync} from 'node:child_process';
+const pythonBin=process.env.PYTHON_BIN||(process.platform==='win32'?'python':'python3');
 import {createReceiptHandler} from '../supabase/functions/fuel-receipts/handler.mjs';
 import {sha256,zip,csv,safeName,detectType} from '../supabase/functions/fuel-receipts/archive.mjs';
 const bytes=new Uint8Array([255,216,255,1,2,3,4,5]),hash=await sha256(bytes);
@@ -64,9 +65,9 @@ const exported=await handle(jsonRequest('export',{month:'2026-10'},'admin'));ass
 const zipBytes=new Uint8Array(await exported.arrayBuffer());assert(events.some(e=>e.action==='export_generated'));
 assert(!events.some(e=>e.action==='export_downloaded')); // Button click / generated ZIP is not a backup acknowledgement.
 const tmp=await mkdtemp(join(tmpdir(),'fuel-receipt-test-')),zipPath=join(tmp,'test.zip');await writeFile(zipPath,zipBytes);
-execFileSync('python3',['-c','import zipfile,sys; z=zipfile.ZipFile(sys.argv[1]); assert z.testzip() is None; assert all(".." not in n.split("/") for n in z.namelist()); z.extractall(sys.argv[2])',zipPath,tmp]);
+execFileSync(pythonBin,['-c','import zipfile,sys; z=zipfile.ZipFile(sys.argv[1]); assert z.testzip() is None; assert all(".." not in n.split("/") for n in z.namelist()); z.extractall(sys.argv[2])',zipPath,tmp]);
 const manifest=join(tmp,'2026-10','manifest.json'),proof=join(tmp,'backup-verification.json');
-execFileSync('python3',['scripts/verify-fuel-receipt-backup.py',manifest,'--output',proof]);assert.equal(JSON.parse(await readFile(proof,'utf8')).files[0].sha256,hash);
+execFileSync(pythonBin,['scripts/verify-fuel-receipt-backup.py',manifest,'--output',proof]);assert.equal(JSON.parse(await readFile(proof,'utf8')).files[0].sha256,hash);
 downloadFail=true;const failed=await handle(jsonRequest('export',{month:'2026-10'},'admin'));await assert.rejects(()=>failed.arrayBuffer());assert(events.some(e=>e.action==='export_failed'));
 const huge=new Request(url,{method:'POST',headers:{Authorization:'Bearer owner','Content-Type':'application/json'},body:new Uint8Array(9*1024*1024+1)});assert.equal((await handle(huge)).status,400);
 const cancelled=await handle(jsonRequest('export',{month:'2026-10'},'admin'));await cancelled.body.cancel();assert(events.some(e=>e.action==='export_failed'&&e.data.error==='download_cancelled'));

@@ -1,0 +1,28 @@
+.login-card input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  margin-top: 8px;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  box-sizing: border-box;
+  background: #fff;
+  color: #1f2937;
+  font-size: 16px;
+}
+.login-card input:focus-visible,
+.login-card button:focus-visible {
+  outline: 3px solid #93c5fd;
+  outline-offset: 3px;
+}
+.login-card input:disabled { background: #e5e7eb; }
+.login-id-help {
+  margin: -8px 0 18px;
+  color: #e2e8f0;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.login-card button:disabled { opacity: .65; cursor: wait; }

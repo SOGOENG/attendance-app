@@ -5,11 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>綜合ポータル - 運転日報CSV出力</title>
   <link rel="stylesheet" href="style.css?v=25">
-  <link rel="stylesheet" href="driving-report-csv-admin.css?v=1">
+  <link rel="stylesheet" href="driving-report-csv-admin.css?v=6">
 </head>
 <body>
   <main class="csv-page">
-    <header><h1>運転日報CSV出力</h1><a href="admin.html">管理者メニューへ戻る</a></header>
+    <header class="admin-home-header">
+      <div class="admin-home-header-text">
+        <h1>綜合エンジニアリング㈱ <span class="admin-home-portal-title">Staff Portal</span></h1>
+        <p>運転日報CSV出力</p>
+      </div>
+      <a href="admin.html" class="admin-home-back-button">管理者メニューへ戻る</a>
+    </header>
     <section aria-labelledby="exportTitle">
       <h2 id="exportTitle">月別提出済みの正式データ</h2>
       <p>運転日報・給油・前回給油の3CSVを、1つのZIPにまとめます。</p>
@@ -19,13 +25,11 @@
       <p id="csvPeriod"></p>
       <p id="csvMessage" role="status" aria-live="polite">管理者権限を確認中…</p>
       <div id="csvContent" hidden>
-        <h2>対象者の確認</h2>
-        <p>月別提出済み社員は全員出力します。未提出人数を確認するため、一覧から運転日報の対象者を選択してください。在籍社員と月別提出済み社員は名簿候補であり、運転日報対象者を自動判定した一覧ではありません。</p>
-        <div class="csv-actions"><button id="selectAll" type="button">一覧の全員を対象にする</button><button id="clearSelection" type="button">未提出者の選択を解除</button></div>
-        <fieldset><legend>運転日報対象者</legend><div id="csvRoster" class="csv-roster"></div></fieldset>
+        <h2>社員別の月別提出状況</h2>
+        <p>在籍社員と当月の月別提出済み社員を表示しています。「提出記録なし」は当月の月別提出記録がない状態です。提出義務のある未提出者とは限りません。CSVは月別提出済み社員全員の提出済み分のみ出力します。</p>
+        <div id="csvRoster" class="csv-roster" aria-label="部署別の月別提出状況"></div>
         <p id="csvSummary" aria-live="polite"></p>
-        <p id="csvMissing"></p>
-        <label class="csv-confirm"><input id="confirmRoster" type="checkbox">運転日報対象者の選択を確認しました</label>
+        <label class="csv-confirm"><input id="confirmRoster" type="checkbox">月別提出済み社員全員の提出済み分のみ出力することを確認しました</label>
         <p>前回給油の「履歴なし・未提出履歴あり・順序未確認」は、Excelで要確認となります。</p>
         <ul id="csvWarnings"></ul>
         <button id="downloadCsvZip" type="button" disabled>正式CSV 3種類をZIPで出力</button>
@@ -36,6 +40,6 @@
   <script src="portal-auth.js"></script>
   <script src="driving-report-period.js"></script>
   <script src="driving-report-csv.js?v=1"></script>
-  <script src="driving-report-csv-admin.js?v=1"></script>
+  <script src="driving-report-csv-admin.js?v=4"></script>
 </body>
 </html>
