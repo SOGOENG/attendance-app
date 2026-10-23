@@ -19,7 +19,7 @@ try{
   localStorage.setItem('portalAuthSession',JSON.stringify({accessToken:'local-token',refreshToken:'local-refresh',expiresAt:Date.now()+3600000}));
  });
  const worker={id:1,name:'テスト社員',department:'工事部',active:true,admin_scope:'all',auth_user_id:'local-user',is_leave_manager:false,driving_report_required:false,attendance_required:true,improvement_required:true,near_miss_required:true,job_title:null,profile_email:null,phone_number:null};
- let mode='missing',selectDenied=false,calls=[];
+ let mode='missing',selectDenied=false,calls=[],allAdmin=true;
  await page.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url());
   if(url.pathname==='/login.js')return route.fulfill({contentType:'text/javascript',body:''});
@@ -33,7 +33,7 @@ try{
     if(failures[mode]){const [status,code]=failures[mode];return reply({code,message:'mock error'},status);}
     if(mode==='network')return route.abort();
     if(mode==='invalid')return reply({});
-    return reply({all:true,actor_id:1,editable_ids:[1],creation_enabled:false,creation_management_enabled:false});
+    return reply({all:allAdmin,actor_id:1,editable_ids:[1],creation_enabled:false,creation_management_enabled:false});
    }
    if(name==='employees'){assert.equal(req.method(),'GET');return selectDenied?reply({code:'42501'},403):reply([worker]);}
    if(name==='admin_edit_employee'){Object.assign(worker,req.postDataJSON().p_data);return reply(worker);}
@@ -50,6 +50,11 @@ try{
  assert.equal(await page.evaluate(()=>employeeRecords.length),1);
  await page.locator('#employeeDepartmentFilter').selectOption('all');
  assert.equal(await page.locator('.admin-schedule-item').count(),1);
+ const drivingLine=page.locator('.admin-schedule-info p').filter({hasText:'運転日報：'});
+ assert.match(await drivingLine.innerText(),/運転日報：\s*対象外/);
+ assert(await drivingLine.evaluate(el=>el.previousElementSibling.textContent.includes('ヒヤリ：')));
+ worker.driving_report_required=true;await page.evaluate(()=>refreshEmployeeManagement());
+ assert.match(await drivingLine.innerText(),/運転日報：\s*対象$/);
  assert(await page.locator('.edit-schedule-button').isHidden());
  assert(await page.locator('#newEmployeeButton').isHidden());
  assert(await page.locator('#employeeEditSection').isHidden());
@@ -69,6 +74,8 @@ try{
  for(const width of [1440,768,390,320]){
   await page.setViewportSize({width,height:1000});
   assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  assert(await drivingLine.isVisible());
+  assert(await drivingLine.evaluate(el=>el.scrollWidth<=el.clientWidth));
  }
  selectDenied=true;await load();
  assert.equal(await page.evaluate(()=>employeeRecords.length),0);
@@ -97,6 +104,13 @@ try{
  mode='success';await page.evaluate(()=>refreshEmployeeManagement());
  assert.equal(await page.evaluate(()=>employeeReadOnly),false);
  assert(await page.locator('#saveEmployeeButton').isEnabled());
+ allAdmin=false;await page.evaluate(()=>refreshEmployeeManagement());
+ await page.locator('#employeeDepartmentFilter').selectOption('all');
+ assert.match(await drivingLine.innerText(),/運転日報：\s*対象$/);
+ await page.locator('.edit-schedule-button').click();
+ assert(await page.locator('#employeeDrivingRequired').isDisabled());
+ worker.driving_report_required=false;await page.evaluate(()=>refreshEmployeeManagement());
+ assert.match(await drivingLine.innerText(),/運転日報：\s*対象外/);
  assert.deepEqual(errors,[]);
  console.log('PASS: only 404/PGRST202 falls back; real authenticated SELECT, denied SELECT, forged local admin, all mutation/vehicle gates, 7 nonfallback errors, RPC recovery and safe editing, PC/iPad/iPhone/320.');
 }finally{await browser.close();await new Promise(r=>server.close(r));}

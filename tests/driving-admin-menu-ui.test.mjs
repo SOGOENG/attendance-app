@@ -51,23 +51,23 @@ try {
   await page.waitForFunction(() => !document.getElementById('drivingAdminMenu').hidden);
   assert.equal(receiptCalls, 0, 'full admin must not wait for receipt service');
   await expandMenu();
-  assert.deepEqual(await links.locator('h3').allTextContents(), ['運転日報CSV出力', '給油領収書管理', '月別提出状況']);
-  assert.deepEqual(await links.evaluateAll(nodes => nodes.map(n => n.getAttribute('href'))), ['driving-report-csv-admin.html', 'fuel-receipts-admin.html', 'driving-report-status-admin.html']);
+  assert.deepEqual(await links.locator('h3').allTextContents(), ['運転日報CSV出力', '給油領収書管理']);
+  assert.deepEqual(await links.evaluateAll(nodes => nodes.map(n => n.getAttribute('href'))), ['driving-report-csv-admin.html', 'fuel-receipts-admin.html']);
   assert.equal(await page.locator('a[href="driving-report-csv-admin.html"]').count(), 1);
   assert.equal(await page.locator('a[href="fuel-receipts-admin.html"]').count(), 1);
   assert(await page.locator('#drivingAdminMenu').evaluate(n => n.previousElementSibling.getAttribute('href') === 'near-miss-admin.html' && n.nextElementSibling.getAttribute('href') === 'schedule-admin.html'));
-  await mkdir(new URL('../tmp/driving-admin-menu/', import.meta.url), { recursive: true });
+  await mkdir(new URL('../tmp/driving-admin-menu-integrated/', import.meta.url), { recursive: true });
   for (const width of [1440, 768, 390, 320]) {
     await page.setViewportSize({ width, height: 1000 });
     await toggle.click();
     assert.equal(await links.count(), 0, `closed at ${width}`);
-    await page.screenshot({ path: fileURLToPath(new URL(`../tmp/driving-admin-menu/${width}-closed.png`, import.meta.url)), fullPage: true });
+    await page.screenshot({ path: fileURLToPath(new URL(`../tmp/driving-admin-menu-integrated/${width}-closed.png`, import.meta.url)), fullPage: true });
     await toggle.press('Enter');
-    assert.equal(await links.count(), 3, `keyboard open at ${width}`);
+    assert.equal(await links.count(), 2, `keyboard open at ${width}`);
     assert(await page.locator('#drivingAdminMenu').evaluate(n => n.nextElementSibling.getBoundingClientRect().top >= n.querySelector('nav').getBoundingClientRect().bottom));
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `overflow at ${width}`);
     for (const link of await links.all()) assert(await link.evaluate(n => n.scrollWidth <= n.clientWidth));
-    await page.screenshot({ path: fileURLToPath(new URL(`../tmp/driving-admin-menu/${width}.png`, import.meta.url)), fullPage: true });
+    await page.screenshot({ path: fileURLToPath(new URL(`../tmp/driving-admin-menu-integrated/${width}.png`, import.meta.url)), fullPage: true });
   }
   admin = false;
   await page.reload();
@@ -97,13 +97,13 @@ try {
   await page.locator('#retryDrivingAdminAccess').click();
   await page.waitForFunction(() => !document.getElementById('drivingAdminMenu').hidden);
   await expandMenu();
-  assert.equal(await links.count(), 3);
+  assert.equal(await links.count(), 2);
   assert(await page.locator('#retryDrivingAdminAccess').isHidden());
   hangReceipts = true;
   await page.reload();
   await page.waitForFunction(() => !document.getElementById('drivingAdminMenu').hidden);
   await expandMenu();
-  assert.equal(await links.count(), 3, 'admin visible while receipt service unavailable');
+  assert.equal(await links.count(), 2, 'admin visible while receipt service unavailable');
   admin = false;
   await page.reload();
   await page.waitForFunction(() => !document.getElementById('retryDrivingAdminAccess').hidden, { timeout: 12000 });

@@ -626,6 +626,15 @@ function createEmployeeCard(
           )}
         </p>
 
+        <p>
+          運転日報：
+          ${escapeHtml(
+            formatTarget(
+              employee.driving_report_required
+            )
+          )}
+        </p>
+
       </div>
 
       <div class="admin-schedule-actions">

@@ -17,6 +17,22 @@
 .csv-employee-meta{font-size:12px;color:#64748b;white-space:nowrap}
 .csv-confirm{display:flex;gap:8px;align-items:center}
 .csv-page .csv-confirm input[type=checkbox]{width:20px;height:20px;flex:0 0 20px;margin:0;padding:0;accent-color:#2563eb}
+.csv-page #statusEmployees .employee-status-name{padding:0;margin:0;min-height:44px;border:0;background:transparent;color:var(--text-color,#1d4ed8);text-align:left;text-decoration:underline;font-weight:bold;font-size:16px;cursor:pointer}
+.csv-page #statusEmployees .csv-employee-text small{font-size:12px;overflow-wrap:anywhere}
+.csv-page #statusDetail h2{overflow-wrap:anywhere}
+.csv-page #statusEmployees{max-height:none;overflow:visible}
+.csv-page #statusEmployees .employee-status-name{min-height:0;text-decoration:none;cursor:inherit;color:inherit}
+.csv-page #statusEmployees .csv-employee-meta{white-space:normal;overflow-wrap:anywhere}
+.csv-page #statusEmployees .employee-status-button{text-align:left;width:100%;font:inherit}
+.csv-page #statusMessage{font-size:18px;font-weight:bold}
+.csv-page [hidden]{display:none!important}
+html[data-portal-theme="dark"] .csv-page .csv-employee{background:#1e293b;border-color:#475569;color:#e2e8f0}
+html[data-portal-theme="dark"] .csv-page #statusEmployees .employee-status-name{color:#bfdbfe}
+html[data-portal-theme="dark"] .csv-page .csv-employee-meta{color:#cbd5e1}
+html[data-portal-theme="dark"] .csv-page .csv-employee-status.is-submitted{color:#86efac}
+html[data-portal-theme="dark"] .csv-page .csv-employee-status.is-missing{color:#fca5a5}
+html[data-portal-theme="dark"] .csv-page .csv-employee-status.is-unconfirmed{color:#cbd5e1}
+html[data-portal-theme="dark"] .csv-page input[type=month]{color-scheme:dark}
 .csv-page .is-error{color:#b42318;font-weight:bold}.csv-page #csvSummary{font-weight:bold}
 .csv-page #csvWarnings{padding-left:24px}.csv-page fieldset{margin-top:12px;min-width:0}
 @media(max-width:600px){.csv-page{padding:12px}.csv-page section{padding:12px}.csv-department-employees{grid-template-columns:minmax(0,1fr)}}

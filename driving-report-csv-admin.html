@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>綜合ポータル - 運転日報CSV出力</title>
   <link rel="stylesheet" href="style.css?v=25">
-  <link rel="stylesheet" href="driving-report-csv-admin.css?v=6">
+  <link rel="stylesheet" href="driving-report-csv-admin.css?v=8">
+  <link rel="stylesheet" href="driving-report-status-admin.css?v=1">
 </head>
 <body>
   <main class="csv-page">
@@ -24,10 +25,23 @@
       <button id="reloadCsv" type="button" disabled>提出状況を確認</button>
       <p id="csvPeriod"></p>
       <p id="csvMessage" role="status" aria-live="polite">管理者権限を確認中…</p>
+      <div id="integratedDrivingStatus">
+        <div id="statusList">
+          <h2>月別提出状況</h2>
+          <p>社員名から日別確認へ。「未提出」は月別提出記録なしを表し、対象外社員に提出を求めるものではありません。</p>
+          <p id="statusPeriod"></p>
+          <p id="statusMessage" role="status" aria-live="polite">提出状況を確認中…</p>
+          <div id="statusEmployees" class="csv-roster"></div>
+        </div>
+        <section id="statusDetail" hidden>
+          <button id="backToStatusList" type="button">提出状況一覧へ戻る</button>
+          <h2 id="statusDetailTitle" tabindex="-1"></h2>
+          <p>閲覧専用です。代理編集・代理提出はできません。本日は入力待ち、未来日は集計対象外です。</p>
+          <p id="statusDetailMessage" role="status"></p><ul id="statusDays"></ul>
+        </section>
+      </div>
       <div id="csvContent" hidden>
-        <h2>社員別の月別提出状況</h2>
-        <p>在籍社員と当月の月別提出済み社員を表示しています。「提出記録なし」は当月の月別提出記録がない状態です。提出義務のある未提出者とは限りません。CSVは月別提出済み社員全員の提出済み分のみ出力します。</p>
-        <div id="csvRoster" class="csv-roster" aria-label="部署別の月別提出状況"></div>
+        <h2>提出済み分のCSV出力</h2>
         <p id="csvSummary" aria-live="polite"></p>
         <label class="csv-confirm"><input id="confirmRoster" type="checkbox">月別提出済み社員全員の提出済み分のみ出力することを確認しました</label>
         <p>前回給油の「履歴なし・未提出履歴あり・順序未確認」は、Excelで要確認となります。</p>
@@ -40,6 +54,8 @@
   <script src="portal-auth.js"></script>
   <script src="driving-report-period.js"></script>
   <script src="driving-report-csv.js?v=1"></script>
-  <script src="driving-report-csv-admin.js?v=4"></script>
+  <script src="driving-report-month-followup.js?v=1"></script>
+  <script src="driving-report-csv-admin.js?v=6"></script>
+  <script src="driving-report-status-admin.js?v=4"></script>
 </body>
 </html>

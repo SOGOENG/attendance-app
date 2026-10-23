@@ -79,7 +79,7 @@ async function run(){
       check(!$('csvContent').hidden,'source not loaded');
       check(!document.querySelector('#csvRoster input'),'employee selection remains');
       check(!$('selectAll')&&!$('clearSelection'),'bulk selection remains');
-      check($('csvSummary').textContent.includes(scenario==='empty'?'提出記録なし 2人':'提出記録なし 1人'),'missing count');
+      check($('csvSummary').textContent.includes(scenario==='empty'?'月別提出済み 0人':'月別提出済み 1人'),'export count');
       $('confirmRoster').checked=true;$('confirmRoster').dispatchEvent(new Event('change'));
       if(scenario==='empty'){check($('downloadCsvZip').disabled,'empty export enabled');}
       else{
@@ -115,6 +115,8 @@ class Handler(BaseHTTPRequestHandler):
             content_type = 'application/json; charset=utf-8'
         elif url.path == '/test':
             data = (ROOT/'driving-report-csv-admin.html').read_text(encoding='utf-8')
+            # Export-only scenarios; integrated status RPCs are exercised in driving-csv-roster-ui.test.mjs.
+            data = re.sub(r'<script src="driving-report-status-admin\.js\?v=\d+"></script>', '', data)
             data = data.replace('<script src="portal-auth.js"></script>', '<script>'+MOCK+'</script>')
             data = data.replace('</body>', '<pre id="test-result">pending</pre><script>'+DRIVER+'</script></body>')
             content_type = 'text/html; charset=utf-8'

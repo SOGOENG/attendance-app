@@ -10,17 +10,11 @@
   }
   function unconfirmedRoster(){
     result=null;$('confirmRoster').checked=false;
-    for(const status of $('csvRoster').querySelectorAll('.csv-employee-status')){
-      status.textContent='未確認';status.className='csv-employee-status is-unconfirmed';
-    }
-    if($('csvRoster').children.length){
-      $('csvContent').hidden=false;
-      $('csvSummary').textContent='提出済み・提出記録なしの人数は未確認です。再読み込みしてください。';
-    }
+    $('csvContent').hidden=true;
   }
   function summary(){
     if(!result)return;
-    $('csvSummary').textContent=`一覧人数 ${result.employees.length}人 ／ 提出済み ${result.submittedEmployeeIds.length}人 ／ 提出記録なし ${result.employees.length-result.submittedEmployeeIds.length}人。`;
+    $('csvSummary').textContent=`CSV出力対象：月別提出済み ${result.submittedEmployeeIds.length}人（対象ON/OFFにかかわらず全員）。`;
     $('downloadCsvZip').textContent=`提出済み${result.submittedEmployeeIds.length}人分のみZIPで出力`;
     controls();
   }
@@ -40,28 +34,7 @@
     return csv.parseSource(text);
   }
   function render(next){
-    result=next;const official=new Set(next.submittedEmployeeIds);
-    $('csvRoster').replaceChildren();
-    const departments=new Map();
-    for(const e of next.employees){
-      const department=e.department||'所属未設定';
-      if(!departments.has(department))departments.set(department,[]);
-      departments.get(department).push(e);
-    }
-    for(const [department,employees] of departments){
-      const group=document.createElement('div'),heading=document.createElement('h3'),list=document.createElement('div');
-      group.className='csv-department';heading.className='admin-department-title';heading.textContent=department;
-      list.className='csv-department-employees';group.append(heading,list);$('csvRoster').append(group);
-      for(const e of employees){
-      const employeeId=String(e.id),label=document.createElement('div'),text=document.createElement('span'),name=document.createElement('span'),meta=document.createElement('span'),status=document.createElement('span');
-      label.className='csv-employee';text.className='csv-employee-text';name.className='employee-status-name';meta.className='csv-employee-meta';
-      name.textContent=e.name;meta.textContent=`ID ${employeeId}`;text.append(name,meta);
-      // This set comes only from the validated monthly driving submissions.
-      status.textContent=official.has(employeeId)?'提出済み':'提出記録なし';
-      status.className=`csv-employee-status ${official.has(employeeId)?'is-submitted':'is-missing'}`;
-      label.append(text,status);list.append(label);
-      }
-    }
+    result=next;
     $('csvWarnings').replaceChildren();
     for(const warning of next.warnings){const item=document.createElement('li');item.textContent=warning;$('csvWarnings').append(item);}
     $('csvContent').hidden=false;summary();
@@ -69,11 +42,12 @@
   async function load(){
     if(busy||!authorized)return;busy=true;result=null;$('csvContent').hidden=true;$('confirmRoster').checked=false;controls();
     const month=$('closingMonth').value;
+    document.dispatchEvent(new Event('driving-csv-month-change'));
     try{
       const span=period.range(month);$('csvPeriod').textContent=`対象期間：${span.start} 〜 ${span.end}`;message('提出状況とデータを確認中…');
       const data=await source(month),next=csv.build(data,month,crypto.randomUUID());loadedMonth=month;render(next);
-      message(`月別提出済み ${next.submittedEmployeeIds.length}人の日報 ${next.daily.length}行・給油 ${next.fuel.length}件を確認しました。提出状況を確認してください。`);
-    }catch(error){unconfirmedRoster();message('月別提出状況は未確認です。'+error.message,true);}finally{busy=false;controls();}
+      message(next.submittedEmployeeIds.length?`月別提出済み ${next.submittedEmployeeIds.length}人の日報 ${next.daily.length}行・給油 ${next.fuel.length}件を確認しました。提出状況を確認してください。`:'この締め月の月別提出記録はありません。CSV出力対象は0人です。対象社員の日別状況は下の一覧から確認できます。');
+    }catch(error){unconfirmedRoster();message('CSV出力情報は未確認です。'+error.message,true);}finally{busy=false;controls();}
   }
   $('downloadCsvZip').onclick=async()=>{
     if(busy||!result||!result.submittedEmployeeIds.length||!$('confirmRoster').checked||loadedMonth!==$('closingMonth').value)return;
