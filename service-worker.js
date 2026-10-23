@@ -3,9 +3,12 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v95";
+  "staff-portal-v96";
 
 const CACHE_FILES = [
+  "./site-search.html",
+  "./site-search.js?v=1",
+  "./site-search.css?v=1",
   "./site-admin.html",
   "./client-admin.html",
   "./site-admin.js?v=2",

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>工事物件検索｜Staff Portal</title>
+  <link rel="stylesheet" href="style.css?v=25">
+  <link rel="stylesheet" href="side-menu.css?v=1">
+  <link rel="stylesheet" href="site-search.css?v=1">
+</head>
+<body>
+  <header class="page-header">
+    <div><h1>工事物件検索</h1><p>現場名から工事番号を確認できます</p></div>
+    <a href="home.html" class="home-back-button">ホームへ戻る</a>
+  </header>
+  <main class="site-search-page">
+    <section class="card" aria-labelledby="searchHeading">
+      <h2 id="searchHeading">現場を検索</h2>
+      <p>現場名・正式名称の一部を入力するか、現場を選択してください。</p>
+      <div class="site-search-fields">
+        <label>現場名・正式名称
+          <input id="siteSearchInput" type="search" placeholder="現場名の一部を入力" autocomplete="off" aria-controls="siteSearchResults">
+        </label>
+        <label>現場マスタから選択
+          <select id="siteSearchSelect" disabled aria-controls="siteSearchResults"><option value="">すべての現場</option></select>
+        </label>
+      </div>
+      <label class="site-search-toggle"><input id="includeHiddenSites" type="checkbox">非表示の現場も含める</label>
+      <button id="reloadSiteSearch" type="button">再読み込み</button>
+      <p id="siteSearchStatus" role="status" aria-live="polite"></p>
+      <p id="siteSearchError" role="alert" hidden></p>
+    </section>
+    <section class="card" aria-labelledby="resultsHeading" id="siteSearchResultSection" aria-busy="true">
+      <h2 id="resultsHeading">検索結果</h2>
+      <div id="siteSearchResults"></div>
+    </section>
+  </main>
+  <script src="portal-auth.js"></script>
+  <script src="side-menu.js?v=1"></script>
+  <script src="site-search.js?v=1"></script>
+</body>
+</html>

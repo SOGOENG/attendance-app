@@ -108,8 +108,9 @@
     #myPageMenu { order: 2; }
     #deliveryCalendarLink { order: 3; }
     #toolManagementMenu { order: 4; }
-    #settingsMenu { order: 5; }
-    #adminMenu { order: 6; }
+    #siteSearchMenu { order: 5; }
+    #settingsMenu { order: 6; }
+    #adminMenu { order: 7; }
 
     .home-menu-badge {
       display: inline-flex;
@@ -302,34 +303,6 @@
 
 
       <!-- ==============================
-           設定
-      ============================== -->
-      <a
-        href="settings.html?v=2"
-        id="settingsMenu"
-        class="home-primary-link"
-      >
-
-        <div class="home-primary-link-text">
-
-          <h2>
-            設定
-          </h2>
-
-          <p>
-            プロフィール・通知・表示設定
-          </p>
-
-        </div>
-
-        <span class="home-primary-link-arrow">
-          〉
-        </span>
-
-      </a>
-
-
-      <!-- ==============================
            工具管理
       ============================== -->
       <a
@@ -355,6 +328,42 @@
         </div>
 
         <span class="home-menu-arrow">
+          〉
+        </span>
+
+      </a>
+
+
+      <a href="site-search.html" id="siteSearchMenu" class="home-primary-link">
+        <div class="home-primary-link-text">
+          <h2>工事物件検索</h2>
+          <p>現場名・工事番号を検索</p>
+        </div>
+        <span class="home-primary-link-arrow" aria-hidden="true">〉</span>
+      </a>
+
+      <!-- ==============================
+           設定
+      ============================== -->
+      <a
+        href="settings.html?v=2"
+        id="settingsMenu"
+        class="home-primary-link"
+      >
+
+        <div class="home-primary-link-text">
+
+          <h2>
+            設定
+          </h2>
+
+          <p>
+            プロフィール・通知・表示設定
+          </p>
+
+        </div>
+
+        <span class="home-primary-link-arrow">
           〉
         </span>
 

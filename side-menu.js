@@ -84,6 +84,9 @@
         <a class="portal-side-menu-link" href="tool-management.html">
           <span>工具管理</span><span aria-hidden="true">›</span>
         </a>
+        <a class="portal-side-menu-link" href="site-search.html">
+          <span>工事物件検索</span><span aria-hidden="true">›</span>
+        </a>
         <a class="portal-side-menu-link" href="settings.html">
           <span>設定</span><span aria-hidden="true">›</span>
         </a>
