@@ -8,6 +8,7 @@ type NotificationType =
   | "tomorrow_schedule"
   | "application_submitted"
   | "application_approved"
+  | "application_final_confirmation_pending"
   | "application_revision_required"
   | "application_rejected";
 
@@ -18,6 +19,7 @@ type Employee = {
   active: boolean;
   admin_scope: string | null;
   auth_user_id: string | null;
+  is_application_final_approver: boolean;
 };
 
 type PushSubscriptionRow = {
@@ -272,7 +274,7 @@ Deno.serve(async (request: Request) => {
 
     const { data: employeeRows, error: employeeError } = await supabase
       .from("employees")
-      .select("id,name,department,active,admin_scope,auth_user_id");
+      .select("id,name,department,active,admin_scope,auth_user_id,is_application_final_approver");
 
     if (employeeError) {
       throw new Error(`Failed to load employees: ${employeeError.message}`);
@@ -307,7 +309,7 @@ Deno.serve(async (request: Request) => {
       );
       const { data: application, error: applicationError } = await supabase
         .from("applications")
-        .select("id,employee_id,application_type,status,reviewer_comment")
+        .select("id,employee_id,application_type,status,reviewer_comment,final_approval_required,final_confirmed_at")
         .eq("id", applicationId)
         .single();
 
@@ -365,6 +367,24 @@ Deno.serve(async (request: Request) => {
           applicationId,
           eventType,
         });
+        // Add to the existing approval result notification; never delay approval
+        // side effects or replace the applicant's notification.
+        if (eventType === "approved" && application.final_approval_required === true &&
+          application.final_confirmed_at === null) {
+          notificationRequests.push({
+            notificationType: "application_final_confirmation_pending",
+            notificationDate: today,
+            targetMonth: null,
+            employeeIds: new Set(employees.filter((employee) =>
+              employee.active === true && employee.is_application_final_approver === true
+            ).map((employee) => Number(employee.id))),
+            title: "最終確認があります",
+            body: "管理者承認済みの申請があります。最終確認をお願いします。",
+            url: "./applications-final.html?panel=waiting",
+            applicationId,
+            eventType: "final_confirmation_pending",
+          });
+        }
       }
     }
 

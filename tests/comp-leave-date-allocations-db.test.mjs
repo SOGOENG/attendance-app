@@ -87,7 +87,21 @@ const legacy=await draft([['2026-09-20',1],['2026-09-21',1]],[[oldSource2,1],[ol
 await submit(legacy);
 const legacyDirectSource=await work('2026-01-10',2);
 const legacyDirect=(await q("select register_admin_comp_leave_usage(1,'2026-09-20',.5,gen_random_uuid(),'legacy direct') id"))[0].id;
+const oldDraft=await draft([['2026-09-22',.5]],[[await work('2026-09-01',.5),.5]]);
 await db.exec(dailyMigration);await db.exec(dailyMigration);
+await db.exec(`create schema auth;
+ create function auth.uid() returns uuid language sql as $$select '00000000-0000-0000-0000-000000000001'::uuid$$;`);
+await db.exec(await read('supabase/add_application_final_approval.sql'));
+// The legacy submission above stays outside the new flow; all actual submit RPCs
+// below (including reopen/resubmit) must opt in without changing daily allocations.
+assert.equal((await q('select final_approval_required from applications where id=$1',[legacy]))[0].final_approval_required,false);
+await submit(oldDraft);
+assert.equal((await q('select final_approval_required from applications where id=$1',[oldDraft]))[0].final_approval_required,true);
+await q("select review_application($1,'revision_required','edit')",[oldDraft]);
+await q('select reopen_application_draft($1)',[oldDraft]);
+await submit(oldDraft);
+assert.equal((await q('select final_approval_required from applications where id=$1',[oldDraft]))[0].final_approval_required,true);
+await q("select cancel_application($1,'fixture complete')",[oldDraft]);
 // Observe DELETE on the real source tables with the migration's BEFORE trigger
 // enabled. Exercise NEW IS NULL, NEW.field and the exact COALESCE expression.
 await db.exec(`create table test_delete_trigger_observations(
@@ -160,6 +174,7 @@ console.log('PASS: omitted/changed/disabled audit hook rejects registration and 
 const source1=await work('2026-03-01',4),source2=await work('2026-04-01',4);
 const one=await draft([['2026-09-21',1]],[[source1,1]]);
 await submit(one);assert.equal((await mappings(one)).length,1);
+assert.equal((await q('select final_approval_required from applications where id=$1',[one]))[0].final_approval_required,true);
 assert.equal(await remaining(source1),4); // submission reserves, does not consume
 await approve(one);assert.equal(await remaining(source1),3);
 assert.equal(Number((await mappings(one))[0].allocated_days),1);

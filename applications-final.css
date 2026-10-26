@@ -1,0 +1,6 @@
+.final-status{display:flex;flex-direction:column;align-items:flex-start;gap:6px;flex-shrink:0}.final-status .status{white-space:normal;overflow-wrap:anywhere}.final-detail{white-space:pre-wrap;overflow-wrap:anywhere}.applications-page>a.applications-back{display:inline-block;margin-bottom:12px}.application-item-head h3{min-width:0;overflow-wrap:anywhere}.print-approved-button:disabled{opacity:.5;cursor:not-allowed}@media(max-width:480px){.application-item-head{flex-wrap:wrap;gap:10px}.final-status{width:100%}.admin-actions{flex-wrap:wrap}.admin-actions button{max-width:100%}.approved-print-actions{flex-wrap:wrap}}
+
+.applications-admin-tabs .final-navigation{display:flex;align-items:center;justify-content:center;width:100%;min-height:44px;margin-top:5px;padding:0 15px;border:1px solid var(--ap-line);border-radius:22px;background:#fff;color:#475569;font-size:inherit;font-weight:800;text-decoration:none;text-align:center;white-space:normal}
+#finalMessage{overflow-wrap:anywhere}
+.applications-tabs button.final-waiting.is-active{box-shadow:inset 0 0 0 1px currentColor}
+.applications-tabs #finalWaitingTab.is-active:not(.final-waiting){background:#fff;color:#475569;border-color:var(--ap-line);box-shadow:inset 0 0 0 1px currentColor}

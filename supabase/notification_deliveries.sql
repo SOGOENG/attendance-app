@@ -11,7 +11,8 @@ create table if not exists public.notification_deliveries (
       'application_submitted',
       'application_approved',
       'application_revision_required',
-      'application_rejected'
+      'application_rejected',
+      'application_final_confirmation_pending'
     )),
   employee_id bigint not null references public.employees(id) on delete cascade,
   push_subscription_id bigint not null references public.push_subscriptions(id) on delete cascade,
@@ -31,7 +32,7 @@ create table if not exists public.notification_deliveries (
   constraint notification_deliveries_application_event_check check (
     application_id is null
     or event_type in (
-      'submitted', 'approved', 'revision_required', 'rejected'
+      'submitted', 'approved', 'revision_required', 'rejected', 'final_confirmation_pending'
     )
   )
 );

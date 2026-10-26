@@ -1,0 +1,5 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>最終確認 - Staff Portal</title><link rel="stylesheet" href="style.css?v=27"><link rel="stylesheet" href="applications.css?v=4"><link rel="stylesheet" href="applications-final.css?v=4"></head>
+<body><main class="applications-page"><header class="applications-header"><div><p class="applications-kicker">Staff Portal 管理者</p><h1>最終確認</h1></div><a class="applications-back" href="applications-admin.html">各種申請管理へ</a></header>
+<section class="applications-panel"><p>管理者承認済みの申請を最終確認します。</p><nav class="applications-tabs applications-admin-tabs" aria-label="最終確認の状態"><button type="button" id="finalWaitingTab" data-final-filter="waiting" class="is-active" aria-pressed="true">最終確認待ち</button><button type="button" data-final-filter="done" aria-pressed="false">最終確認済み</button></nav><p id="finalMessage" role="status" aria-live="polite">読み込み中...</p><div id="finalList" class="application-list"></div></section>
+</main><script src="portal-auth.js"></script><script src="applications-final.js?v=4"></script></body></html>

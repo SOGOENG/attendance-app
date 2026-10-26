@@ -1616,14 +1616,19 @@ body {
 
 .status-not-saved .employee-status-text{
   padding:3px 9px;
-
-  color:#e11d48;
-  background:#fff1f2;
-
   border:1px solid #fda4af;
   border-radius:999px;
 
   font-weight:bold;
+}
+
+/* Share the portal's existing pink status palette without sharing dimensions. */
+.status-not-saved .employee-status-text,
+.applications-tabs.applications-admin-tabs button.final-waiting,
+.final-status .status.final-waiting {
+  color:#e11d48;
+  background:#fff1f2;
+  border-color:#fda4af;
 }
 
 /* =========================================
@@ -2534,6 +2539,7 @@ html[data-portal-theme="dark"] .submission-status-row dd.is-not-submitted {
 }
 
 html[data-portal-theme="dark"] .status-not-saved .employee-status-text,
+html[data-portal-theme="dark"] .final-waiting,
 html[data-portal-theme="dark"] .improvement-admin-status-not-submitted {
   color: #fecdd3 !important;
   background: #881337 !important;

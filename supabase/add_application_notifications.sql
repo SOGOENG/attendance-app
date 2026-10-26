@@ -75,12 +75,13 @@ alter table public.notification_deliveries
     check (notification_type in (
       'overdue_submission', 'today_schedule', 'tomorrow_schedule',
       'application_submitted', 'application_approved',
-      'application_revision_required', 'application_rejected'
+      'application_revision_required', 'application_rejected',
+      'application_final_confirmation_pending'
     )),
   add constraint notification_deliveries_application_event_check check (
     application_id is null
     or event_type in (
-      'submitted', 'approved', 'revision_required', 'rejected'
+      'submitted', 'approved', 'revision_required', 'rejected', 'final_confirmation_pending'
     )
   );
 

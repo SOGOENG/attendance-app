@@ -37,7 +37,15 @@
     const approverName = escapeHtml(
       employeeMap.get(Number(application.approved_by_employee_id)) || ""
     );
-    return `<div class="approval-row"><div><span class="approval-label">承認者</span>${approverName}<br>${formatDate(application.approved_at)}</div><div><span class="approval-label">責任者</span><div class="responsible-content"><span class="responsible-name">${approverName}</span><span class="seal-space" aria-label="押印欄"></span></div></div></div>`;
+    let responsibleName = approverName;
+    if (application.final_approval_required === true) {
+      const finalConfirmer = employeeMap.get(Number(application.final_confirmed_by_employee_id));
+      if (!application.final_confirmed_at || !application.final_confirmed_by_employee_id || !finalConfirmer?.trim()) {
+        throw new Error("最終確認者の情報を取得できないため、帳票を出力できません。");
+      }
+      responsibleName = escapeHtml(finalConfirmer);
+    }
+    return `<div class="approval-row"><div><span class="approval-label">承認者</span>${approverName}<br>${formatDate(application.approved_at)}</div><div><span class="approval-label">責任者</span><div class="responsible-content"><span class="responsible-name">${responsibleName}</span><span class="seal-space" aria-label="押印欄"></span></div></div></div>`;
   }
 
   function paidHtml(application, detail, applicant, siteName, balance, employeeMap) {
@@ -56,11 +64,12 @@
     if (!Number.isInteger(applicationId) || applicationId <= 0) throw new Error("申請IDが正しくありません。");
     if (await rpc("is_application_admin") !== true) throw new Error("この帳票を印刷する権限がありません。");
 
-    const applications = await request(`applications?select=id,employee_id,application_type,status,submitted_at,approved_at,approved_by_employee_id&id=eq.${applicationId}`);
+    await rpc("assert_application_printable", {p_application_id: applicationId});
+    const applications = await request(`applications?select=id,employee_id,application_type,status,submitted_at,approved_at,approved_by_employee_id,final_approval_required,final_confirmed_at,final_confirmed_by_employee_id&id=eq.${applicationId}`);
     const application = applications[0];
     if (!application || application.status !== "approved") throw new Error("承認済み申請だけ印刷できます。");
 
-    const employeeIds = [...new Set([application.employee_id, application.approved_by_employee_id].filter(Boolean))];
+    const employeeIds = [...new Set([application.employee_id, application.approved_by_employee_id, application.final_confirmed_by_employee_id].filter(Boolean))];
     const employees = await request(`employees?select=id,name&id=in.(${employeeIds.join(",")})`);
     const employeeMap = new Map(employees.map(row => [Number(row.id), row.name]));
     const applicant = employeeMap.get(Number(application.employee_id)) || "";
@@ -89,12 +98,20 @@
       throw new Error("この申請種別の帳票には対応していません。");
     }
 
+    await rpc("assert_application_printable", {p_application_id: applicationId});
     sheet.innerHTML = copyHtml + copyHtml;
     sheet.hidden = false;
     message.hidden = true;
   }
 
-  document.getElementById("printButton").addEventListener("click", () => window.print());
+  document.getElementById("printButton").addEventListener("click", async () => {
+    try {
+      const id = Number(new URLSearchParams(location.search).get("application_id"));
+      await rpc("assert_application_printable", {p_application_id:id});
+      if (sheet.hidden) throw new Error("帳票の読み込みが完了していません。");
+      window.print();
+    } catch(error) { sheet.hidden=true; message.hidden=false; message.textContent=error.message; }
+  });
   document.getElementById("backButton").addEventListener("click", () => history.length > 1 ? history.back() : location.assign("applications-admin.html"));
 
   initialize().catch(error => {
