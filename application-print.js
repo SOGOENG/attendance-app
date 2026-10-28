@@ -50,7 +50,7 @@
 
   function paidHtml(application, detail, applicant, siteName, balance, employeeMap) {
     const period = `${formatDate(detail.start_date)} ～ ${formatDate(detail.end_date)}`;
-    return `<article class="print-copy paid-form"><h1 class="form-title">有給休暇届</h1><p class="form-meta">届出年月日　${formatDate(application.submitted_at)}</p><table class="form-table"><tr><th>氏名</th><td>${escapeHtml(applicant)}</td></tr><tr><th>現場名</th><td>${escapeHtml(siteName || "")}</td></tr><tr><th>期間</th><td>${period}</td></tr><tr><th>日数</th><td>${escapeHtml(detail.days)} 日</td></tr><tr><th>事由</th><td class="multi-line">${escapeHtml(detail.reason || "")}</td></tr><tr><th rowspan="3">会社使用欄</th><td class="company-use">支給日数　${balance ? `${escapeHtml(balance.granted_days)} 日` : ""}</td></tr><tr><td class="company-use">累積使用日数　${balance ? `${escapeHtml(balance.used_days)} 日` : ""}</td></tr><tr><td class="company-use">有給休暇残日数　${balance ? `${escapeHtml(balance.remaining_days)} 日` : ""}</td></tr></table>${approvalHtml(application, employeeMap)}</article>`;
+    return `<article class="print-copy paid-form"><h1 class="form-title">有給休暇届</h1><p class="form-meta">届出年月日　${formatDate(application.submitted_at)}</p><table class="form-table"><tr><th>氏名</th><td>${escapeHtml(applicant)}</td></tr><tr><th>現場名</th><td>${escapeHtml(siteName || "")}</td></tr><tr><th>期間</th><td>${period}</td></tr><tr><th>日数</th><td>${escapeHtml(detail.days)} 日</td></tr><tr><th>事由</th><td class="multi-line">${escapeHtml(detail.reason || "")}</td></tr><tr><th rowspan="3">会社使用欄</th><td class="company-use">支給日数（印刷時点）　${balance ? `${escapeHtml(balance.granted_days)} 日` : ""}</td></tr><tr><td class="company-use">累積使用日数（印刷時点）　${balance ? `${escapeHtml(balance.used_days)} 日` : ""}</td></tr><tr><td class="company-use">承認時の控除後残数　${detail.approved_remaining_days == null ? "記録なし" : `${escapeHtml(detail.approved_remaining_days)} 日`}</td></tr></table>${approvalHtml(application, employeeMap)}</article>`;
   }
 
   function compHtml(application, applicant, dates, workDates, employeeMap, reason) {
@@ -76,13 +76,13 @@
     let copyHtml;
 
     if (application.application_type === "paid_leave") {
-      const details = await request(`paid_leave_application_details?select=start_date,end_date,days,site_id,reason&application_id=eq.${applicationId}`);
+      const details = await request(`paid_leave_application_details?select=start_date,end_date,days,site_id,reason,approved_remaining_days&application_id=eq.${applicationId}`);
       const detail = details[0];
       if (!detail) throw new Error("有給休暇申請の詳細がありません。");
       const fiscalYear = Number(detail.start_date.slice(0, 4)) - (Number(detail.start_date.slice(5, 7)) < 4 ? 1 : 0);
       const [sites, balances] = await Promise.all([
         detail.site_id ? request(`sites?select=id,display_name&id=eq.${detail.site_id}`) : [],
-        request(`paid_leave_balances?select=granted_days,used_days,remaining_days&employee_id=eq.${application.employee_id}&fiscal_year=eq.${fiscalYear}`)
+        request(`paid_leave_balances?select=granted_days,used_days&employee_id=eq.${application.employee_id}&fiscal_year=eq.${fiscalYear}`)
       ]);
       copyHtml = paidHtml(application, detail, applicant, sites[0]?.display_name || "", balances[0] || null, employeeMap);
     } else if (application.application_type === "comp_leave") {

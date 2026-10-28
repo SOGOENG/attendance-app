@@ -3,7 +3,7 @@
 ========================================= */
 
 const CACHE_NAME =
-  "staff-portal-v101";
+  "staff-portal-v103";
 
 const CACHE_FILES = [
   "./site-search.html",
@@ -65,8 +65,8 @@ const CACHE_FILES = [
   "./applications.js?v=11",
   "./application-result-badge.js?v=1",
   "./application-result-badge.css?v=1",
-  "./applications-admin.js?v=23",
-  "./application-print.js?v=6",
+  "./applications-admin.js?v=25",
+  "./application-print.js?v=7",
   "./tool-employees.js?v=1",
   "./tool-checkout.js?v=5",
   "./tool-qr.js?v=16",
