@@ -50,6 +50,12 @@ const inspectionPendingCount =
    点検工具検索
 ========================================= */
 
+const inspectionOwnershipFilter = document.getElementById("inspectionOwnershipFilter");
+const inspectionEmployeeFilter = document.getElementById("inspectionEmployeeFilter");
+const inspectionSearchEmployeeLabel = document.getElementById("inspectionSearchEmployeeLabel");
+const inspectionContractorFilter = document.getElementById("inspectionContractorFilter");
+const inspectionSearchContractorLabel = document.getElementById("inspectionSearchContractorLabel");
+
 const inspectionGroupFilter =
   document.getElementById(
     "inspectionGroupFilter"
@@ -1299,10 +1305,11 @@ function updateProgress() {
 
 function buildGroupFilter() {
 
+  const previousGroup = inspectionGroupFilter.value;
   inspectionGroupFilter.innerHTML =
     `
       <option value="">
-        ---- 大分類を選択 ----
+        すべて
       </option>
     `;
 
@@ -1348,6 +1355,7 @@ function buildGroupFilter() {
         );
     }
   );
+  inspectionGroupFilter.value = groups.includes(previousGroup) ? previousGroup : "";
 }
 
 
@@ -1357,6 +1365,7 @@ function buildGroupFilter() {
 
 function updateToolNameFilter() {
 
+  const previousName = inspectionToolNameFilter.value;
   const selectedGroup =
     inspectionGroupFilter.value;
 
@@ -1364,7 +1373,7 @@ function updateToolNameFilter() {
   inspectionToolNameFilter.innerHTML =
     `
       <option value="">
-        ---- 工具名を選択 ----
+        すべて
       </option>
     `;
 
@@ -1433,6 +1442,51 @@ function updateToolNameFilter() {
 
   inspectionToolNameFilter.disabled =
     false;
+  inspectionToolNameFilter.value = toolNames.includes(previousName) ? previousName : "";
+}
+
+function buildInspectionEmployeeFilter() {
+  const previousEmployee = inspectionEmployeeFilter.value;
+  const ids = [...new Set(inspectionTools
+    .filter(tool => tool.ownership_type === "personal" && tool.assigned_employee_id != null)
+    .map(tool => String(tool.assigned_employee_id)))];
+  const choices = ids.map(id => ({id, name: employeeNameMap.get(Number(id))}))
+    .filter(employee => employee.name)
+    .sort((a, b) => a.name.localeCompare(b.name, "ja") || a.id.localeCompare(b.id));
+  inspectionEmployeeFilter.innerHTML = '<option value="">すべて</option>';
+  choices.forEach(employee => {
+    const option = document.createElement("option");
+    option.value = employee.id;
+    option.textContent = employee.name;
+    inspectionEmployeeFilter.appendChild(option);
+  });
+  inspectionEmployeeFilter.value = choices.some(employee => employee.id === previousEmployee) ? previousEmployee : "";
+}
+
+function buildInspectionContractorFilter() {
+  const previousContractor = inspectionContractorFilter.value;
+  const contractors = [...new Set(inspectionTools
+    .filter(tool => tool.ownership_type === "contractor")
+    .map(tool => tool.owner_company_name)
+    .filter(Boolean))].sort((a, b) => a.localeCompare(b, "ja"));
+  inspectionContractorFilter.innerHTML = '<option value="">すべて</option>';
+  contractors.forEach(contractor => {
+    const option = document.createElement("option");
+    option.value = contractor;
+    option.textContent = contractor;
+    inspectionContractorFilter.appendChild(option);
+  });
+  inspectionContractorFilter.value = contractors.includes(previousContractor) ? previousContractor : "";
+}
+
+function updateInspectionOwnershipFilter() {
+  const isPersonal = inspectionOwnershipFilter.value === "personal";
+  const isContractor = inspectionOwnershipFilter.value === "contractor";
+  inspectionSearchEmployeeLabel.hidden = !isPersonal;
+  inspectionSearchContractorLabel.hidden = !isContractor;
+  if (!isPersonal) inspectionEmployeeFilter.value = "";
+  if (!isContractor) inspectionContractorFilter.value = "";
+  inspectionToolResultSection.classList.add("hidden");
 }
 
 
@@ -1445,6 +1499,11 @@ async function refreshInspectionData() {
     await loadCycle();
     await loadInspectionRecords();
     await loadInspectionTools();
+    await loadEmployees();
+    buildGroupFilter();
+    updateToolNameFilter();
+    buildInspectionEmployeeFilter();
+    buildInspectionContractorFilter();
     updateProgress();
     updateCsvTargetCount();
   })().finally(() => { inspectionRefreshPromise = null; });
@@ -1483,6 +1542,9 @@ async function refreshVisibleInspection() {
 
 function renderInspectionSearch() {
 
+  const selectedOwnership = inspectionOwnershipFilter.value;
+  const selectedEmployee = selectedOwnership === "personal" ? inspectionEmployeeFilter.value : "";
+  const selectedContractor = selectedOwnership === "contractor" ? inspectionContractorFilter.value : "";
   const selectedGroup =
     inspectionGroupFilter.value;
 
@@ -1493,26 +1555,6 @@ function renderInspectionSearch() {
 
   const selectedStatus =
     inspectionStatusFilter.value;
-
-
-  if (!selectedGroup) {
-
-    alert(
-      "大分類を選択してください"
-    );
-
-    return;
-  }
-
-
-  if (!selectedToolName) {
-
-    alert(
-      "工具名を選択してください"
-    );
-
-    return;
-  }
 
 
   const filtered =
@@ -1528,6 +1570,19 @@ function renderInspectionSearch() {
 
 
         if (
+          selectedOwnership && tool.ownership_type !== selectedOwnership
+        ) return false;
+
+        if (
+          selectedEmployee && String(tool.assigned_employee_id ?? "") !== selectedEmployee
+        ) return false;
+
+        if (
+          selectedContractor && tool.owner_company_name !== selectedContractor
+        ) return false;
+
+        if (
+          selectedGroup &&
           getToolGroup(
             tool
           ) !==
@@ -1539,6 +1594,7 @@ function renderInspectionSearch() {
 
 
         if (
+          selectedToolName &&
           tool.tool_name !==
           selectedToolName
         ) {
@@ -1597,7 +1653,7 @@ function renderInspectionSearch() {
 
 
   inspectionToolResultTitle.textContent =
-    `${selectedGroup} ＞ ${selectedToolName} ＞ ${statusText}`;
+    `${selectedGroup || "すべて"} ＞ ${selectedToolName || "すべて"} ＞ ${statusText}`;
 
 
   inspectionToolResultCount.textContent =
@@ -3142,6 +3198,14 @@ function handleCsvFilterChange() {
    イベント
 ========================================= */
 
+inspectionOwnershipFilter.addEventListener("change", updateInspectionOwnershipFilter);
+inspectionEmployeeFilter.addEventListener("change", () => {
+  inspectionToolResultSection.classList.add("hidden");
+});
+inspectionContractorFilter.addEventListener("change", () => {
+  inspectionToolResultSection.classList.add("hidden");
+});
+
 inspectionGroupFilter
   .addEventListener(
     "change",
@@ -3345,6 +3409,8 @@ async function initialize() {
 
     updateToolNameFilter();
 
+    buildInspectionEmployeeFilter();
+    buildInspectionContractorFilter();
 
     buildCsvFilters();
 

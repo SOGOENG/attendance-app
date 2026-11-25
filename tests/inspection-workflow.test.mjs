@@ -79,13 +79,15 @@ console.log('PASS: exact management-code search and existing result rendering');
 
 let databaseRecords=[];
 const pendingContext=vm.createContext({inspectionRefreshPromise:null,activeInspectionSearch:null,
+  inspectionOwnershipFilter:{value:''},inspectionEmployeeFilter:{value:''},inspectionContractorFilter:{value:''},
   inspectionGroupFilter:{value:'その他'},inspectionToolNameFilter:{value:'工具'},inspectionStatusFilter:{value:'pending'},
   inspectionTools:[{id:7,tool_group:'その他',tool_name:'工具'}],inspectedToolIdSet:new Set(),
   inspectionToolResultTitle:element('pendingTitle'),inspectionToolResultCount:element('pendingCount'),
   inspectionToolResultSection:element('pendingResults'),inspectionListMessage:element('pendingMessage'),
   loadCycle:async()=>{},loadInspectionTools:async()=>{},loadInspectionRecords:async()=>{
     pendingContext.inspectedToolIdSet.clear();databaseRecords.forEach(r=>pendingContext.inspectedToolIdSet.add(r.tool_id));
-  },updateProgress(){},updateCsvTargetCount(){},getToolGroup:t=>t.tool_group,
+  },loadEmployees:async()=>{},buildGroupFilter(){},updateToolNameFilter(){},buildInspectionEmployeeFilter(){},buildInspectionContractorFilter(){},
+  updateProgress(){},updateCsvTargetCount(){},getToolGroup:t=>t.tool_group,
   displayInspectionTools:rows=>{pendingContext.shown=rows;},alert(){}});
 vm.runInContext(list.slice(list.indexOf('async function refreshInspectionData'),list.indexOf('function displayInspectionTools')),pendingContext);
 await pendingContext.searchInspectionTools();assert.equal(pendingContext.shown.length,1);

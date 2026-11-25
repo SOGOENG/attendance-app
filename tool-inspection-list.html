@@ -25,6 +25,8 @@
   <style>
     /* Keep conditional registration labels hidden despite .admin-form-label display rules. */
     #inspectionOwnerEmployee[hidden],
+    #inspectionSearchEmployeeLabel[hidden],
+    #inspectionSearchContractorLabel[hidden],
     #inspectionOwnerCompany[hidden],
     #inspectionLatheLabel[hidden],
     #inspectionInitialPurchaseLabel[hidden] { display: none !important; }
@@ -152,6 +154,28 @@
 
       <summary>条件から探す</summary>
 
+      <label class="admin-form-label">
+        所有区分
+        <select id="inspectionOwnershipFilter" class="admin-form-control">
+          <option value="">すべて</option>
+          <option value="shared">共有（会社）</option>
+          <option value="personal">個人（会社社員）</option>
+          <option value="contractor">協力業者</option>
+        </select>
+      </label>
+
+      <label id="inspectionSearchEmployeeLabel" class="admin-form-label" hidden>
+        使用者
+        <select id="inspectionEmployeeFilter" class="admin-form-control">
+          <option value="">すべて</option>
+        </select>
+      </label>
+      <label id="inspectionSearchContractorLabel" class="admin-form-label" hidden>
+        協力会社名
+        <select id="inspectionContractorFilter" class="admin-form-control">
+          <option value="">すべて</option>
+        </select>
+      </label>
 
       <label class="admin-form-label">
         大分類
@@ -161,7 +185,7 @@
           class="admin-form-control"
         >
           <option value="">
-            ---- 大分類を選択 ----
+            すべて
           </option>
         </select>
       </label>
@@ -176,7 +200,7 @@
           disabled
         >
           <option value="">
-            ---- 工具名を選択 ----
+            すべて
           </option>
         </select>
       </label>
@@ -511,7 +535,7 @@
   <script src="./tool-groups.js?v=1"></script>
   <script src="./tool-registration.js?v=1"></script>
   <script src="./tool-inspection-workflow.js?v=1"></script>
-  <script src="./tool-inspection-list.js?v=18"></script>
+  <script src="./tool-inspection-list.js?v=20"></script>
   <script src="./tool-inspection-registration.js?v=1"></script>
 
 </body>
